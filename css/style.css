@@ -1,0 +1,374 @@
+/* 1 - FONTES DO GOOGLE */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap');
+
+/* 2 - ESTILOS GERAIS */
+body {
+    background-color: #121212;
+    color: #F5F5F5;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* 3 - ESTILOS DE ESCRITA */
+h2,
+.logo-cabecalho {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+}
+
+.secao-principal h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+}
+
+/* 4 - SECAO PRINCIPAL */
+.secao-principal {
+    min-height: 80vh;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("../imagens/foto_principal.jpg");
+    background-size: cover;
+    background-position: center;
+    color: white;
+}
+
+/* 5 - ESTILOS PARA OS LINKS DO MENU */
+.nav-link {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* 6 - ESTILO DA LOGO NO CABECALHO */
+.navbar-brand img {
+    height: 70px;
+    width: auto;
+}
+
+/* 7 - ESTILOS DO RODAPE */
+footer {
+    border-top: 1px solid #444;
+}
+
+/* 8 - ESTILOS PAGINA ARTISTA */
+.especialidades-artista {
+    color: #c0c0c0;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-style: italic;
+}
+
+.foto-perfil-artista {
+    max-width: 300px;
+    height: 250px;
+    object-fit: cover;
+}
+
+/* 9 - ESTILOS PARA OS FORMULARIOS (LOGIN, CADASTRO ETC)  */
+.formulario-container {
+    background-color: #1c1c1c;
+    padding: 32px;
+    border: 1px solid #444;
+    border-radius: 8px;
+}
+
+.form-control {
+    background-color: #2c2c2c;
+    border-color: #444;
+    color: #F5F5F5;
+}
+
+.form-control:focus {
+    background-color: #2c2c2c;
+    border-color: #F5F5F5;
+    color: #F5F5F5;
+    box-shadow: none;
+}
+
+/* 10 - ESTILOS DA PÁGINA DE PORTFÓLIO */
+.portfolio-item {
+    position: relative;
+    overflow: hidden;
+    height: 280px;
+    background-color: #2c2c2c;
+    border-radius: 4px;
+}
+
+.portfolio-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.5s ease;
+}
+
+.portfolio-detalhes-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    text-align: center;
+    padding: 16px;
+}
+
+.portfolio-item:hover .portfolio-detalhes-overlay {
+    opacity: 1;
+}
+
+.portfolio-item:hover img {
+    transform: scale(1.1);
+    filter: blur(3px);
+}
+
+.detalhes-titulo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+}
+
+.detalhes-info {
+    margin: 2px 0;
+    font-size: 14px;
+}
+
+.pagination .page-link {
+    background-color: #2c2c2c;
+    border-color: #444;
+    color: #F5F5F5;
+    margin: 0 2px;
+}
+
+.pagination .page-link:hover {
+    background-color: #444;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #F5F5F5;
+    border-color: #F5F5F5;
+    color: #121212;
+}
+
+/* 11 - ESTILOS DA PÁGINA DE AGENDA */
+.calendario-container {
+    background-color: #1c1c1c;
+    padding: 32px;
+    border: 1px solid #444;
+    border-radius: 8px;
+}
+
+.calendario-header h2 {
+    font-family: 'Playfair Display', serif;
+}
+
+.calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.dia,
+.dia-semana {
+    padding: 16px;
+    text-align: center;
+    border-radius: 4px;
+    min-height: 100px;
+}
+
+.dia-semana {
+    font-weight: 700;
+    min-height: auto;
+}
+
+.dia {
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+}
+
+.dia.outro-mes {
+    color: #666;
+    background-color: #222;
+}
+
+.dia.dia-ocupado {
+    background-color: #333;
+    color: #777;
+}
+
+.dia.dia-livre {
+    background-color: #2c2c2c;
+    color: #a0a0a0;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+}
+
+.dia.dia-livre:hover {
+    background-color: #fff;
+    color: #121212;
+    border-color: #fff;
+    transform: scale(1.05);
+}
+
+.select-calendario {
+    min-width: 140px;
+}
+
+/* 12 - ESTILOS DO HEADER E SUBMENU */
+.navbar-nav .nav-link.text-center {
+    text-align: center;
+    display: block;
+}
+
+.submenu-painel {
+    background-color: #1c1c1c;
+    padding: 8px 0;
+    border-bottom: 1px solid #444;
+}
+
+.submenu-painel a {
+    color: #c0c0c0;
+    text-decoration: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.submenu-painel a:hover {
+    color: #fff;
+}
+
+/* PAGINA CLIENTE */
+.card-resumo {
+    background-color: #1c1c1c;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+/* 13 - ESTILOS DO ACORDEÃO */
+.accordion-item {
+    background-color: #1c1c1c;
+    border: 1px solid #444;
+}
+
+.accordion-button {
+    background-color: #2c2c2c;
+    color: #F5F5F5;
+}
+
+.accordion-button span {
+    font-size: 18px;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #333;
+    color: #fff;
+    box-shadow: none;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: #444;
+}
+
+.accordion-button::after {
+    filter: invert(1) grayscale(100%);
+}
+
+.accordion-body {
+    color: #e0e0e0;
+}
+
+/* 16 - ESTILOS DA JANELA MODAL */
+.modal-content {
+    background-color: #1c1c1c;
+    border: 1px solid #444;
+}
+
+.modal-header {
+    border-bottom: 1px solid #444;
+}
+
+.modal-footer {
+    border-top: 1px solid #444;
+}
+
+.modal-footer .btn-primary {
+    background-color: #F5F5F5;
+    color: #121212;
+    border-color: #F5F5F5;
+    font-weight: 700;
+}
+
+.modal-footer .btn-secondary {
+    background-color: transparent;
+    border-color: #444;
+}
+
+/* 17 - ESTILO DO BOTÃO PRIMÁRIO */
+.btn-primary {
+    background-color: #F5F5F5;
+    color: #121212;
+    border-color: #F5F5F5;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary:hover {
+    background-color: #c0c0c0;
+    border-color: #c0c0c0;
+    color: #121212;
+}
+
+/* 18 - ESTILOS DOS BADGES DE STATUS */
+.badge {
+    padding: 4px 8px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    font-size: 11px;
+}
+
+.status-acao {
+    background-color: #002c6e;
+    color: white;
+}
+
+.status-andamento {
+    background-color: #004626;
+    color: white;
+}
+
+.status-analise {
+    background-color: #644b00;
+    color: #ffffff;
+}
+
+.status-concluido {
+    background-color: #3d4348;
+    color: white;
+}
+
+.status-cancelado {
+    background-color: #570009;
+    color: white;
+}
+
+.btn:disabled {
+    background-color: #444;
+    border-color: #555;
+    color: #888;
+    cursor: not-allowed;
+}
+
+.accordion-body .d-flex .btn {
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    font-weight: 400 !important;
+    min-width: 95px;
+}
