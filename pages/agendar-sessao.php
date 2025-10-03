@@ -1,7 +1,7 @@
 <?php
 session_start();
 $titulo_pagina = "Solicitar Agendamento";
-include 'includes/header.php';
+include '../includes/header.php';
 
 // Pega a data da URL. É importante validar e formatar essa data quando conectar ao backend.
 $data_selecionada = $_GET['data'] ?? date('Y-m-d');
@@ -56,5 +56,5 @@ $data_formatada = date('d/m/Y', strtotime($data_selecionada));
 </main>
 
 <?php
-include 'includes/footer.php';
+include '../includes/footer.php';
 ?>

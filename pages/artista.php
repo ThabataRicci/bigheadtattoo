@@ -1,14 +1,14 @@
 <?php
 session_start();
 $titulo_pagina = "O Artista";
-include 'includes/header.php';
+include '../includes/header.php';
 ?>
 
 <main>
     <div class="container my-5 py-5">
         <div class="row align-items-center">
             <div class="col-md-4 text-center">
-                <img src="imagens/foto_artista.png" class="img-fluid rounded-circle mb-4 foto-perfil-artista" alt="Foto do Artista">
+                <img src="../imagens/foto_artista.png" class="img-fluid rounded-circle mb-4 foto-perfil-artista" alt="Foto do Artista">
             </div>
             <div class="col-md-8">
                 <h2 class="display-4">DANIEL KBÇA</h2>
@@ -22,7 +22,7 @@ include 'includes/header.php';
             <div class="row">
                 <div class="col-lg-3 col-md-4 col-6 mb-4">
                     <div class="portfolio-item">
-                        <img src="imagens/exemplo1.jpg">
+                        <img src="../imagens/exemplo1.jpg">
                         <div class="portfolio-detalhes-overlay">
                             <h5 class="detalhes-titulo">Dragão</h5>
                             <p class="detalhes-info">Estilo: Oriental</p>
@@ -33,7 +33,7 @@ include 'includes/header.php';
                 </div>
                 <div class="col-lg-3 col-md-4 col-6 mb-4">
                     <div class="portfolio-item">
-                        <img src="imagens/exemplo2.jpg">
+                        <img src="../imagens/exemplo2.jpg">
                         <div class="portfolio-detalhes-overlay">
                             <h5 class="detalhes-titulo">Rosa</h5>
                             <p class="detalhes-info">Estilo: Fineline</p>
@@ -58,5 +58,5 @@ include 'includes/header.php';
 </main>
 
 <?php
-include 'includes/footer.php';
+include '../includes/footer.php';
 ?>

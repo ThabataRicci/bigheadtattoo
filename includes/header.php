@@ -7,9 +7,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $titulo_pagina; ?> | BIG HEAD TATTOO</title>
+
+    <?php
+    // Define o caminho base para os assets (CSS, imagens)
+    $base_path = (strpos($_SERVER['REQUEST_URI'], '/pages/') === false) ? '' : '../';
+    ?>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>css/style.css">
 </head>
 
 <body>
@@ -17,8 +23,8 @@
     <header class="p-3">
         <nav class="navbar navbar-expand-lg navbar-dark">
             <div class="container">
-                <a class="navbar-brand logo-cabecalho" href="index.php">
-                    <img src="imagens/logo.png" alt="Logo Big Head Tattoo">
+                <a class="navbar-brand logo-cabecalho" href="<?php echo $base_path; ?>index.php">
+                    <img src="<?php echo $base_path; ?>imagens/logo.png" alt="Logo Big Head Tattoo">
                 </a>
             </div>
 
@@ -29,9 +35,12 @@
             <div class="container-fluid px-0">
                 <div class="collapse navbar-collapse justify-content-center" id="menuPrincipal">
                     <ul class="navbar-nav d-flex justify-content-center gap-4 w-100" style="max-width: 500px; margin: 0 auto;">
-                        <li class="nav-item"><a class="nav-link" href="portfolio.php">Portfólio</a></li>
-                        <li class="nav-item"><a class="nav-link text-center" href="artista.php">O Artista</a></li>
-                        <li class="nav-item"><a class="nav-link" href="agenda.php">Agenda</a></li>
+                        <?php
+                        $pages_prefix = (strpos($_SERVER['REQUEST_URI'], '/pages/') === false) ? 'pages/' : '';
+                        ?>
+                        <li class="nav-item"><a class="nav-link" href="<?php echo $pages_prefix; ?>portfolio.php">Portfólio</a></li>
+                        <li class="nav-item"><a class="nav-link text-center" href="<?php echo $pages_prefix; ?>artista.php">O Artista</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?php echo $pages_prefix; ?>agenda.php">Agenda</a></li>
                     </ul>
                 </div>
             </div>
@@ -53,11 +62,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="logout.php">Sair</a>
+                            <a class="nav-link" href="../logout.php">Sair</a>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="login.php">Login</a>
+                            <a class="nav-link" href="../login.php">Login</a>
                         </li>
                     <?php endif; ?>
                 </ul>

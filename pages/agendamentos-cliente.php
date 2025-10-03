@@ -6,7 +6,7 @@ $_SESSION['loggedin'] = true;
 $_SESSION['user_role'] = "cliente";
 
 $titulo_pagina = "Meus Agendamentos";
-include 'includes/header.php';
+include '../includes/header.php';
 ?>
 <main>
     <div class="container my-5 py-5">
@@ -176,5 +176,5 @@ include 'includes/header.php';
     </div>
 </main>
 <?php
-include 'includes/footer.php';
+include '../includes/footer.php';
 ?>

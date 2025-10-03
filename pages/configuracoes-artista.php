@@ -6,7 +6,7 @@ $_SESSION['loggedin'] = true;
 $_SESSION['user_role'] = "artista";
 
 $titulo_pagina = "Configurações";
-include 'includes/header.php';
+include '../includes/header.php';
 ?>
 
 <main>
@@ -86,5 +86,5 @@ include 'includes/header.php';
 </main>
 
 <?php
-include 'includes/footer.php';
+include '../includes/footer.php';
 ?>

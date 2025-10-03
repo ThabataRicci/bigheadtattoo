@@ -1,7 +1,7 @@
 <?php
 session_start();
 $titulo_pagina = "Portfólio";
-include 'includes/header.php';
+include '../includes/header.php';
 ?>
 
 <main>
@@ -16,7 +16,7 @@ include 'includes/header.php';
         <div class="row">
             <div class="col-lg-3 col-md-4 col-6 mb-4">
                 <div class="portfolio-item">
-                    <img src="imagens/exemplo1.jpg">
+                    <img src="../imagens/exemplo1.jpg">
                     <div class="portfolio-detalhes-overlay">
                         <h5 class="detalhes-titulo">Dragão</h5>
                         <p class="detalhes-info">Estilo: Oriental</p>
@@ -27,7 +27,7 @@ include 'includes/header.php';
             </div>
             <div class="col-lg-3 col-md-4 col-6 mb-4">
                 <div class="portfolio-item">
-                    <img src="imagens/exemplo2.jpg">
+                    <img src="../imagens/exemplo2.jpg">
                     <div class="portfolio-detalhes-overlay">
                         <h5 class="detalhes-titulo">Rosa</h5>
                         <p class="detalhes-info">Estilo: Fineline</p>
@@ -83,5 +83,5 @@ include 'includes/header.php';
 </main>
 
 <?php
-include 'includes/footer.php';
+include '../includes/footer.php';
 ?>

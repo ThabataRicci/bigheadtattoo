@@ -6,7 +6,7 @@ $_SESSION['loggedin'] = true;
 $_SESSION['user_role'] = "artista";
 
 $titulo_pagina = "Gerenciar Agenda";
-include 'includes/header.php';
+include '../includes/header.php';
 ?>
 <main>
     <div class="container my-5 py-5">
@@ -138,5 +138,5 @@ include 'includes/header.php';
 </div>
 
 <?php
-include 'includes/footer.php';
+include '../footer.php';
 ?>
