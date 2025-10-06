@@ -10,11 +10,20 @@ include '../includes/header.php';
         <h2 class="mb-5">GALERIA DE TRABALHOS</h2>
 
         <div class="filtros-portfolio mb-5">
-            <button class="btn btn-outline-light">Filtrar por Estilo ▼</button>
+            <div class="dropdown">
+                <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    Filtrar por Estilo
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <li><a class="dropdown-item" href="#" onclick="filtrarPortfolio('todos')">Todos</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="filtrarPortfolio('oriental')">Oriental</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="filtrarPortfolio('fineline')">Fineline</a></li>
+                </ul>
+            </div>
         </div>
 
         <div class="row">
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="col-lg-3 col-md-4 col-6 mb-4 item-filtrado" data-style="oriental">
                 <div class="portfolio-item">
                     <img src="../imagens/exemplo1.jpg">
                     <div class="portfolio-detalhes-overlay">
@@ -25,7 +34,7 @@ include '../includes/header.php';
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="col-lg-3 col-md-4 col-6 mb-4 item-filtrado" data-style="fineline">
                 <div class="portfolio-item">
                     <img src="../imagens/exemplo2.jpg">
                     <div class="portfolio-detalhes-overlay">
@@ -36,34 +45,16 @@ include '../includes/header.php';
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="col-lg-3 col-md-4 col-6 mb-4 item-filtrado" data-style="oriental">
                 <div class="portfolio-item"></div>
             </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="col-lg-3 col-md-4 col-6 mb-4 item-filtrado" data-style="fineline">
                 <div class="portfolio-item"></div>
             </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="col-lg-3 col-md-4 col-6 mb-4 item-filtrado" data-style="fineline">
                 <div class="portfolio-item"></div>
             </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <div class="portfolio-item"></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <div class="portfolio-item"></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <div class="portfolio-item"></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <div class="portfolio-item"></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <div class="portfolio-item"></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <div class="portfolio-item"></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="col-lg-3 col-md-4 col-6 mb-4 item-filtrado" data-style="oriental">
                 <div class="portfolio-item"></div>
             </div>
 
@@ -81,6 +72,20 @@ include '../includes/header.php';
 
     </div>
 </main>
+
+<script>
+    function filtrarPortfolio(estilo) {
+        const items = document.querySelectorAll('.item-filtrado');
+
+        items.forEach(item => {
+            if (estilo === 'todos' || item.getAttribute('data-style') === estilo) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+</script>
 
 <?php
 include '../includes/footer.php';

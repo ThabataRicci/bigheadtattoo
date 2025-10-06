@@ -49,56 +49,37 @@
                 <ul class="navbar-nav d-flex flex-row align-items-center position-absolute end-0 me-3">
                     <?php if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true): ?>
                         <?php
-                        // Verifica o tipo de usuário e define a URL de configurações
+                        // Define a URL do dashboard e das configurações com base no tipo de usuário
                         if ($_SESSION['user_role'] == 'cliente') {
-                            $config_url = 'configuracoes-cliente.php'; // Página de configurações para clientes
+                            $dashboard_url = 'dashboard-cliente.php';
+                            $config_url = 'configuracoes-cliente.php';
                         } elseif ($_SESSION['user_role'] == 'artista') {
-                            $config_url = 'configuracoes-artista.php'; // Página de configurações para tatuadores
+                            $dashboard_url = 'dashboard-artista.php';
+                            $config_url = 'configuracoes-artista.php';
                         }
                         ?>
+                        <li class="nav-item">
+                            <a class="nav-link me-2" href="<?php echo $dashboard_url; ?>" title="Painel Inicial">
+                                <i class="bi bi-house-door-fill fs-5"></i>
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link me-2" href="<?php echo $config_url; ?>" title="Configurações">
                                 <i class="bi bi-gear-fill fs-5"></i>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="../logout.php">Sair</a>
+                            <a class="nav-link" href="/bigheadtattoo/pages/logout.php">Sair</a>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="../login.php">Login</a>
+                            <a class="nav-link" href="/bigheadtattoo/pages/login.php">Login</a>
                         </li>
                     <?php endif; ?>
                 </ul>
             </div>
         </nav>
     </header>
-
-    <?php // LÓGICA DOS SUBMENUS
-    if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
-
-        // se for CLIENTE, mostra o submenu do cliente
-        if ($_SESSION['user_role'] == 'cliente'): ?>
-            <div class="submenu-painel">
-                <div class="container d-flex justify-content-center">
-                    <a href="dashboard-cliente.php">Painel Inicial</a>
-                    <a href="agendamentos-cliente.php">Agendamentos</a>
-                </div>
-            </div>
-
-        <?php // se for ARTISTA, mostra o submenu do artista
-        elseif ($_SESSION['user_role'] == 'artista'): ?>
-            <div class="submenu-painel">
-                <div class="container d-flex justify-content-center">
-                    <a href="dashboard-artista.php">Painel Inicial</a>
-                    <a href="agenda-artista.php">Gerenciar Agenda</a>
-                    <a href="portfolio-artista.php">Gerenciar Portfólio</a>
-                    <a href="relatorios-artista.php">Relatórios</a>
-                </div>
-            </div>
-        <?php endif; ?>
-
-    <?php endif; ?>
 </body>
 
 </html>

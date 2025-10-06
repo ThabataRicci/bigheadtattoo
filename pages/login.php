@@ -11,7 +11,7 @@ include '../includes/header.php';
 
                 <h2 class="text-center mb-4">ACESSAR SUA CONTA</h2>
 
-                <form class="formulario-container">
+                <form class="formulario-container" onsubmit="alert('Login realizado com sucesso! (Simulação)'); window.location.href='dashboard-cliente.php'; return false;">
                     <div class="mb-3">
                         <label for="email" class="form-label">E-mail:</label>
                         <input type="email" class="form-control" id="email" required>
@@ -29,10 +29,21 @@ include '../includes/header.php';
                         <button type="submit" class="btn btn-outline-light">ENTRAR</button>
                     </div>
 
+                    <?php
+                    # REMOVER A DIV ABAIXO QUANDO ADICIONAR O BANCO DE DADOS, É APENAS SIMULAÇÃO
+                    ?>
+                    <div class="text-center mt-4 d-flex justify-content-center gap-3">
+                        <a href="dashboard-cliente.php" class="btn btn-sm btn-primary">Simular Cliente</a>
+                        <a href="dashboard-artista.php" class="btn btn-sm btn-primary">Simular Artista</a>
+                    </div>
+
+
                     <div class="text-center mt-3">
                         <a href="cadastro.php" class="text-white small">Ainda não tem conta? Cadastre-se</a>
                     </div>
                 </form>
+
+
 
             </div>
         </div>
