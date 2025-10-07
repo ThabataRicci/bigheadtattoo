@@ -14,7 +14,7 @@ include '../includes/header.php';
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-7">
 
-                <h2 class="text-center mb-5">EDITAR PERFIL DO ARTISTA</h2>
+                <h2 class="text-center mb-5">EDITAR PERFIL</h2>
 
                 <form class="formulario-container">
                     <h5 class="text-white-50 mb-3">DADOS DO PERFIL</h5>

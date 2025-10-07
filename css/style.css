@@ -383,3 +383,54 @@ footer {
     font-weight: 400 !important;
     min-width: 95px;
 }
+
+/* 19 - BLOQUEAR HORARIOS AGENDA */
+#dias-folga-container {
+    justify-content: space-between;
+}
+
+#dias-folga-container .form-check-inline {
+    margin-right: 0;
+}
+
+/* 20 - ESTILO PARA OS HORÁRIOS NA AGENDA */
+#lista-horarios .list-group-item {
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    color: #F5F5F5;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+#lista-horarios .list-group-item:hover,
+#lista-horarios .list-group-item:focus {
+    background-color: #F5F5F5;
+    color: #121212;
+    border-color: #F5F5F5;
+}
+
+#lista-horarios .list-group-item.disabled {
+    background-color: #333;
+    color: #777;
+    border-color: #444;
+}
+
+/* 21. ESTILO PARA A LISTA DE AGENDAMENTOS DO DIA (ARTISTA) */
+#secao-detalhes .list-group {
+    border-radius: 8px;
+}
+
+#secao-detalhes .list-group-item {
+    background-color: #2c2c2c;
+    color: #e0e0e0;
+    border-color: #444;
+}
+
+#secao-detalhes .list-group-item h5,
+#secao-detalhes .list-group-item strong {
+    color: #F5F5F5;
+}
+
+#secao-detalhes .list-group-item:first-child {
+    border-top: none;
+}

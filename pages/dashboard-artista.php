@@ -11,8 +11,8 @@ include '../includes/header.php';
 
 <main>
     <div class="container my-5 py-5">
-        <div class="text-center">
-        </div>
+        <h2 class="text-center mb-4">PAINEL DE CONTROLE</h2>
+
 
         <div class="row text-center">
             <div class="col-md-4 mb-4">

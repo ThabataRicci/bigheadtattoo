@@ -1,6 +1,6 @@
 <?php
 session_start();
-$titulo_pagina = "Minhas Configurações";
+$titulo_pagina = "Configurações";
 include '../includes/header.php';
 ?>
 

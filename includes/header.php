@@ -40,7 +40,7 @@
                         ?>
                         <li class="nav-item"><a class="nav-link" href="<?php echo $pages_prefix; ?>portfolio.php">Portfólio</a></li>
                         <li class="nav-item"><a class="nav-link text-center" href="<?php echo $pages_prefix; ?>artista.php">O Artista</a></li>
-                        <li class="nav-item"><a class="nav-link" href="<?php echo $pages_prefix; ?>agenda.php">Agenda</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?php echo $pages_prefix; ?>solicitar-orcamento.php">Orçamento</a></li>
                     </ul>
                 </div>
             </div>
@@ -51,11 +51,11 @@
                         <?php
                         // Define a URL do dashboard e das configurações com base no tipo de usuário
                         if ($_SESSION['user_role'] == 'cliente') {
-                            $dashboard_url = 'dashboard-cliente.php';
-                            $config_url = 'configuracoes-cliente.php';
+                            $dashboard_url = '/bigheadtattoo/pages/dashboard-cliente.php';
+                            $config_url = '/bigheadtattoo/pages/configuracoes-cliente.php';
                         } elseif ($_SESSION['user_role'] == 'artista') {
-                            $dashboard_url = 'dashboard-artista.php';
-                            $config_url = 'configuracoes-artista.php';
+                            $dashboard_url = '/bigheadtattoo/pages/dashboard-artista.php';
+                            $config_url = '/bigheadtattoo/pages/configuracoes-artista.php';
                         }
                         ?>
                         <li class="nav-item">
