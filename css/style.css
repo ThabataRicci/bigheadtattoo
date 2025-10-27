@@ -216,42 +216,6 @@ footer {
     min-width: 140px;
 }
 
-/* 12 - ESTILOS DO HEADER E SUBMENU */
-/* 12 - ESTILOS DO HEADER E SUBMENU (ALTERADO) */
-.navbar-nav .nav-link.text-center {
-    text-align: center;
-    display: block;
-}
-
-.submenu-painel {
-    background-color: transparent;
-    /* Remove o fundo da barra */
-    padding: 10px 0;
-    /* Ajusta o espaçamento */
-    border-bottom: 1px solid #444;
-    text-align: center;
-    /* Garante que os links fiquem centraliz    ados */
-}
-
-.submenu-painel a {
-    color: #c0c0c0;
-    text-decoration: none;
-    padding: 8px 16px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: 4px;
-    /* Adiciona bordas arredondadas para o efeito hover */
-    transition: background-color 0.3s ease;
-    /* Adiciona uma transição suave */
-}
-
-.submenu-painel a:hover {
-    color: #fff;
-    background-color: #2a2a2a;
-    /* Adiciona um fundo sutil ao passar o mouse */
-}
-
 /* PAGINA CLIENTE */
 .card-resumo {
     background-color: #1c1c1c;
@@ -347,11 +311,6 @@ footer {
 
 .status-acao {
     background-color: #002c6e;
-    color: white;
-}
-
-.status-andamento {
-    background-color: #004626;
     color: white;
 }
 
