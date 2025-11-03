@@ -11,7 +11,7 @@ include '../includes/header.php';
 
                 <h2 class="text-center mb-4">ACESSAR SUA CONTA</h2>
                 <p>Acesse sua conta para realizar novos orçamentos e consultar seus agendamentos.</p>
-                <form class="formulario-container" onsubmit="alert('Login realizado com sucesso! (Simulação)'); window.location.href='dashboard-cliente.php'; return false;">
+                <form class="formulario-container" onsubmit="alert('Login realizado com sucesso! '); window.location.href='dashboard-cliente.php'; return false;">
                     <div class="mb-3">
                         <label for="email" class="form-label">E-mail:</label>
                         <input type="email" class="form-control" id="email" required>

@@ -113,7 +113,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             <div class="col-lg-6 mb-4">
                 <h4 class="mb-4">Próximas Sessões</h4>
 
-                <?php // SIMULAÇÃO DE DADOS 
+                <?php
                 ?>
                 <?php $proximas_sessoes = true; ?>
                 <?php if (!$proximas_sessoes): ?>

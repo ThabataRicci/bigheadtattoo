@@ -460,12 +460,11 @@ footer {
     color: #F5F5F5;
 }
 
-#abasProjetos .nav-link.active {
+ul#abasProjetos li.nav-item button.nav-link.active {
     background-color: transparent;
     border-bottom-color: #121212;
+    /* Cor do fundo do body */
 }
-
-
 
 /* 25. ESTILO DOS RELATORIOS */
 #abasRelatoriosConteudo {

@@ -97,7 +97,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form onsubmit="alert('Trabalho salvo com sucesso! (Simulação)'); return false;">
+                <form onsubmit="alert('Trabalho salvo com sucesso!'); return false;">
                     <div class="mb-3">
                         <label for="foto" class="form-label">Foto do Trabalho:</label>
                         <input type="file" class="form-control" id="foto" required>

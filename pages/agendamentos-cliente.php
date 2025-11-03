@@ -173,7 +173,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             </li>
         </ul>
 
-        <div class="tab-content" id="abasProjetosConteudo">
+        <div class="tab-content tab-content-boxed" id="abasProjetosConteudo">
 
             <div class="tab-pane fade show active" id="tab-proximas" role="tabpanel" aria-labelledby="proximas-tab">
                 <?php if (empty($proximas_sessoes)): ?>
