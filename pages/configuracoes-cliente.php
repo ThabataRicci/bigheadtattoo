@@ -49,7 +49,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         </li>
                     </ul>
 
-                    <div class="tab-content" id="abasConfigClienteConteudo">
+                    <div class="tab-content tab-content-boxed" id="abasConfigClienteConteudo">
 
                         <div class="tab-pane fade show active" id="tab-dados" role="tabpanel" aria-labelledby="dados-tab">
                             <h5 class="text-white-50 mb-3">DADOS PESSOAIS</h5>

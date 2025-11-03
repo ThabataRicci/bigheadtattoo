@@ -39,7 +39,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     <div class="container my-5 py-5">
         <h2 class="text-center mb-5">RELATÓRIOS</h2>
 
-        <ul class="nav nav-tabs nav-tabs-dark mb-4" id="abasRelatorios" role="tablist">
+        <ul class="nav nav-tabs nav-tabs-dark mb-0" id="abasRelatorios" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="historico-tab" data-bs-toggle="tab" data-bs-target="#tab-historico" type="button" role="tab" aria-controls="tab-historico" aria-selected="true">Histórico de Agendamentos</button>
             </li>
@@ -51,46 +51,59 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         <div class="tab-content" id="abasRelatoriosConteudo">
 
             <div class="tab-pane fade show active" id="tab-historico" role="tabpanel" aria-labelledby="historico-tab">
-                <h4 class="mb-4">Histórico de Agendamentos</h4>
 
-                <div class="mb-5">
-                    <div class="d-flex justify-content-end mb-3">
-                        <a href="#" class="btn btn-sm btn-outline-light">Este Mês</a>
-                        <a href="#" class="btn btn-sm btn-outline-light ms-2">Mês Passado</a>
-                        <a href="#" class="btn btn-sm btn-outline-light ms-2">Todos</a>
+                <form class="filtro-container mb-4" onsubmit="alert('Filtro aplicado'); return false;">
+                    <div class="filtro-item">
+                        <label for="hist-data-inicio" class="form-label">De:</label>
+                        <input type="date" class="form-control" id="hist-data-inicio" name="hist-data-inicio">
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-dark table-hover">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Data</th>
-                                    <th scope="col">Cliente</th>
-                                    <th scope="col">Projeto</th>
-                                    <th scope="col">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>20/09/2025</td>
-                                    <td>Thábata Ricci</td>
-                                    <td>Fechamento de Braço (Sessão 1/3)</td>
-                                    <td><span class="badge status-concluido">Concluído</span></td>
-                                </tr>
-                                <tr>
-                                    <td>10/08/2025</td>
-                                    <td>Izabella Bianca</td>
-                                    <td>Tatuagem Geométrica (Sessão 1/1)</td>
-                                    <td><span class="badge status-cancelado">Cancelado</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="filtro-item">
+                        <label for="hist-data-fim" class="form-label">Até:</label>
+                        <input type="date" class="form-control" id="hist-data-fim" name="hist-data-fim">
                     </div>
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Data</th>
+                                <th scope="col">Cliente</th>
+                                <th scope="col">Projeto</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>20/09/2025</td>
+                                <td>Thábata Ricci</td>
+                                <td>Fechamento de Braço (Sessão 1/3)</td>
+                                <td><span class="badge status-concluido">Concluído</span></td>
+                            </tr>
+                            <tr>
+                                <td>10/08/2025</td>
+                                <td>Izabella Bianca</td>
+                                <td>Tatuagem Geométrica (Sessão 1/1)</td>
+                                <td><span class="badge status-cancelado">Cancelado</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <div class="tab-pane fade" id="tab-clientes" role="tabpanel" aria-labelledby="clientes-tab">
-                <h4 class="mb-4">Clientes Cadastrados</h4>
 
+                <form class="filtro-container mb-4" onsubmit="alert('Filtro aplicado'); return false;">
+                    <div class="filtro-item">
+                        <label for="cli-data-inicio" class="form-label">Cadastrados de:</label>
+                        <input type="date" class="form-control" id="cli-data-inicio" name="cli-data-inicio">
+                    </div>
+                    <div class="filtro-item">
+                        <label for="cli-data-fim" class="form-label">Até:</label>
+                        <input type="date" class="form-control" id="cli-data-fim" name="cli-data-fim">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                </form>
                 <div class="table-responsive">
                     <table class="table table-dark table-hover">
                         <thead>
