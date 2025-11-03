@@ -50,9 +50,22 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 'local' => 'Costas',
                 'tamanho_cod' => 'PG',
                 'tamanho_desc' => 'Fechamento',
-                'ideia' => '"Gostaria de fechar as costas com um dragão oriental..."',
-                'ref' => 'ver_imagem_dragao.jpg',
+                'ideia' => '"Gostaria de fechar as costas com um dragão oriental"',
+                'ref' => 'referenciadragao.jpg',
                 'duracao' => 'Dia Todo'
+            ],
+
+            [
+                'id' => 103,
+                'titulo' => 'Asas no Pescoço',
+                'status' => 'Agende sua sessão',
+                'status_class' => 'status-acao',
+                'local' => 'Pescoço',
+                'tamanho_cod' => 'PM',
+                'tamanho_desc' => 'Médio (aprox. 15-20cm)',
+                'ideia' => '"Fazer asas no pescoço"',
+                'ref' => '',
+                'duracao' => '2 horas'
             ]
         ];
 
@@ -60,29 +73,29 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             [
                 'id' => 102,
                 'tamanho_cod' => 'PG',
-                'titulo' => 'Fechamento de Perna',
-                'data' => '28/10/2025 às 10:00',
+                'titulo' => 'Fechamento de Braço',
+                'data' => '08/11/2025 às 10:00',
                 'local' => 'Perna',
                 'tamanho_desc' => 'Fechamento',
-                'ideia' => '"Projeto para fechar a perna."',
-                'ref' => 'ver_referencia.jpg',
+                'ideia' => '"Projeto pra fechar o braço."',
+                'ref' => '',
                 'duracao' => 'Dia Todo',
                 'historico_sessoes' => [
                     ['desc' => 'Sessão 1: Concluída em 01/10/2025', 'pode_cancelar' => false],
-                    ['desc' => 'Sessão 2: Agendada para 28/10/2025 às 10:00', 'pode_cancelar' => true]
+                    ['desc' => 'Sessão 2: Agendada para 08/11/2025 às 10:00', 'pode_cancelar' => true]
                 ]
             ]
         ];
 
         $orcamentos_pendentes = [
             [
-                'titulo' => 'Tatuagem Fineline',
+                'titulo' => 'Rosa Fineline',
                 'status' => 'Aguardando Análise',
                 'status_class' => 'status-analise',
                 'local' => 'Pulso',
                 'tamanho_desc' => 'Pequeno (aprox. 5cm)',
-                'ideia' => '"A palavra resiliência em fineline no pulso."',
-                'ref' => 'ref_fineline.jpg',
+                'ideia' => '"Uma rosa pequena e delicada em fineline."',
+                'ref' => 'rosafineline.jpg',
                 'detalhe_status' => 'Sua ideia foi enviada e está com o artista para análise.'
             ]
         ];
@@ -90,28 +103,28 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         $historico = [
             [
                 'tipo' => 'concluido',
-                'titulo' => 'Rosa no Antebraço',
+                'titulo' => 'Borboleta',
                 'status' => 'Concluído',
                 'status_class' => 'status-concluido',
-                'local' => 'Antebraço',
+                'local' => 'Perna',
                 'tamanho_desc' => 'Médio (aprox. 15cm)',
-                'ideia' => '"Uma rosa com traços finos e um pouco de sombra..."',
-                'ref' => 'rosa_ref.jpg',
+                'ideia' => '"Uma borboleta na perna"',
+                'ref' => 'borboleta.jpg',
                 'detalhe_sessao' => '<p class="text-white-50 mb-2 mt-4"><strong>Detalhes da Sessão:</strong></p>
                                      <ul class="list-unstyled card-resumo p-3 small">
                                          <li><strong>Duração da Sessão:</strong> 2 horas</li>
-                                         <li><strong>Data da Sessão:</strong> 15/08/2025</li>
+                                         <li><strong>Data da Sessão:</strong> 01/11/2025</li>
                                      </ul>'
             ],
             [
                 'tipo' => 'recusado',
-                'titulo' => 'Tatuagem Geométrica',
+                'titulo' => 'Tatuagem no Rosto',
                 'status' => 'Recusado',
                 'status_class' => 'status-cancelado',
-                'local' => 'Costas',
-                'tamanho_desc' => 'Grande (aprox. 30cm)',
-                'ideia' => '"Uma mandala grande nas costas."',
-                'ref' => 'mandala_ref.jpg',
+                'local' => 'Rosto',
+                'tamanho_desc' => 'Pequeno (aprox. 5cm)',
+                'ideia' => '"Um símbolo no rosto."',
+                'ref' => 'referencia.jpg',
                 'detalhe_status' => '"Olá! Agradeço o interesse, mas no momento não estou trabalhando com este tipo de projeto."'
             ]
         ];

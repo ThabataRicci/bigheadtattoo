@@ -2,7 +2,6 @@
 session_start();
 
 $_SESSION['loggedin'] = true;
-$_SESSION['nome'] = "xxxxxxxxxxxxxxxxx";
 $_SESSION['user_role'] = "cliente";
 
 $titulo_pagina = "Meu Painel";
@@ -65,12 +64,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                     <div class="card-resumo mb-3">
                         <p class="mb-1"><strong>Fechamento de Braço</strong></p>
-                        <p class="text-white-50 small mb-0">Data: 25/10/2025 - Horário: 14:00</p>
-                    </div>
-
-                    <div class="card-resumo mb-3">
-                        <p class="mb-1"><strong>Rosa Fineline</strong></p>
-                        <p class="text-white-50 small mb-0">Data: 15/11/2025 - Horário: 10:00</p>
+                        <p class="text-white-50 small mb-0">Data: 08/11/2025 - Horário: 10:00</p>
                     </div>
 
                 <?php endif; ?>

@@ -55,7 +55,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             </div>
             <div class="col-md-4 mb-4">
                 <div class="card-resumo">
-                    <h3>X</h3>
+                    <h3>1</h3>
                     <p class="text-white-50 mb-0">Novos Clientes no Mês</p>
                 </div>
             </div>
@@ -80,16 +80,16 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item1">
                                     <div class="w-100 d-flex justify-content-between">
-                                        <span><strong>Cliente:</strong> Izabella Bianca | <strong>Ideia:</strong> Fechamento de costas</span>
+                                        <span><strong>Cliente:</strong> Thábata Ricci | <strong>Ideia:</strong> Rosa Fineline</span>
                                     </div>
                                 </button>
                             </h2>
                             <div id="item1" class="accordion-collapse collapse" data-bs-parent="#acordeaoSolicitacoes">
                                 <div class="accordion-body">
-                                    <p><strong>Local do Corpo:</strong> Costas</p>
-                                    <p><strong>Tamanho Aproximado:</strong> Fechamento</p>
-                                    <p><strong>Ideia do Cliente:</strong> "Gostaria de iniciar um projeto de fechamento de costas com um dragão oriental..."</p>
-                                    <p><strong>Referência Enviada:</strong> <a href="#" class="text-white-50">ver_imagem_dragao.jpg</a></p>
+                                    <p><strong>Local do Corpo:</strong> Pulso</p>
+                                    <p><strong>Tamanho Aproximado:</strong> Pequeno (aprox. 5cm)</p>
+                                    <p><strong>Ideia do Cliente:</strong> "Uma rosa pequena e delicada em fineline."</p>
+                                    <p><strong>Referência Enviada:</strong> <a href="#" class="text-white-50">rosafineline.jpg</a></p>
                                     <div class="d-flex justify-content-end align-items-center">
                                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalRecusar">Recusar</button>
                                         <div class="dropdown ms-2">
@@ -129,18 +129,18 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                                     <div class="w-100 d-flex flex-column">
                                         <div class="d-flex justify-content-between w-100">
-                                            <span><strong>Projeto:</strong> Tatuagem Fineline</span>
-                                            <span class="me-3"><strong>Data:</strong> 20/10/2025 às 11:00</span>
+                                            <span><strong>Projeto:</strong> Fechamento de Braço</span>
+                                            <span class="me-3"><strong>Data:</strong> 08/11/2025 às 10:00</span>
                                         </div>
-                                        <span class="mt-1 small text-white-50"><strong>Cliente:</strong> João Silva</span>
+                                        <span class="mt-1 small text-white-50"><strong>Cliente:</strong> Thábata Ricci</span>
                                     </div>
                                 </button>
                             </h2>
                             <div id="sessaoPP" class="accordion-collapse collapse" data-bs-parent="#acordeaoSessoesAgendadas">
                                 <div class="accordion-body">
                                     <ul class="list-unstyled card-resumo p-3 small mb-0">
-                                        <li><strong>Local do Corpo:</strong> Pulso</li>
-                                        <li><strong>Duração da Sessão:</strong> 30 minutos</li>
+                                        <li><strong>Local do Corpo:</strong> Braço</li>
+                                        <li><strong>Duração da Sessão:</strong> Dia Todo</li>
                                     </ul>
                                     <div class="text-end mt-3">
                                         <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Sessão</button>
@@ -155,10 +155,10 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                                     <div class="w-100 d-flex flex-column">
                                         <div class="d-flex justify-content-between w-100">
-                                            <span><strong>Projeto:</strong> Fechamento de Perna</span>
-                                            <span class="me-3"><strong>Data:</strong> 28/10/2025 às 10:00</span>
+                                            <span><strong>Projeto:</strong> Tatuagem Harry Potter</span>
+                                            <span class="me-3"><strong>Data:</strong> 15/11/2025 às 15:00</span>
                                         </div>
-                                        <span class="mt-1 small text-white-50"><strong>Cliente:</strong> Maria Oliveira</span>
+                                        <span class="mt-1 small text-white-50"><strong>Cliente:</strong> Izabella Bianca</span>
                                     </div>
                                 </button>
                             </h2>
@@ -166,7 +166,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 <div class="accordion-body">
                                     <ul class="list-unstyled card-resumo p-3 small mb-0">
                                         <li><strong>Local do Corpo:</strong> Perna</li>
-                                        <li><strong>Duração da Sessão:</strong> Dia Todo</li>
+                                        <li><strong>Duração da Sessão:</strong> 2 Horas</li>
                                     </ul>
                                     <div class="text-end mt-3">
                                         <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Sessão</button>
