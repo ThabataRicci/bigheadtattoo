@@ -10,7 +10,7 @@ include '../includes/header.php';
             <div class="col-md-6 col-lg-5">
 
                 <h2 class="text-center mb-4">ACESSAR SUA CONTA</h2>
-
+                <p>Acesse sua conta para realizar novos orçamentos e consultar seus agendamentos.</p>
                 <form class="formulario-container" onsubmit="alert('Login realizado com sucesso! (Simulação)'); window.location.href='dashboard-cliente.php'; return false;">
                     <div class="mb-3">
                         <label for="email" class="form-label">E-mail:</label>

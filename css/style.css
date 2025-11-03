@@ -393,3 +393,31 @@ footer {
 #secao-detalhes .list-group-item:first-child {
     border-top: none;
 }
+
+/* 12 - SUBMENU DO PAINEL */
+.submenu-painel {
+    background-color: #1c1c1c;
+    padding: 10px 0;
+    border-bottom: 1px solid #444;
+    text-align: center;
+    margin-bottom: 32px;
+    /* Adicionado para dar espaço */
+}
+
+.submenu-painel a {
+    color: #c0c0c0;
+    text-decoration: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.submenu-painel a:hover,
+.submenu-painel a.active {
+    /* Adicionado seletor .active */
+    color: #fff;
+    background-color: #2a2a2a;
+}

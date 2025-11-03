@@ -9,6 +9,19 @@ $titulo_pagina = "Gerenciar Portfólio";
 include '../includes/header.php';
 ?>
 
+<?php
+// Define qual página está ativa para destacar o link no menu
+$pagina_ativa = basename($_SERVER['PHP_SELF']);
+?>
+
+<div class="submenu-painel">
+    <a href="dashboard-artista.php" class="<?php echo ($pagina_ativa == 'dashboard-artista.php') ? 'active' : ''; ?>">Início</a>
+    <a href="agenda-artista.php" class="<?php echo ($pagina_ativa == 'agenda-artista.php' || $pagina_ativa == 'agenda.php') ? 'active' : ''; ?>">Agenda</a>
+    <a href="portfolio-artista.php" class="<?php echo ($pagina_ativa == 'portfolio-artista.php') ? 'active' : ''; ?>">Portfólio</a>
+    <a href="relatorios-artista.php" class="<?php echo ($pagina_ativa == 'relatorios-artista.php') ? 'active' : ''; ?>">Relatórios</a>
+    <a href="configuracoes-artista.php" class="<?php echo ($pagina_ativa == 'configuracoes-artista.php') ? 'active' : ''; ?>">Configurações</a>
+</div>
+
 <main>
     <div class="container my-5 py-5">
         <div class="text-center mb-5">

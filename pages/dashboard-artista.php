@@ -8,6 +8,18 @@ $_SESSION['user_role'] = "artista";
 $titulo_pagina = "Painel de Controle";
 include '../includes/header.php';
 ?>
+<?php
+// Define qual página está ativa para destacar o link no menu
+$pagina_ativa = basename($_SERVER['PHP_SELF']);
+?>
+
+<div class="submenu-painel">
+    <a href="dashboard-artista.php" class="<?php echo ($pagina_ativa == 'dashboard-artista.php') ? 'active' : ''; ?>">Início</a>
+    <a href="agenda.php" class="<?php echo ($pagina_ativa == 'agenda.php' || $pagina_ativa == 'agenda.php') ? 'active' : ''; ?>">Agenda</a>
+    <a href="portfolio-artista.php" class="<?php echo ($pagina_ativa == 'portfolio-artista.php') ? 'active' : ''; ?>">Portfólio</a>
+    <a href="relatorios-artista.php" class="<?php echo ($pagina_ativa == 'relatorios-artista.php') ? 'active' : ''; ?>">Relatórios</a>
+    <a href="configuracoes-artista.php" class="<?php echo ($pagina_ativa == 'configuracoes-artista.php') ? 'active' : ''; ?>">Configurações</a>
+</div>
 
 <main>
     <div class="container my-5 py-5">
@@ -42,7 +54,7 @@ include '../includes/header.php';
                 <div class="card-resumo">
                     <h4>Gerenciar Agenda</h4>
                     <p class="text-white-50">Você tem X solicitações para aprovar.</p>
-                    <a href="agenda-artista.php" class="btn btn-outline-light">Ver Agenda</a>
+                    <a href="agenda.php" class="btn btn-outline-light">Ver Agenda</a>
                 </div>
             </div>
             <div class="col-md-6 mb-4">

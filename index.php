@@ -8,7 +8,7 @@ include 'includes/header.php';
     <section class="secao-principal d-flex justify-content-center align-items-center text-center">
         <div class="container">
             <h1 class="display-3">BIG HEAD TATTOO</h1>
-            <a href="pages/agenda.php" class="btn btn-outline-light btn-lg mt-3">AGENDAR SESSÃO</a>
+            <a href="pages/solicitar-orcamento.php" class="btn btn-outline-light btn-lg mt-3">SOLICITAR ORÇAMENTO</a>
         </div>
     </section>
 
