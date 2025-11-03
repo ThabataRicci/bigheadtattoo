@@ -83,7 +83,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                             <tr>
                                 <td>10/08/2025</td>
                                 <td>Izabella Bianca</td>
-                                <td>Tatuagem Geométrica (Sessão 1/1)</td>
+                                <td>Tatuagem Fine Line (Sessão 1/1)</td>
                                 <td><span class="badge status-cancelado">Cancelado</span></td>
                             </tr>
                         </tbody>

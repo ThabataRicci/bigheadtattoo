@@ -14,14 +14,14 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
     if ($_SESSION['user_role'] == 'artista') {
         // menu do artista
-        echo '<a href="' . $link_prefix . 'dashboard-artista.php" class="' . ($pagina_ativa == 'index.php' ? 'active' : '') . '">Início</a>'; // 'index.php' é a pág ativa, mas o link é pro dashboard
+        echo '<a href="' . $link_prefix . 'dashboard-artista.php" class="' . ($pagina_ativa == 'index.php' ? 'active' : '') . '">Início</a>';
         echo '<a href="' . $link_prefix . 'agenda.php">Agenda</a>';
         echo '<a href="' . $link_prefix . 'portfolio-artista.php">Portfólio</a>';
         echo '<a href="' . $link_prefix . 'relatorios-artista.php">Relatórios</a>';
         echo '<a href="' . $link_prefix . 'configuracoes-artista.php">Configurações</a>';
     } else {
         // menu do cliente
-        echo '<a href="' . $link_prefix . 'dashboard-cliente.php" class="' . ($pagina_ativa == 'index.php' ? 'active' : '') . '">Início</a>'; // 'index.php' é a pág ativa, mas o link é pro dashboard
+        echo '<a href="' . $link_prefix . 'dashboard-cliente.php" class="' . ($pagina_ativa == 'index.php' ? 'active' : '') . '">Início</a>';
         echo '<a href="' . $link_prefix . 'agendamentos-cliente.php">Meus Agendamentos</a>';
         echo '<a href="' . $link_prefix . 'solicitar-orcamento.php">Orçamento</a>';
         echo '<a href="' . $link_prefix . 'configuracoes-cliente.php">Configurações</a>';

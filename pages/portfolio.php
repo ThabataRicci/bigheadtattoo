@@ -4,6 +4,33 @@ $titulo_pagina = "Portfólio";
 include '../includes/header.php';
 ?>
 
+<?php
+if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
+
+    $pagina_ativa = basename($_SERVER['PHP_SELF']);
+    $link_prefix = 'pages/';
+
+    echo '<div class="submenu-painel">';
+
+    if ($_SESSION['user_role'] == 'artista') {
+        // menu do artista
+        echo '<a href="' . $link_prefix . 'dashboard-artista.php" class="' . ($pagina_ativa == 'index.php' ? 'active' : '') . '">Início</a>';
+        echo '<a href="' . $link_prefix . 'agenda.php">Agenda</a>';
+        echo '<a href="' . $link_prefix . 'portfolio-artista.php">Portfólio</a>';
+        echo '<a href="' . $link_prefix . 'relatorios-artista.php">Relatórios</a>';
+        echo '<a href="' . $link_prefix . 'configuracoes-artista.php">Configurações</a>';
+    } else {
+        // menu do cliente
+        echo '<a href="' . $link_prefix . 'dashboard-cliente.php" class="' . ($pagina_ativa == 'index.php' ? 'active' : '') . '">Início</a>';
+        echo '<a href="' . $link_prefix . 'agendamentos-cliente.php">Meus Agendamentos</a>';
+        echo '<a href="' . $link_prefix . 'solicitar-orcamento.php">Orçamento</a>';
+        echo '<a href="' . $link_prefix . 'configuracoes-cliente.php">Configurações</a>';
+    }
+
+    echo '</div>';
+}
+?>
+
 <main>
     <div class="container text-center my-5 py-5">
 
