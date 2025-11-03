@@ -129,7 +129,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <li><strong>Duração da Sessão:</strong> <?php echo $proj['duracao']; ?></li>
                     </ul>
                     <div class="text-end mt-3">
-                        <a href="agenda.php?projeto_id=<?php echo $proj['id']; ?>&tamanho=<?php echo $proj['tamanho_cod']; ?>" class="btn btn-primary">AGENDAR SESSÃO</a>
+                        <a href="agenda.php?projeto_id=<?php echo $proj['id']; ?>&tamanho=<?php echo $proj['tamanho_cod']; ?>" class="btn btn-secondary ">AGENDAR SESSÃO</a>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -280,9 +280,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             </div>
             <div class="modal-body">
                 <p>Você tem certeza que deseja cancelar esta sessão?</p>
-
-                <p class="small text-white-50">Atenção: Cancelamentos com menos de 48h de antecedência podem estar sujeitos à perda do sinal. Entre em contato com o artista para mais detalhes.</p>
-
                 <form onsubmit="alert('Sessão cancelada (simulação).'); return false;">
                     <input type="hidden" name="sessao_id" value="ID_DA_SESSAO_A_CANCELAR">
                     <div class="modal-footer">

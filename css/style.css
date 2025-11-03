@@ -236,9 +236,11 @@ footer {
     color: #F5F5F5;
 }
 
+/*
 .accordion-button span {
-    font-size: 18px;
+    font-size: 13px;
 }
+    */
 
 .accordion-button:not(.collapsed) {
     background-color: #333;
@@ -308,18 +310,21 @@ footer {
     letter-spacing: 0.5px;
     font-size: 11px;
     display: inline-block;
-    min-width: 150px;
+    min-width: 170px;
     text-align: center;
+    white-space: nowrap;
 }
 
 .status-acao {
     background-color: #002c6e;
     color: white;
+    font-size: 13px;
 }
 
 .status-analise {
     background-color: #644b00;
     color: #ffffff;
+    font-size: 13px;
 }
 
 .status-concluido {
@@ -426,8 +431,10 @@ footer {
     background-image: linear-gradient(rgba(245, 245, 245, 0.05), rgba(245, 245, 245, 0.05));
 }
 
-.card-acao .btn-primary {
-    animation: pulse 1.5s infinite;
+.card-acao .btn-secondary {
+    background-color: white;
+    color: black;
+    font-weight: bold;
 }
 
 /* 24 - ESTILOS DAS ABAS */
