@@ -1,10 +1,8 @@
 <?php
 session_start();
 
-// --- DETECÇÃO DE QUEM ESTÁ LOGADO (CLIENTE OU ARTISTA) ---
 $is_artista = (isset($_SESSION['loggedin']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'artista');
 
-// --- LÓGICA DO CALENDÁRIO COMPLETA (COM NAVEGAÇÃO) ---
 $ANO_VISUALIZACAO = 2025;
 $ANO_ATIVO = 2025;
 $MES_ATIVO = 10;
@@ -17,7 +15,7 @@ if ($ano < $ANO_VISUALIZACAO) {
     $mes = 1;
 }
 
-$dias_folga_semana = [0]; // Domingo
+$dias_folga_semana = [0]; // domingo
 $dias_bloqueados_pelo_artista = ['2025-10-20', '2025-10-21', '2025-11-15'];
 
 $primeiro_dia_timestamp = mktime(0, 0, 0, $mes, 1, $ano);
@@ -42,24 +40,19 @@ $projeto_id = $_GET['projeto_id'] ?? 0;
 $tamanho = $_GET['tamanho'] ?? '';
 
 
-// --- IMPLEMENTAÇÃO DA MELHORIA B (PROTEÇÃO DE PÁGINA) ---
 $cliente_pode_agendar = true;
 if (!$is_artista && ($projeto_id == 0 || $tamanho == '')) {
     $cliente_pode_agendar = false;
 }
-// --- FIM DA MELHORIA B ---
-
 
 $titulo_pagina = $is_artista ? "Gerenciar Agenda" : "Escolha o Dia e Horário";
 include '../includes/header.php';
 ?>
 
 <?php
-// --- IMPLEMENTAÇÃO DO SUB-MENU CONDICIONAL ---
-// Define qual página está ativa para destacar o link no menu
+// submenu
 $pagina_ativa = basename($_SERVER['PHP_SELF']);
 
-// Mostra o sub-menu apenas se o usuário estiver logado
 if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
 
     if ($is_artista): ?>
@@ -74,23 +67,20 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
         <div class="submenu-painel">
             <a href="dashboard-cliente.php" class="<?php echo ($pagina_ativa == 'dashboard-cliente.php') ? 'active' : ''; ?>">Início</a>
             <a href="agendamentos-cliente.php" class="<?php echo ($pagina_ativa == 'agendamentos-cliente.php') ? 'active' : ''; ?>">Meus Agendamentos</a>
-            <a href="configuracoes-cliente.php" class="<?php echo ($pagina_ativa == 'configuracoes-cliente.php') ? 'active' : ''; ?>">Meu Perfil</a>
+            <a href="solicitar-orcamento.php" class=<<?php echo ($pagina_ativa == 'solicitar.orcamento.php') ? 'active' : ''; ?> ">Orçamento </a>
+                <a href=" configuracoes-cliente.php" class="<?php echo ($pagina_ativa == 'configuracoes-cliente.php') ? 'active' : ''; ?>">Configurações</a>
         </div>
     <?php endif; ?>
 
 <?php endif; ?>
-<?php // --- FIM DO SUB-MENU CONDICIONAL --- 
+<?php
 ?>
 
 
 <main>
     <div class="container my-5 py-5">
 
-        <?php
-        // --- INÍCIO DO CONTEÚDO CONDICIONAL (MELHORIA B) ---
-        // Se for artista, mostra o conteúdo.
-        // Se for cliente, SÓ mostra se ele puder agendar.
-        ?>
+
         <?php if ($is_artista || $cliente_pode_agendar): ?>
 
             <div class="text-center mb-4">
@@ -260,7 +250,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
 
         <?php else: ?>
 
-            <?php // O cliente não pode agendar, mostramos uma mensagem de erro amigável 
+            <?php
             ?>
             <div class="row justify-content-center">
                 <div class="col-md-8 col-lg-7">
@@ -275,7 +265,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
             </div>
 
         <?php endif; ?>
-        <?php // --- FIM DO CONTEÚDO CONDICIONAL --- 
+        <?php
         ?>
 
     </div>

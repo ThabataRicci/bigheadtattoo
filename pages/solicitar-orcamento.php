@@ -1,41 +1,45 @@
 <?php
 session_start();
 
-// --- CORREÇÃO: Lógica de verificação sem redirecionamento forçado ---
-
-$usuario_logado = false; // Flag para controlar a exibição
-
-// 1. VERIFICA SE O CLIENTE ESTÁ LOGADO
+$usuario_logado = false;
 if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
-
-    // Garante que apenas clientes possam solicitar (artistas não podem)
     if ($_SESSION['user_role'] === 'artista') {
-        // Redireciona o artista para o painel dele, pois ele não solicita orçamento
         header("location: dashboard-artista.php");
         exit;
     }
-
-    // Se chegou até aqui, é um cliente logado
     $usuario_logado = true;
 }
-// Se não estiver logado, $usuario_logado permanece 'false' e a página HTML abaixo
-// irá mostrar a mensagem para fazer login, em vez de redirecionar.
 
 $titulo_pagina = "Solicitar Orçamento";
 include '../includes/header.php';
 ?>
 
 <?php
-// Define qual página está ativa para destacar o link no menu
-$pagina_ativa = basename($_SERVER['PHP_SELF']);
-?>
+if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
-<div class="submenu-painel">
-    <a href="dashboard-cliente.php" class="<?php echo ($pagina_ativa == 'dashboard-cliente.php') ? 'active' : ''; ?>">Início</a>
-    <a href="agendamentos-cliente.php" class="<?php echo ($pagina_ativa == 'agendamentos-cliente.php') ? 'active' : ''; ?>">Meus Agendamentos</a>
-    <a href="solicitar-orcamento.php" class="<?php echo ($pagina_ativa == 'solicitar-orcamento.php') ? 'active' : ''; ?>">Orçamento</a>
-    <a href="configuracoes-cliente.php" class="<?php echo ($pagina_ativa == 'configuracoes-cliente.php') ? 'active' : ''; ?>">Configurações</a>
-</div>
+    $pagina_ativa = basename($_SERVER['PHP_SELF']);
+    $link_prefix = '';
+
+    echo '<div class="submenu-painel">';
+
+    if ($_SESSION['user_role'] == 'artista') {
+        // menu do artista
+        echo '<a href="' . $link_prefix . 'dashboard-artista.php" class="' . ($pagina_ativa == 'dashboard-artista.php' ? 'active' : '') . '">Início</a>';
+        echo '<a href="' . $link_prefix . 'agenda.php" class="' . ($pagina_ativa == 'agenda.php' ? 'active' : '') . '">Agenda</a>';
+        echo '<a href="' . $link_prefix . 'portfolio-artista.php" class="' . ($pagina_ativa == 'portfolio-artista.php' ? 'active' : '') . '">Portfólio</a>';
+        echo '<a href="' . $link_prefix . 'relatorios-artista.php" class="' . ($pagina_ativa == 'relatorios-artista.php' ? 'active' : '') . '">Relatórios</a>';
+        echo '<a href="' . $link_prefix . 'configuracoes-artista.php" class="' . ($pagina_ativa == 'configuracoes-artista.php' ? 'active' : '') . '">Configurações</a>';
+    } else {
+        // menu do cliente 
+        echo '<a href="' . $link_prefix . 'dashboard-cliente.php" class="' . ($pagina_ativa == 'dashboard-cliente.php' ? 'active' : '') . '">Início</a>';
+        echo '<a href="' . $link_prefix . 'agendamentos-cliente.php" class="' . ($pagina_ativa == 'agendamentos-cliente.php' ? 'active' : '') . '">Meus Agendamentos</a>';
+        echo '<a href="' . $link_prefix . 'solicitar-orcamento.php" class="' . ($pagina_ativa == 'solicitar-orcamento.php' ? 'active' : '') . '">Orçamento</a>';
+        echo '<a href="' . $link_prefix . 'configuracoes-cliente.php" class="' . ($pagina_ativa == 'configuracoes-cliente.php' ? 'active' : '') . '">Configurações</a>';
+    }
+
+    echo '</div>';
+}
+?>
 
 <main>
     <div class="container my-5 py-5">
