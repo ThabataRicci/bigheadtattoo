@@ -9,6 +9,7 @@ include '../includes/header.php';
 ?>
 
 <?php
+
 if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
     $pagina_ativa = basename($_SERVER['PHP_SELF']);
@@ -37,140 +38,205 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
 <main>
     <div class="container my-5 py-5">
-        <h2 class="text-center mb-5">ORÇAMENTOS E AGENDAMENTOS</h2>
+        <h2 class="text-center mb-5">MEUS AGENDAMENTOS</h2>
 
-        <h4 class="mb-4">Pendentes</h4>
-        <div class="accordion" id="acordeaoPendentes">
+        <?php
 
-            <div class="accordion-item mb-3">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-aprovado">
-                        <div class="w-100 d-flex justify-content-between align-items-center">
-                            <span><strong>Projeto:</strong> Fechamento de Costas</span>
-                            <span class="badge status-acao me-3">Agende sua sessão</span>
-                        </div>
-                    </button>
-                </h2>
-                <div id="item-aprovado" class="accordion-collapse collapse" data-bs-parent="#acordeaoPendentes">
-                    <div class="accordion-body">
-                        <p class="text-white-50 mb-2"><strong>Detalhes do Orçamento Aprovado:</strong></p>
-                        <ul class="list-unstyled card-resumo p-3 small">
-                            <li><strong>Local do Corpo:</strong> Costas</li>
-                            <li><strong>Tamanho Aproximado:</strong> Fechamento</li>
-                            <li><strong>Sua Ideia:</strong> "Gostaria de fechar as costas com um dragão oriental..."</li>
-                            <li><strong>Referência Enviada:</strong> <a href="#" class="text-white-50">ver_imagem_dragao.jpg</a></li>
-                            <li><strong>Duração da Sessão:</strong> Dia Todo</li>
-                        </ul>
-                        <div class="text-end mt-3">
-                            <a href="agenda.php?projeto_id=101&tamanho=PG" class="btn btn-primary btn-sm">AGENDAR SESSÃO</a>
-                        </div>
+        $projetos_para_agendar = [
+            [
+                'id' => 101,
+                'titulo' => 'Fechamento de Costas',
+                'status' => 'Agende sua sessão',
+                'status_class' => 'status-acao',
+                'local' => 'Costas',
+                'tamanho_cod' => 'PG',
+                'tamanho_desc' => 'Fechamento',
+                'ideia' => '"Gostaria de fechar as costas com um dragão oriental..."',
+                'ref' => 'ver_imagem_dragao.jpg',
+                'duracao' => 'Dia Todo'
+            ]
+        ];
+
+        $proximas_sessoes = [
+            [
+                'titulo' => 'Fechamento de Perna',
+                'data' => '28/10/2025 às 10:00',
+                'local' => 'Perna',
+                'tamanho_desc' => 'Fechamento',
+                'ideia' => '"Projeto para fechar a perna."',
+                'ref' => 'ver_referencia.jpg',
+                'duracao' => 'Dia Todo',
+                'historico_sessoes' => [
+                    ['desc' => 'Sessão 1: Concluída em 01/10/2025', 'pode_cancelar' => false],
+                    ['desc' => 'Sessão 2: Agendada para 28/10/2025 às 10:00', 'pode_cancelar' => true]
+                ]
+            ]
+        ];
+
+        $orcamentos_pendentes = [
+            ['titulo' => 'Tatuagem Fineline', 'status' => 'Aguardando Análise', 'status_class' => 'status-analise', 'detalhe' => 'Sua ideia foi enviada e está com o artista para análise.']
+        ];
+
+        $historico = [
+            ['tipo' => 'concluido', 'titulo' => 'Rosa no Antebraço', 'status' => 'Concluído', 'status_class' => 'status-concluido', 'detalhe' => '...detalhes do projeto concluído...'],
+            ['tipo' => 'recusado', 'titulo' => 'Tatuagem Geométrica', 'status' => 'Recusado', 'status_class' => 'status-cancelado', 'detalhe' => '"Olá! Agradeço o interesse, mas no momento não estou trabalhando com este tipo de projeto."']
+        ];
+        ?>
+
+        <h4 class="mb-4">Ação Requerida</h4>
+
+        <?php if (empty($projetos_para_agendar)): ?>
+            <div class="card-resumo text-center text-white-50 mb-5">
+                Você não tem nenhuma ação pendente no momento.
+            </div>
+        <?php else: ?>
+            <?php foreach ($projetos_para_agendar as $proj): ?>
+                <div class="card-resumo card-acao mb-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><?php echo $proj['titulo']; ?></h5>
+                        <span class="badge <?php echo $proj['status_class']; ?>"><?php echo $proj['status']; ?></span>
+                    </div>
+                    <p class="text-white-50 mb-2"><strong>Detalhes do Orçamento Aprovado:</strong></p>
+                    <ul class="list-unstyled card-resumo p-3 small">
+                        <li><strong>Local do Corpo:</strong> <?php echo $proj['local']; ?></li>
+                        <li><strong>Tamanho Aproximado:</strong> <?php echo $proj['tamanho_desc']; ?></li>
+                        <li><strong>Sua Ideia:</strong> <?php echo $proj['ideia']; ?></li>
+                        <li><strong>Referência Enviada:</strong> <a href="#" class="text-white-50"><?php echo $proj['ref']; ?></a></li>
+                        <li><strong>Duração da Sessão:</strong> <?php echo $proj['duracao']; ?></li>
+                    </ul>
+                    <div class="text-end mt-3">
+                        <a href="agenda.php?projeto_id=<?php echo $proj['id']; ?>&tamanho=<?php echo $proj['tamanho_cod']; ?>" class="btn btn-primary">AGENDAR SESSÃO</a>
                     </div>
                 </div>
-            </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
 
-            <div class="accordion-item mb-3">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-analise">
-                        <div class="w-100 d-flex justify-content-between align-items-center">
-                            <span><strong>Projeto:</strong> Tatuagem Fineline</span>
-                            <span class="badge status-analise me-3">Aguardando Análise</span>
-                        </div>
-                    </button>
-                </h2>
-                <div id="item-analise" class="accordion-collapse collapse" data-bs-parent="#acordeaoPendentes">
-                    <div class="accordion-body">
-                        <p>Sua ideia foi enviada e está com o artista para análise. O status será atualizado assim que ele avaliar.</p>
+
+        <h4 class="mb-4">Meus Projetos</h4>
+
+        <ul class="nav nav-tabs nav-tabs-dark mb-4" id="abasProjetos" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="proximas-tab" data-bs-toggle="tab" data-bs-target="#tab-proximas" type="button" role="tab" aria-controls="tab-proximas" aria-selected="true">Próximas Sessões</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analise-tab" data-bs-toggle="tab" data-bs-target="#tab-analise" type="button" role="tab" aria-controls="tab-analise" aria-selected="false">Em Análise</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#tab-historico" type="button" role="tab" aria-controls="tab-historico" aria-selected="false">Histórico</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="abasProjetosConteudo">
+
+            <div class="tab-pane fade show active" id="tab-proximas" role="tabpanel" aria-labelledby="proximas-tab">
+                <?php if (empty($proximas_sessoes)): ?>
+                    <div class="card-resumo text-center text-white-50">
+                        Você não possui nenhuma sessão agendada.
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <hr class="my-5">
-
-        <h4 class="mb-4">Próximas Sessões Agendadas</h4>
-        <div class="accordion" id="acordeaoProximasSessoes">
-
-            <div class="accordion-item mb-3">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sessaoPG">
-                        <div class="w-100 d-flex justify-content-between align-items-center">
-                            <span><strong>Projeto:</strong> Fechamento de Perna</span>
-                            <span class="me-3"><strong>Próxima Sessão:</strong> 28/10/2025 às 10:00</span>
-                        </div>
-                    </button>
-                </h2>
-                <div id="sessaoPG" class="accordion-collapse collapse" data-bs-parent="#acordeaoProximasSessoes">
-                    <div class="accordion-body">
-                        <p class="text-white-50 mb-2"><strong>Detalhes do Orçamento Aprovado:</strong></p>
-                        <ul class="list-unstyled card-resumo p-3 small">
-                            <li><strong>Local do Corpo:</strong> Perna</li>
-                            <li><strong>Tamanho Aproximado:</strong> Fechamento</li>
-                            <li><strong>Sua Ideia:</strong> "Projeto para fechar a perna."</li>
-                            <li><strong>Referência Enviada:</strong> <a href="#" class="text-white-50">ver_referencia.jpg</a></li>
-                            <li><strong>Duração da Sessão:</strong> Dia Todo</li>
-                        </ul>
-                        <p class="text-white-50 mb-2 mt-4"><strong>Histórico de Sessões:</strong></p>
-                        <div class="card-resumo p-3">
-                            <div class="d-flex justify-content-between align-items-center small p-2">
-                                <span><strong>Sessão 1:</strong> Concluída em 01/10/2025</span>
+                <?php else: ?>
+                    <div class="accordion" id="acordeaoProximasSessoes">
+                        <?php foreach ($proximas_sessoes as $i => $sessao): ?>
+                            <div class="accordion-item mb-3">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sessao-<?php echo $i; ?>">
+                                        <div class="w-100 d-flex justify-content-between align-items-center">
+                                            <span><strong>Projeto:</strong> <?php echo $sessao['titulo']; ?></span>
+                                            <span class="me-3"><strong>Próxima Sessão:</strong> <?php echo $sessao['data']; ?></span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="sessao-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoProximasSessoes">
+                                    <div class="accordion-body">
+                                        <p class="text-white-50 mb-2"><strong>Detalhes do Orçamento Aprovado:</strong></p>
+                                        <ul class="list-unstyled card-resumo p-3 small">
+                                            <li><strong>Local do Corpo:</strong> <?php echo $sessao['local']; ?></li>
+                                            <li><strong>Tamanho Aproximado:</strong> <?php echo $sessao['tamanho_desc']; ?></li>
+                                            <li><strong>Sua Ideia:</strong> <?php echo $sessao['ideia']; ?></li>
+                                            <li><strong>Referência Enviada:</strong> <a href="#" class="text-white-50"><?php echo $sessao['ref']; ?></a></li>
+                                            <li><strong>Duração da Sessão:</strong> <?php echo $sessao['duracao']; ?></li>
+                                        </ul>
+                                        <p class="text-white-50 mb-2 mt-4"><strong>Histórico de Sessões:</strong></p>
+                                        <div class="card-resumo p-3">
+                                            <?php foreach ($sessao['historico_sessoes'] as $hist): ?>
+                                                <div class="d-flex justify-content-between align-items-center small p-2">
+                                                    <span><?php echo $hist['desc']; ?></span>
+                                                    <?php if ($hist['pode_cancelar']): ?>
+                                                        <button class="btn btn-sm btn-outline-danger">Cancelar</button>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center small p-2">
-                                <span><strong>Sessão 2:</strong> Agendada para 28/10/2025 às 10:00</span>
-                                <button class="btn btn-sm btn-outline-danger">Cancelar</button>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="tab-pane fade" id="tab-analise" role="tabpanel" aria-labelledby="analise-tab">
+                <?php if (empty($orcamentos_pendentes)): ?>
+                    <div class="card-resumo text-center text-white-50">
+                        Você não possui nenhum orçamento em análise.
+                    </div>
+                <?php else: ?>
+                    <div class="accordion" id="acordeaoPendentes">
+                        <?php foreach ($orcamentos_pendentes as $i => $proj): ?>
+                            <div class="accordion-item mb-3">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-analise-<?php echo $i; ?>">
+                                        <div class="w-100 d-flex justify-content-between align-items-center">
+                                            <span><strong>Projeto:</strong> <?php echo $proj['titulo']; ?></span>
+                                            <span class="badge <?php echo $proj['status_class']; ?> me-3"><?php echo $proj['status']; ?></span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="item-analise-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoPendentes">
+                                    <div class="accordion-body">
+                                        <p><?php echo $proj['detalhe']; ?></p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <hr class="my-5">
-
-        <h4 class="mb-4">Histórico</h4>
-        <div class="accordion" id="acordeaoHistorico">
-
-            <div class="accordion-item mb-3">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-concluido">
-                        <div class="w-100 d-flex justify-content-between align-items-center">
-                            <span><strong>Projeto:</strong> Rosa no Antebraço</span>
-                            <span class="badge status-concluido me-3">Concluído</span>
-                        </div>
-                    </button>
-                </h2>
-                <div id="item-concluido" class="accordion-collapse collapse" data-bs-parent="#acordeaoHistorico">
-                    <div class="accordion-body">
-                        <p class="text-white-50 mb-2"><strong>Detalhes do Projeto:</strong></p>
-                        <ul class="list-unstyled card-resumo p-3 small">
-                            <li><strong>Local do Corpo:</strong> Antebraço</li>
-                            <li><strong>Tamanho Aproximado:</strong> Médio (aprox. 15cm)</li>
-                            <li><strong>Sua Ideia:</strong> "Uma rosa com traços finos e um pouco de sombra..."</li>
-                            <li><strong>Referência Enviada:</strong> Nenhuma</li>
-                            <li><strong>Duração da Sessão:</strong> 2 horas</li>
-                        </ul>
-                        <p class="mt-3"><strong>Sessão 1:</strong> Concluída em 15/08/2025</p>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
 
-            <div class="accordion-item mb-3">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-recusado">
-                        <div class="w-100 d-flex justify-content-between align-items-center">
-                            <span><strong>Projeto:</strong> Tatuagem Geométrica</span>
-                            <span class="badge status-cancelado me-3">Recusado</span>
-                        </div>
-                    </button>
-                </h2>
-                <div id="item-recusado" class="accordion-collapse collapse" data-bs-parent="#acordeaoHistorico">
-                    <div class="accordion-body">
-                        <p class="text-white-50 mb-2"><strong>Motivo:</strong></p>
-                        <div class="bg-dark p-3 rounded fst-italic">
-                            <small class="mb-0">"Olá! Agradeço o interesse, mas no momento não estou trabalhando com este tipo de projeto."</small>
-                        </div>
+            <div class="tab-pane fade" id="tab-historico" role="tabpanel" aria-labelledby="historico-tab">
+                <?php if (empty($historico)): ?>
+                    <div class="card-resumo text-center text-white-50">
+                        Seu histórico está vazio.
                     </div>
-                </div>
+                <?php else: ?>
+                    <div class="accordion" id="acordeaoHistorico">
+                        <?php foreach ($historico as $i => $item): ?>
+                            <div class="accordion-item mb-3">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-hist-<?php echo $i; ?>">
+                                        <div class="w-100 d-flex justify-content-between align-items-center">
+                                            <span><strong>Projeto:</strong> <?php echo $item['titulo']; ?></span>
+                                            <span class="badge <?php echo $item['status_class']; ?> me-3"><?php echo $item['status']; ?></span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="item-hist-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoHistorico">
+                                    <div class="accordion-body">
+                                        <?php if ($item['tipo'] == 'recusado'): ?>
+                                            <p class="text-white-50 mb-2"><strong>Motivo:</strong></p>
+                                            <div class="bg-dark p-3 rounded fst-italic">
+                                                <small class="mb-0"><?php echo $item['detalhe']; ?></small>
+                                            </div>
+                                        <?php else: ?>
+                                            <p><?php echo $item['detalhe']; ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
+
         </div>
     </div>
 </main>

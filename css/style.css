@@ -417,3 +417,43 @@ footer {
     color: #fff;
     background-color: #2a2a2a;
 }
+
+/* 23 - ESTILOS DO CARTÃO DE AÇÃO (AGENDAMENTOS CLIENTE) */
+.card-acao {
+    background-image: linear-gradient(rgba(245, 245, 245, 0.05), rgba(245, 245, 245, 0.05));
+}
+
+.card.acao status.acao {
+    color: red;
+}
+
+.card-acao .btn-primary {
+    animation: pulse 1.5s infinite;
+}
+
+/* 24 - ESTILOS DAS ABAS */
+.nav-tabs-dark {
+    border-bottom: 1px solid #444;
+}
+
+.nav-tabs-dark .nav-link {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-bottom-color: #444;
+    color: #aaa;
+    margin-bottom: -1px;
+}
+
+.nav-tabs-dark .nav-link:hover,
+.nav-tabs-dark .nav-link:focus {
+    border-color: #444;
+    color: #fff;
+    isolation: isolate;
+}
+
+.nav-tabs-dark .nav-link.active {
+    background-color: #1c1c1c;
+    border-color: #444;
+    border-bottom-color: #1c1c1c;
+    color: #F5F5F5;
+}
