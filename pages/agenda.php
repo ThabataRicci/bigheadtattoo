@@ -233,7 +233,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                                     <h2 class="accordion-header">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item1">
                                             <div class="w-100 d-flex justify-content-between">
-                                                <span><strong>Cliente:</strong> Thábata Ricci | <strong>Ideia:</strong> Rosa Fineline</span>
+                                                <span><strong>Ideia:</strong> Rosa Fineline | <strong>Cliente:</strong> Thábata Ricci</span>
                                             </div>
                                         </button>
                                     </h2>
@@ -531,11 +531,10 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Liberar Nova Sessão</h5>
+                    <h5 class="modal-title">Liberar agendamento da nova sessão</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Liberar agendamento da próxima sessão para "Fechamento de Braço"?</p>
                     <p class="small text-white-50">O cliente será notificado para agendar a próxima sessão.</p>
                     <form onsubmit="alert('Nova sessão liberada.'); return false;">
                         <input type="hidden" name="projeto_id_liberar" value="102">
@@ -557,7 +556,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Você confirma que o projeto "Fechamento de Braço" foi <strong>concluído</strong>?</p>
                     <p class="small text-white-50">Ao confirmar, o projeto será movido para o histórico do cliente e não será mais possível agendar novas sessões para ele.</p>
                     <form onsubmit="alert('Projeto concluído.'); return false;">
                         <input type="hidden" name="projeto_id_concluir" value="102">

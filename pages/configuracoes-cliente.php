@@ -55,11 +55,11 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                             <h5 class="text-white-50 mb-3">DADOS PESSOAIS</h5>
                             <div class="mb-3">
                                 <label for="nome" class="form-label">Nome Completo:</label>
-                                <input type="text" class="form-control" id="nome" value="">
+                                <input type="text" class="form-control" id="nome" value="Thábata Ricci">
                             </div>
                             <div class="mb-4">
                                 <label for="telefone" class="form-label">Telefone:</label>
-                                <input type="tel" class="form-control" id="telefone" value="">
+                                <input type="tel" class="form-control" id="telefone" value="(19) 99999-2222">
                             </div>
                         </div>
 

@@ -331,6 +331,11 @@ footer {
     color: #ffffff;
 }
 
+.status-analise {
+    background-color: #644b00;
+    color: #ffffff;
+}
+
 .status-concluido {
     background-color: #103e11;
     color: white;
