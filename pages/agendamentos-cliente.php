@@ -58,6 +58,8 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
         $proximas_sessoes = [
             [
+                'id' => 102,
+                'tamanho_cod' => 'PG',
                 'titulo' => 'Fechamento de Perna',
                 'data' => '28/10/2025 às 10:00',
                 'local' => 'Perna',
@@ -192,8 +194,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                             <?php foreach ($sessao['historico_sessoes'] as $hist): ?>
                                                 <div class="d-flex justify-content-between align-items-center small p-2">
                                                     <span><?php echo $hist['desc']; ?></span>
+
                                                     <?php if ($hist['pode_cancelar']): ?>
-                                                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelarCliente">Cancelar</button>
+                                                        <div class="d-flex gap-2">
+                                                            <a href="agenda.php?projeto_id=<?php echo $sessao['id']; ?>&tamanho=<?php echo $sessao['tamanho_cod']; ?>" class="btn btn-sm btn-outline-light">Reagendar</a>
+                                                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelarCliente">Cancelar</button>
+                                                        </div>
                                                     <?php endif; ?>
                                                 </div>
                                             <?php endforeach; ?>
@@ -338,6 +344,30 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     </div>
 </div>
 
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const tabButtons = document.querySelectorAll('#abasProjetos .nav-link');
+
+        const accordionCollapses = document.querySelectorAll('#abasProjetosConteudo .accordion-collapse');
+
+        const collapseInstances = Array.from(accordionCollapses).map(collapseEl => {
+            return new bootstrap.Collapse(collapseEl, {
+                toggle: false
+            });
+        });
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+
+                collapseInstances.forEach(instance => {
+                    instance.hide();
+                });
+            });
+        });
+    });
+</script>
 
 <?php
 include '../includes/footer.php';

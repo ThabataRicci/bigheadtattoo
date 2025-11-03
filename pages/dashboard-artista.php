@@ -38,18 +38,18 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 <main>
     <div class="container my-5 py-5">
 
-
+        <h2 class="text-center mb-5">PAINEL DE CONTROLE</h2>
 
         <div class="row text-center">
             <div class="col-md-4 mb-4">
                 <div class="card-resumo">
-                    <h3>X</h3>
-                    <p class="text-white-50 mb-0">Solicitações para Aprovar</p>
+                    <h3>1</h3>
+                    <p class="text-white-50 mb-0">Solicitação para Aprovar</p>
                 </div>
             </div>
             <div class="col-md-4 mb-4">
                 <div class="card-resumo">
-                    <h3>X</h3>
+                    <h3>2</h3>
                     <p class="text-white-50 mb-0">Sessões na Semana</p>
                 </div>
             </div>
@@ -64,37 +64,173 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         <hr class="my-5">
 
         <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card-resumo">
-                    <h4>Gerenciar Agenda</h4>
-                    <p class="text-white-50">Visualizar agendamentos e pedidos de orçamento.</p>
-                    <a href="agenda.php" class="btn btn-outline-light">Ver Agenda</a>
-                </div>
+            <div class="col-lg-6 mb-4">
+                <h4 class="mb-4">Solicitações Pendentes</h4>
+
+                <?php
+                ?>
+                <?php $solicitacoes_pendentes = true; ?>
+                <?php if (!$solicitacoes_pendentes): ?>
+                    <div class="card-resumo text-center text-white-50 mb-0">
+                        Nenhuma solicitação pendente.
+                    </div>
+                <?php else: ?>
+                    <div class="accordion" id="acordeaoSolicitacoes">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item1">
+                                    <div class="w-100 d-flex justify-content-between">
+                                        <span><strong>Cliente:</strong> Izabella Bianca | <strong>Ideia:</strong> Fechamento de costas</span>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="item1" class="accordion-collapse collapse" data-bs-parent="#acordeaoSolicitacoes">
+                                <div class="accordion-body">
+                                    <p><strong>Local do Corpo:</strong> Costas</p>
+                                    <p><strong>Tamanho Aproximado:</strong> Fechamento</p>
+                                    <p><strong>Ideia do Cliente:</strong> "Gostaria de iniciar um projeto de fechamento de costas com um dragão oriental..."</p>
+                                    <p><strong>Referência Enviada:</strong> <a href="#" class="text-white-50">ver_imagem_dragao.jpg</a></p>
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalRecusar">Recusar</button>
+                                        <div class="dropdown ms-2">
+                                            <button class="btn btn-sm btn-success dropdown-toggle" type="button" id="dropdownAprovar" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Aprovar
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="dropdownAprovar">
+                                                <li><a class="dropdown-item" href="#">Projeto Pequeno (30 minutos)</a></li>
+                                                <li><a class="dropdown-item" href="#">Projeto Médio (2 horas)</a></li>
+                                                <li><a class="dropdown-item" href="#">Projeto Grande (dia todo)</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card-resumo">
-                    <h4>Gerenciar Portfólio</h4>
-                    <p class="text-white-50">Adicione, edite ou remova fotos do portfólio.</p>
-                    <a href="portfolio-artista.php" class="btn btn-outline-light">Ver Portfólio</a>
-                </div>
-            </div>
-            <div class="col-md-6 mb-4">
-                <div class="card-resumo">
-                    <h4>Relatórios</h4>
-                    <p class="text-white-50">Acompanhe as sessões do estúdio e clientes cadastrados.</p>
-                    <a href="relatorios-artista.php" class="btn btn-outline-light">Acessar Relatórios</a>
-                </div>
-            </div>
-            <div class="col-md-6 mb-4">
-                <div class="card-resumo">
-                    <h4>Configurações</h4>
-                    <p class="text-white-50">Gerencie seu perfil e estilos.</p>
-                    <a href="configuracoes-artista.php" class="btn btn-outline-light">Acessar Configurações</a>
-                </div>
+
+            <div class="col-lg-6 mb-4">
+                <h4 class="mb-4">Próximas Sessões</h4>
+
+                <?php // SIMULAÇÃO DE DADOS 
+                ?>
+                <?php $proximas_sessoes = true; ?>
+                <?php if (!$proximas_sessoes): ?>
+                    <div class="card-resumo text-center text-white-50 mb-0">
+                        Nenhuma sessão agendada para os próximos dias.
+                    </div>
+                <?php else: ?>
+                    <div class="accordion" id="acordeaoSessoesAgendadas">
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sessaoPP">
+
+                                    <div class="w-100 d-flex flex-column">
+                                        <div class="d-flex justify-content-between w-100">
+                                            <span><strong>Projeto:</strong> Tatuagem Fineline</span>
+                                            <span class="me-3"><strong>Data:</strong> 20/10/2025 às 11:00</span>
+                                        </div>
+                                        <span class="mt-1 small text-white-50"><strong>Cliente:</strong> João Silva</span>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="sessaoPP" class="accordion-collapse collapse" data-bs-parent="#acordeaoSessoesAgendadas">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled card-resumo p-3 small mb-0">
+                                        <li><strong>Local do Corpo:</strong> Pulso</li>
+                                        <li><strong>Duração da Sessão:</strong> 30 minutos</li>
+                                    </ul>
+                                    <div class="text-end mt-3">
+                                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Sessão</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sessaoPG">
+
+                                    <div class="w-100 d-flex flex-column">
+                                        <div class="d-flex justify-content-between w-100">
+                                            <span><strong>Projeto:</strong> Fechamento de Perna</span>
+                                            <span class="me-3"><strong>Data:</strong> 28/10/2025 às 10:00</span>
+                                        </div>
+                                        <span class="mt-1 small text-white-50"><strong>Cliente:</strong> Maria Oliveira</span>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="sessaoPG" class="accordion-collapse collapse" data-bs-parent="#acordeaoSessoesAgendadas">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled card-resumo p-3 small mb-0">
+                                        <li><strong>Local do Corpo:</strong> Perna</li>
+                                        <li><strong>Duração da Sessão:</strong> Dia Todo</li>
+                                    </ul>
+                                    <div class="text-end mt-3">
+                                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Sessão</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
 </main>
+
+
+<div class="modal fade" id="modalRecusar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recusar Projeto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="alert('Projeto recusado.'); return false;">
+                    <div class="mb-3">
+                        <label for="motivo_recusa" class="form-label">Motivo:</label>
+                        <textarea class="form-control" id="motivo_recusa" name="motivo_recusa" rows="3" required></textarea>
+                    </div>
+                    <input type="hidden" name="solicitacao_id" value="101">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-danger" data-bs-dismiss="modal">Recusar Projeto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCancelar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancelar Sessão Agendada</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="alert('Sessão cancelada.'); return false;">
+                    <div class="mb-3">
+                        <label for="motivo_cancelamento" class="form-label">Motivo:</label>
+                        <textarea class="form-control" id="motivo_cancelamento" name="motivo_cancelamento" rows="3" required></textarea>
+                    </div>
+                    <input type="hidden" name="sessao_id" value="201">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-danger" data-bs-dismiss="modal">Confirmar Cancelamento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <?php
 include '../includes/footer.php';
