@@ -466,12 +466,8 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                             <div class="input-group"><input type="date" class="form-control" id="dias-bloqueados"><button type="button" class="btn btn-outline-light">Adicionar</button></div>
                         </div>
                         <div>
-                            <p class="small text-white-50 mb-1">Datas já bloqueadas (sessões ou folgas):</p>
+                            <p class="small text-white-50 mb-1">Datas com bloqueio manual:</p>
                             <ul class="list-group">
-                                <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center">01/10/2025 (Sessão Thábata)<button class="btn btn-sm btn-danger py-0 px-2">&times;</button></li>
-                                <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center">01/11/2025 (Sessão Thábata)<button class="btn btn-sm btn-danger py-0 px-2">&times;</button></li>
-                                <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center">08/11/2025 (Sessão Thábata)<button class="btn btn-sm btn-danger py-0 px-2">&times;</button></li>
-                                <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center">15/11/2025 (Sessão Izabella)<button class="btn btn-sm btn-danger py-0 px-2">&times;</button></li>
                                 <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center">20/11/2025 (Bloqueio Manual)<button class="btn btn-sm btn-danger py-0 px-2">&times;</button></li>
                                 <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center">21/11/2025 (Bloqueio Manual)<button class="btn btn-sm btn-danger py-0 px-2">&times;</button></li>
                             </ul>

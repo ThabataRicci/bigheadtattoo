@@ -75,6 +75,30 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         </thead>
                         <tbody>
                             <tr>
+                                <td>15/11/2025</td>
+                                <td>Izabella Bianca</td>
+                                <td>Tatuagem Harry Potter</td>
+                                <td><span class="badge status-em-andamento">Em Andamento</span></td>
+                            </tr>
+                            <tr>
+                                <td>08/11/2025</td>
+                                <td>Thábata Ricci</td>
+                                <td>Fechamento de Braço</td>
+                                <td><span class="badge status-em-andamento">Em Andamento</span></td>
+                            </tr>
+                            <tr>
+                                <td>01/11/2025</td>
+                                <td>Thábata Ricci</td>
+                                <td>Borboleta</td>
+                                <td><span class="badge status-concluido">Concluído</span></td>
+                            </tr>
+                            <tr>
+                                <td>01/10/2025</td>
+                                <td>Thábata Ricci</td>
+                                <td>Fechamento de Braço</td>
+                                <td><span class="badge status-concluido">Concluído</span></td>
+                            </tr>
+                            <tr>
                                 <td>20/09/2025</td>
                                 <td>Thábata Ricci</td>
                                 <td>Fechamento de Braço (Sessão 1/3)</td>
@@ -116,16 +140,22 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Nome Completo do Cliente 1</td>
-                                <td>cliente1@email.com</td>
+                                <td>Izabella Bianca</td>
+                                <td>izabella@gmail.com</td>
                                 <td>(19) 99999-1111</td>
-                                <td>20/08/2025</td>
+                                <td>01/11/2025</td>
                             </tr>
                             <tr>
-                                <td>Nome Completo do Cliente 2</td>
-                                <td>cliente2@email.com</td>
+                                <td>Thábata Ricci</td>
+                                <td>thabata@gmail.com</td>
                                 <td>(19) 99999-2222</td>
-                                <td>18/08/2025</td>
+                                <td>31/09/2025</td>
+                            </tr>
+                            <tr>
+                                <td>Victor Hugo</td>
+                                <td>victor@gmail.com</td>
+                                <td>(19) 99999-3333</td>
+                                <td>20/08/2025</td>
                             </tr>
                         </tbody>
                     </table>

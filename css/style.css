@@ -169,6 +169,10 @@ footer {
     gap: 5px;
 }
 
+.calendario-grid a.dia {
+    text-decoration: none;
+}
+
 .dia,
 .dia-semana {
     padding: 16px;
@@ -322,7 +326,7 @@ footer {
     color: white;
 }
 
-.status-analise {
+.status-em-andamento {
     background-color: #644b00;
     color: #ffffff;
 }
@@ -461,9 +465,8 @@ footer {
 }
 
 ul#abasProjetos li.nav-item button.nav-link.active {
-    background-color: transparent;
-    border-bottom-color: #121212;
-    /* Cor do fundo do body */
+    background-color: #121212 !important;
+    border-bottom-color: #121212 !important;
 }
 
 /* 25. ESTILO DOS RELATORIOS */
