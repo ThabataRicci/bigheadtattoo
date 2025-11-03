@@ -16,7 +16,7 @@ $pagina_ativa = basename($_SERVER['PHP_SELF']);
 
 <div class="submenu-painel">
     <a href="dashboard-artista.php" class="<?php echo ($pagina_ativa == 'dashboard-artista.php') ? 'active' : ''; ?>">Início</a>
-    <a href="agenda-artista.php" class="<?php echo ($pagina_ativa == 'agenda-artista.php' || $pagina_ativa == 'agenda.php') ? 'active' : ''; ?>">Agenda</a>
+    <a href="agenda.php" class="<?php echo ($pagina_ativa == 'agenda.php' || $pagina_ativa == 'agenda.php') ? 'active' : ''; ?>">Agenda</a>
     <a href="portfolio-artista.php" class="<?php echo ($pagina_ativa == 'portfolio-artista.php') ? 'active' : ''; ?>">Portfólio</a>
     <a href="relatorios-artista.php" class="<?php echo ($pagina_ativa == 'relatorios-artista.php') ? 'active' : ''; ?>">Relatórios</a>
     <a href="configuracoes-artista.php" class="<?php echo ($pagina_ativa == 'configuracoes-artista.php') ? 'active' : ''; ?>">Configurações</a>
@@ -42,7 +42,7 @@ $pagina_ativa = basename($_SERVER['PHP_SELF']);
                         <p class="detalhes-info">Local: Costas</p>
                         <div class="mt-3">
                             <button class="btn btn-sm btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#modalPortfolio">Editar</button>
-                            <button class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este trabalho? (Simulação)');">Excluir</button>
+                            <button class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este trabalho?');">Excluir</button>
                         </div>
                     </div>
                 </div>
@@ -58,7 +58,7 @@ $pagina_ativa = basename($_SERVER['PHP_SELF']);
                         <p class="detalhes-info">Local: Braço</p>
                         <div class="mt-3">
                             <button class="btn btn-sm btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#modalPortfolio">Editar</button>
-                            <button class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este trabalho? (Simulação)');">Excluir</button>
+                            <button class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este trabalho?');">Excluir</button>
                         </div>
                     </div>
                 </div>

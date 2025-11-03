@@ -394,14 +394,12 @@ footer {
     border-top: none;
 }
 
-/* 12 - SUBMENU DO PAINEL */
+/* 22 - SUBMENU DO PAINEL */
 .submenu-painel {
     background-color: #1c1c1c;
-    padding: 10px 0;
-    border-bottom: 1px solid #444;
+    padding: 12px 0;
     text-align: center;
     margin-bottom: 32px;
-    /* Adicionado para dar espaço */
 }
 
 .submenu-painel a {
@@ -417,7 +415,6 @@ footer {
 
 .submenu-painel a:hover,
 .submenu-painel a.active {
-    /* Adicionado seletor .active */
     color: #fff;
     background-color: #2a2a2a;
 }

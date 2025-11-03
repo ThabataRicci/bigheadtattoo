@@ -4,9 +4,6 @@ session_start();
 // --- DETECÇÃO DE QUEM ESTÁ LOGADO (CLIENTE OU ARTISTA) ---
 $is_artista = (isset($_SESSION['loggedin']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'artista');
 
-$titulo_pagina = $is_artista ? "Gerenciar Agenda" : "Escolha o Dia e Horário";
-include '../includes/header.php';
-
 // --- LÓGICA DO CALENDÁRIO COMPLETA (COM NAVEGAÇÃO) ---
 $ANO_VISUALIZACAO = 2025;
 $ANO_ATIVO = 2025;
@@ -43,183 +40,244 @@ if ($mes_proximo == 13) {
 
 $projeto_id = $_GET['projeto_id'] ?? 0;
 $tamanho = $_GET['tamanho'] ?? '';
+
+
+// --- IMPLEMENTAÇÃO DA MELHORIA B (PROTEÇÃO DE PÁGINA) ---
+$cliente_pode_agendar = true;
+if (!$is_artista && ($projeto_id == 0 || $tamanho == '')) {
+    $cliente_pode_agendar = false;
+}
+// --- FIM DA MELHORIA B ---
+
+
+$titulo_pagina = $is_artista ? "Gerenciar Agenda" : "Escolha o Dia e Horário";
+include '../includes/header.php';
 ?>
+
+<?php
+// --- IMPLEMENTAÇÃO DO SUB-MENU CONDICIONAL ---
+// Define qual página está ativa para destacar o link no menu
+$pagina_ativa = basename($_SERVER['PHP_SELF']);
+
+// Mostra o sub-menu apenas se o usuário estiver logado
+if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
+
+    if ($is_artista): ?>
+        <div class="submenu-painel">
+            <a href="dashboard-artista.php" class="<?php echo ($pagina_ativa == 'dashboard-artista.php') ? 'active' : ''; ?>">Início</a>
+            <a href="agenda.php" class="<?php echo ($pagina_ativa == 'agenda.php') ? 'active' : ''; ?>">Agenda</a>
+            <a href="portfolio-artista.php" class="<?php echo ($pagina_ativa == 'portfolio-artista.php') ? 'active' : ''; ?>">Portfólio</a>
+            <a href="relatorios-artista.php" class="<?php echo ($pagina_ativa == 'relatorios-artista.php') ? 'active' : ''; ?>">Relatórios</a>
+            <a href="configuracoes-artista.php" class="<?php echo ($pagina_ativa == 'configuracoes-artista.php') ? 'active' : ''; ?>">Configurações</a>
+        </div>
+    <?php else: ?>
+        <div class="submenu-painel">
+            <a href="dashboard-cliente.php" class="<?php echo ($pagina_ativa == 'dashboard-cliente.php') ? 'active' : ''; ?>">Início</a>
+            <a href="agendamentos-cliente.php" class="<?php echo ($pagina_ativa == 'agendamentos-cliente.php') ? 'active' : ''; ?>">Meus Agendamentos</a>
+            <a href="configuracoes-cliente.php" class="<?php echo ($pagina_ativa == 'configuracoes-cliente.php') ? 'active' : ''; ?>">Meu Perfil</a>
+        </div>
+    <?php endif; ?>
+
+<?php endif; ?>
+<?php // --- FIM DO SUB-MENU CONDICIONAL --- 
+?>
+
 
 <main>
     <div class="container my-5 py-5">
-        <div class="text-center mb-4">
-            <h2><?php echo $is_artista ? "GERENCIAR AGENDA" : "AGENDAR SESSÃO"; ?></h2>
-            <p class="text-white-50"><?php echo $is_artista ? "Aprove ou recuse solicitações e gerencie seu calendário." : "Selecione uma data disponível para ver os horários."; ?></p>
-        </div>
 
         <?php
-        // // // // 
+        // --- INÍCIO DO CONTEÚDO CONDICIONAL (MELHORIA B) ---
+        // Se for artista, mostra o conteúdo.
+        // Se for cliente, SÓ mostra se ele puder agendar.
         ?>
-        <?php if ($is_artista): ?>
+        <?php if ($is_artista || $cliente_pode_agendar): ?>
 
-            <h4 class="mb-4">Solicitações Pendentes de Orçamento</h4>
-            <div class="accordion" id="acordeaoSolicitacoes">
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item1">
-                            <div class="w-100 d-flex justify-content-between">
-                                <span><strong>Cliente:</strong> Izabella Bianca | <strong>Ideia:</strong> Fechamento de costas</span>
-                            </div>
-                        </button>
-                    </h2>
-                    <div id="item1" class="accordion-collapse collapse" data-bs-parent="#acordeaoSolicitacoes">
-                        <div class="accordion-body">
-                            <p><strong>Local do Corpo:</strong> Costas</p>
-                            <p><strong>Tamanho Aproximado:</strong> Fechamento</p>
-                            <p><strong>Ideia do Cliente:</strong> "Gostaria de iniciar um projeto de fechamento de costas com um dragão oriental..."</p>
-                            <p><strong>Referência Enviada:</strong> <a href="#" class="text-white-50">ver_imagem_dragao.jpg</a></p>
-                            <div class="d-flex justify-content-end align-items-center">
-                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalRecusar">Recusar</button>
-                                <div class="dropdown ms-2">
-                                    <button class="btn btn-sm btn-success dropdown-toggle" type="button" id="dropdownAprovar" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Aprovar
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="dropdownAprovar">
-                                        <li><a class="dropdown-item" href="#">Projeto Pequeno (30 minutos)</a></li>
-                                        <li><a class="dropdown-item" href="#">Projeto Médio (2 horas)</a></li>
-                                        <li><a class="dropdown-item" href="#">Projeto Grande (dia todo)</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <hr class="my-5">
-
-            <h4 class="mb-4">Próximas Sessões Agendadas</h4>
-            <div class="accordion" id="acordeaoSessoesAgendadas">
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sessaoPP">
-                            <div class="w-100 d-flex justify-content-between align-items-center">
-                                <span><strong>Cliente:</strong> João Silva | <strong>Projeto:</strong> Tatuagem Fineline</span>
-                                <span class="me-3"><strong>Data:</strong> 20/10/2025 às 11:00</span>
-                            </div>
-                        </button>
-                    </h2>
-                    <div id="sessaoPP" class="accordion-collapse collapse" data-bs-parent="#acordeaoSessoesAgendadas">
-                        <div class="accordion-body">
-                            <p class="text-white-50 mb-2"><strong>Detalhes:</strong></p>
-                            <ul class="list-unstyled card-resumo p-3 small">
-                                <li><strong>Local do Corpo:</strong> Pulso</li>
-                                <li><strong>Tamanho Aproximado:</strong> Pequeno (até 10cm)</li>
-                                <li><strong>Ideia do Cliente:</strong> "Uma pequena âncora em fineline no pulso."</li>
-                                <li><strong>Referência Enviada:</strong> Nenhuma</li>
-                                <li><strong>Duração da Sessão:</strong> 30 minutos</li>
-                            </ul>
-                            <div class="text-end mt-3">
-                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Sessão</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sessaoPG">
-                            <div class="w-100 d-flex justify-content-between align-items-center">
-                                <span><strong>Cliente:</strong> Maria Oliveira | <strong>Projeto:</strong> Fechamento de Perna</span>
-                                <span class="me-3"><strong>Data:</strong> 28/10/2025 às 10:00</span>
-                            </div>
-                        </button>
-                    </h2>
-                    <div id="sessaoPG" class="accordion-collapse collapse" data-bs-parent="#acordeaoSessoesAgendadas">
-                        <div class="accordion-body">
-                            <p class="text-white-50 mb-2"><strong>Detalhes:</strong></p>
-                            <ul class="list-unstyled card-resumo p-3 small">
-                                <li><strong>Local do Corpo:</strong> Perna</li>
-                                <li><strong>Tamanho Aproximado:</strong> Fechamento</li>
-                                <li><strong>Ideia do Cliente:</strong> "Projeto para fechar a perna."</li>
-                                <li><strong>Referência Enviada:</strong> <a href="#" class="text-white-50">ver_referencia.jpg</a></li>
-                                <li><strong>Duração da Sessão:</strong> Dia Todo</li>
-                            </ul>
-                            <p class="text-white-50 mb-2 mt-4"><strong>Histórico de Sessões:</strong></p>
-                            <div class="card-resumo p-3">
-                                <div class="d-flex justify-content-between align-items-center small p-2">
-                                    <span><strong>Sessão 1:</strong> Concluída em 01/10/2025</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center small p-2">
-                                    <span><strong>Sessão 2:</strong> Agendada para 28/10/2025 às 10:00</span>
-                                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Sessão</button>
-                                </div>
-                            </div>
-                            <div class="text-end mt-3">
-                                <button class="btn btn-sm btn-primary">Liberar Nova Sessão</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <hr class="my-5">
-            <h3 class="text-center mb-4">Calendário</h3>
-
-        <?php endif; ?>
-        <?php
-        // // // 
-        ?>
-
-
-        <div class="calendario-container">
-            <div class="calendario-header text-center mb-4 d-flex justify-content-between align-items-center">
-                <?php if ($ano > $ANO_VISUALIZACAO || ($ano == $ANO_VISUALIZACAO && $mes > 1)): ?>
-                    <a href="?mes=<?php echo $mes_anterior; ?>&ano=<?php echo $ano_anterior; ?>&projeto_id=<?php echo $projeto_id; ?>&tamanho=<?php echo $tamanho; ?>" class="btn btn-outline-light">◄</a>
-                <?php else: ?>
-                    <span style="width: 58px;"></span>
-                <?php endif; ?>
-                <form method="GET" class="d-flex align-items-center">
-                    <select name="mes" class="form-select select-calendario mx-2" onchange="this.form.submit()"><?php foreach ($meses_pt as $num => $nome): ?><option value="<?php echo $num + 1; ?>" <?php if ($num + 1 == $mes) echo 'selected'; ?>><?php echo $nome; ?></option><?php endforeach; ?></select>
-                    <select name="ano" class="form-select select-calendario" onchange="this.form.submit()"><?php for ($a = $ANO_VISUALIZACAO; $a <= $ANO_VISUALIZACAO + 5; $a++): ?><option value="<?php echo $a; ?>" <?php if ($a == $ano) echo 'selected'; ?>><?php echo $a; ?></option><?php endfor; ?></select>
-                    <input type="hidden" name="projeto_id" value="<?php echo $projeto_id; ?>"><input type="hidden" name="tamanho" value="<?php echo $tamanho; ?>">
-                </form>
-                <a href="?mes=<?php echo $mes_proximo; ?>&ano=<?php echo $ano_proximo; ?>&projeto_id=<?php echo $projeto_id; ?>&tamanho=<?php echo $tamanho; ?>" class="btn btn-outline-light">►</a>
-            </div>
-
-            <div class="calendario-grid">
-                <div class="dia-semana">Dom</div>
-                <div class="dia-semana">Seg</div>
-                <div class="dia-semana">Ter</div>
-                <div class="dia-semana">Qua</div>
-                <div class="dia-semana">Qui</div>
-                <div class="dia-semana">Sex</div>
-                <div class="dia-semana">Sáb</div>
-                <?php
-                for ($i = 0; $i < $primeiro_dia_semana; $i++) {
-                    echo '<div class="dia outro-mes"></div>';
-                }
-                for ($dia = 1; $dia <= $total_dias_mes; $dia++) {
-                    $data_atual_formatada = date('Y-m-d', mktime(0, 0, 0, $mes, $dia, $ano));
-                    $data_formatada_br = date('d/m/Y', strtotime($data_atual_formatada));
-                    $dia_da_semana_atual = date('w', strtotime($data_atual_formatada));
-                    if ($ano < $ANO_ATIVO || ($ano == $ANO_ATIVO && $mes < $MES_ATIVO) || in_array($dia_da_semana_atual, $dias_folga_semana) || in_array($data_atual_formatada, $dias_bloqueados_pelo_artista)) {
-                        echo "<div class='dia dia-ocupado'>$dia <br><small>Indisponível</small></div>";
-                    } else {
-                        $onclick_action = $is_artista
-                            ? "mostrarAgendaDia(event, '{$data_atual_formatada}', '{$data_formatada_br}')"
-                            : "mostrarHorarios(event, '{$data_atual_formatada}', '{$data_formatada_br}')";
-                        echo "<a href='#' onclick=\"{$onclick_action}\" class='dia dia-livre'>$dia</a>";
-                    }
-                }
-                $total_celulas = $primeiro_dia_semana + $total_dias_mes;
-                while ($total_celulas % 7 != 0) {
-                    echo '<div class="dia outro-mes"></div>';
-                    $total_celulas++;
-                }
-                ?>
+            <div class="text-center mb-4">
+                <h2><?php echo $is_artista ? "GERENCIAR AGENDA" : "AGENDAR SESSÃO"; ?></h2>
+                <p class="text-white-50"><?php echo $is_artista ? "Aprove ou recuse solicitações e gerencie seu calendário." : "Selecione uma data disponível para ver os horários."; ?></p>
             </div>
 
             <?php if ($is_artista): ?>
-                <div class="text-end mt-4"><button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalDisponibilidade"><i class="bi bi-calendar-x me-2"></i>Gerenciar Bloqueios</button></div>
-            <?php endif; ?>
-        </div>
+                <h4 class="mb-4">Solicitações Pendentes de Orçamento</h4>
+                <div class="accordion" id="acordeaoSolicitacoes">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item1">
+                                <div class="w-100 d-flex justify-content-between">
+                                    <span><strong>Cliente:</strong> Izabella Bianca | <strong>Ideia:</strong> Fechamento de costas</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="item1" class="accordion-collapse collapse" data-bs-parent="#acordeaoSolicitacoes">
+                            <div class="accordion-body">
+                                <p><strong>Local do Corpo:</strong> Costas</p>
+                                <p><strong>Tamanho Aproximado:</strong> Fechamento</p>
+                                <p><strong>Ideia do Cliente:</strong> "Gostaria de iniciar um projeto de fechamento de costas com um dragão oriental..."</p>
+                                <p><strong>Referência Enviada:</strong> <a href="#" class="text-white-50">ver_imagem_dragao.jpg</a></p>
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalRecusar">Recusar</button>
+                                    <div class="dropdown ms-2">
+                                        <button class="btn btn-sm btn-success dropdown-toggle" type="button" id="dropdownAprovar" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Aprovar
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownAprovar">
+                                            <li><a class="dropdown-item" href="#">Projeto Pequeno (30 minutos)</a></li>
+                                            <li><a class="dropdown-item" href="#">Projeto Médio (2 horas)</a></li>
+                                            <li><a class="dropdown-item" href="#">Projeto Grande (dia todo)</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div id="secao-detalhes" class="mt-5" style="display: none;"></div>
+                <hr class="my-5">
+
+                <h4 class="mb-4">Próximas Sessões Agendadas</h4>
+                <div class="accordion" id="acordeaoSessoesAgendadas">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sessaoPP">
+                                <div class="w-100 d-flex justify-content-between align-items-center">
+                                    <span><strong>Cliente:</strong> João Silva | <strong>Projeto:</strong> Tatuagem Fineline</span>
+                                    <span class="me-3"><strong>Data:</strong> 20/10/2025 às 11:00</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="sessaoPP" class="accordion-collapse collapse" data-bs-parent="#acordeaoSessoesAgendadas">
+                            <div class="accordion-body">
+                                <p class="text-white-50 mb-2"><strong>Detalhes:</strong></p>
+                                <ul class="list-unstyled card-resumo p-3 small">
+                                    <li><strong>Local do Corpo:</strong> Pulso</li>
+                                    <li><strong>Tamanho Aproximado:</strong> Pequeno (até 10cm)</li>
+                                    <li><strong>Ideia do Cliente:</strong> "Uma pequena âncora em fineline no pulso."</li>
+                                    <li><strong>Referência Enviada:</strong> Nenhuma</li>
+                                    <li><strong>Duração da Sessão:</strong> 30 minutos</li>
+                                </ul>
+                                <div class="text-end mt-3">
+                                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Sessão</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sessaoPG">
+                                <div class="w-100 d-flex justify-content-between align-items-center">
+                                    <span><strong>Cliente:</strong> Maria Oliveira | <strong>Projeto:</strong> Fechamento de Perna</span>
+                                    <span class="me-3"><strong>Data:</strong> 28/10/2025 às 10:00</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="sessaoPG" class="accordion-collapse collapse" data-bs-parent="#acordeaoSessoesAgendadas">
+                            <div class="accordion-body">
+                                <p class="text-white-50 mb-2"><strong>Detalhes:</strong></p>
+                                <ul class="list-unstyled card-resumo p-3 small">
+                                    <li><strong>Local do Corpo:</strong> Perna</li>
+                                    <li><strong>Tamanho Aproximado:</strong> Fechamento</li>
+                                    <li><strong>Ideia do Cliente:</strong> "Projeto para fechar a perna."</li>
+                                    <li><strong>Referência Enviada:</strong> <a href="#" class="text-white-50">ver_referencia.jpg</a></li>
+                                    <li><strong>Duração da Sessão:</strong> Dia Todo</li>
+                                </ul>
+                                <p class="text-white-50 mb-2 mt-4"><strong>Histórico de Sessões:</strong></p>
+                                <div class="card-resumo p-3">
+                                    <div class="d-flex justify-content-between align-items-center small p-2">
+                                        <span><strong>Sessão 1:</strong> Concluída em 01/10/2025</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center small p-2">
+                                        <span><strong>Sessão 2:</strong> Agendada para 28/10/2025 às 10:00</span>
+                                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Sessão</button>
+                                    </div>
+                                </div>
+                                <div class="text-end mt-3">
+                                    <button class="btn btn-sm btn-primary">Liberar Nova Sessão</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-5">
+                <h3 class="text-center mb-4">Calendário</h3>
+            <?php endif; ?>
+
+            <div class="calendario-container">
+                <div class="calendario-header text-center mb-4 d-flex justify-content-between align-items-center">
+                    <?php if ($ano > $ANO_VISUALIZACAO || ($ano == $ANO_VISUALIZACAO && $mes > 1)): ?>
+                        <a href="?mes=<?php echo $mes_anterior; ?>&ano=<?php echo $ano_anterior; ?>&projeto_id=<?php echo $projeto_id; ?>&tamanho=<?php echo $tamanho; ?>" class="btn btn-outline-light">◄</a>
+                    <?php else: ?>
+                        <span style="width: 58px;"></span>
+                    <?php endif; ?>
+                    <form method="GET" class="d-flex align-items-center">
+                        <select name="mes" class="form-select select-calendario mx-2" onchange="this.form.submit()"><?php foreach ($meses_pt as $num => $nome): ?><option value="<?php echo $num + 1; ?>" <?php if ($num + 1 == $mes) echo 'selected'; ?>><?php echo $nome; ?></option><?php endforeach; ?></select>
+                        <select name="ano" class="form-select select-calendario" onchange="this.form.submit()"><?php for ($a = $ANO_VISUALIZACAO; $a <= $ANO_VISUALIZACAO + 5; $a++): ?><option value="<?php echo $a; ?>" <?php if ($a == $ano) echo 'selected'; ?>><?php echo $a; ?></option><?php endfor; ?></select>
+                        <input type="hidden" name="projeto_id" value="<?php echo $projeto_id; ?>"><input type="hidden" name="tamanho" value="<?php echo $tamanho; ?>">
+                    </form>
+                    <a href="?mes=<?php echo $mes_proximo; ?>&ano=<?php echo $ano_proximo; ?>&projeto_id=<?php echo $projeto_id; ?>&tamanho=<?php echo $tamanho; ?>" class="btn btn-outline-light">►</a>
+                </div>
+
+                <div class="calendario-grid">
+                    <div class="dia-semana">Dom</div>
+                    <div class="dia-semana">Seg</div>
+                    <div class="dia-semana">Ter</div>
+                    <div class="dia-semana">Qua</div>
+                    <div class="dia-semana">Qui</div>
+                    <div class="dia-semana">Sex</div>
+                    <div class="dia-semana">Sáb</div>
+                    <?php
+                    for ($i = 0; $i < $primeiro_dia_semana; $i++) {
+                        echo '<div class="dia outro-mes"></div>';
+                    }
+                    for ($dia = 1; $dia <= $total_dias_mes; $dia++) {
+                        $data_atual_formatada = date('Y-m-d', mktime(0, 0, 0, $mes, $dia, $ano));
+                        $data_formatada_br = date('d/m/Y', strtotime($data_atual_formatada));
+                        $dia_da_semana_atual = date('w', strtotime($data_atual_formatada));
+                        if ($ano < $ANO_ATIVO || ($ano == $ANO_ATIVO && $mes < $MES_ATIVO) || in_array($dia_da_semana_atual, $dias_folga_semana) || in_array($data_atual_formatada, $dias_bloqueados_pelo_artista)) {
+                            echo "<div class='dia dia-ocupado'>$dia <br><small>Indisponível</small></div>";
+                        } else {
+                            $onclick_action = $is_artista
+                                ? "mostrarAgendaDia(event, '{$data_atual_formatada}', '{$data_formatada_br}')"
+                                : "mostrarHorarios(event, '{$data_atual_formatada}', '{$data_formatada_br}')";
+                            echo "<a href='#' onclick=\"{$onclick_action}\" class='dia dia-livre'>$dia</a>";
+                        }
+                    }
+                    $total_celulas = $primeiro_dia_semana + $total_dias_mes;
+                    while ($total_celulas % 7 != 0) {
+                        echo '<div class="dia outro-mes"></div>';
+                        $total_celulas++;
+                    }
+                    ?>
+                </div>
+
+                <?php if ($is_artista): ?>
+                    <div class="text-end mt-4"><button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalDisponibilidade"><i class="bi bi-calendar-x me-2"></i>Gerenciar Bloqueios</button></div>
+                <?php endif; ?>
+            </div>
+
+            <div id="secao-detalhes" class="mt-5" style="display: none;"></div>
+
+        <?php else: ?>
+
+            <?php // O cliente não pode agendar, mostramos uma mensagem de erro amigável 
+            ?>
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-7">
+                    <div class="formulario-container text-center">
+                        <h3 class="text-warning mb-3">Acesso Inválido</h3>
+                        <p class="text-white-50 mb-4">Para acessar o calendário e agendar sua sessão, você precisa primeiro selecionar um orçamento aprovado na sua página de agendamentos.</p>
+                        <div class="d-grid gap-2">
+                            <a href="agendamentos-cliente.php" class="btn btn-primary">VER MEUS AGENDAMENTOS</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <?php endif; ?>
+        <?php // --- FIM DO CONTEÚDO CONDICIONAL --- 
+        ?>
+
     </div>
 </main>
 
@@ -260,9 +318,6 @@ $tamanho = $_GET['tamanho'] ?? '';
         </div>
     </div>
 
-    <?php
-    // // // 
-    ?>
     <div class="modal fade" id="modalRecusar" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -310,10 +365,6 @@ $tamanho = $_GET['tamanho'] ?? '';
             </div>
         </div>
     </div>
-    <?php
-    // // // 
-    ?>
-
 <?php endif; ?>
 
 <script>

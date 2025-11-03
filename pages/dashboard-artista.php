@@ -23,7 +23,7 @@ $pagina_ativa = basename($_SERVER['PHP_SELF']);
 
 <main>
     <div class="container my-5 py-5">
-        <h2 class="text-center mb-4">PAINEL DE CONTROLE</h2>
+
 
 
         <div class="row text-center">
@@ -53,14 +53,14 @@ $pagina_ativa = basename($_SERVER['PHP_SELF']);
             <div class="col-md-6 mb-4">
                 <div class="card-resumo">
                     <h4>Gerenciar Agenda</h4>
-                    <p class="text-white-50">Você tem X solicitações para aprovar.</p>
+                    <p class="text-white-50">Visualizar agendamentos e pedidos de orçamento.</p>
                     <a href="agenda.php" class="btn btn-outline-light">Ver Agenda</a>
                 </div>
             </div>
             <div class="col-md-6 mb-4">
                 <div class="card-resumo">
                     <h4>Gerenciar Portfólio</h4>
-                    <p class="text-white-50">Adicione, edite ou remova fotos da sua galeria.</p>
+                    <p class="text-white-50">Adicione, edite ou remova fotos do portfólio.</p>
                     <a href="portfolio-artista.php" class="btn btn-outline-light">Ver Portfólio</a>
                 </div>
             </div>

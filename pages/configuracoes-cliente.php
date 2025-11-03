@@ -4,6 +4,18 @@ $titulo_pagina = "Configurações";
 include '../includes/header.php';
 ?>
 
+<?php
+// Define qual página está ativa para destacar o link no menu
+$pagina_ativa = basename($_SERVER['PHP_SELF']);
+?>
+
+<div class="submenu-painel">
+    <a href="dashboard-cliente.php" class="<?php echo ($pagina_ativa == 'dashboard-cliente.php') ? 'active' : ''; ?>">Início</a>
+    <a href="agendamentos-cliente.php" class="<?php echo ($pagina_ativa == 'agendamentos-cliente.php') ? 'active' : ''; ?>">Meus Agendamentos</a>
+    <a href="solicitar-orcamento.php" class="<?php echo ($pagina_ativa == 'solicitar-orcamento.php') ? 'active' : ''; ?>">Orçamento</a>
+    <a href="configuracoes-cliente.php" class="<?php echo ($pagina_ativa == 'configuracoes-cliente.php') ? 'active' : ''; ?>">Configurações</a>
+</div>
+
 <main>
     <div class="container my-5 py-5">
         <div class="row justify-content-center">
@@ -16,12 +28,12 @@ include '../includes/header.php';
 
                     <div class="mb-3">
                         <label for="nome" class="form-label">Nome Completo:</label>
-                        <input type="text" class="form-control" id="nome" value="[NOME ATUAL DO CLIENTE]">
+                        <input type="text" class="form-control" id="nome" value="">
                     </div>
 
                     <div class="mb-4">
                         <label for="telefone" class="form-label">Telefone:</label>
-                        <input type="tel" class="form-control" id="telefone" value="[TELEFONE ATUAL]">
+                        <input type="tel" class="form-control" id="telefone" value="">
                     </div>
 
                     <hr class="my-4">

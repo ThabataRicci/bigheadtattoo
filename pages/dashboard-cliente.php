@@ -10,6 +10,17 @@ $titulo_pagina = "Meu Painel";
 include '../includes/header.php';
 ?>
 
+<?php
+// Define qual página está ativa para destacar o link no menu
+$pagina_ativa = basename($_SERVER['PHP_SELF']);
+?>
+
+<div class="submenu-painel">
+    <a href="dashboard-cliente.php" class="<?php echo ($pagina_ativa == 'dashboard-cliente.php') ? 'active' : ''; ?>">Início</a>
+    <a href="agendamentos-cliente.php" class="<?php echo ($pagina_ativa == 'agendamentos-cliente.php') ? 'active' : ''; ?>">Meus Agendamentos</a>
+    <a href="configuracoes-cliente.php" class="<?php echo ($pagina_ativa == 'configuracoes-cliente.php') ? 'active' : ''; ?>">Meu Perfil</a>
+</div>
+
 <main>
     <div class="container my-5 py-5">
 
@@ -20,15 +31,37 @@ include '../includes/header.php';
             <div class="col-lg-7">
                 <h3 class="mb-4">Próximos Agendamentos</h3>
 
-                <div class="card-resumo mb-3">
-                    <p class="mb-1"><strong>Fechamento de Braço</strong></p>
-                    <p class="text-white-50 small mb-0">Data: 25/10/2025 - Horário: 14:00</p>
-                </div>
+                <?php
+                // quando tiver o banco, substituir esta parte pela consulta SQL
+                // $proximos_agendamentos = $resultado_do_banco; 
 
-                <div class="card-resumo mb-3">
-                    <p class="mb-1"><strong>Rosa Fineline</strong></p>
-                    <p class="text-white-50 small mb-0">Data: 15/11/2025 - Horário: 10:00</p>
-                </div>
+                // teste/simulação:
+                $proximos_agendamentos = ["dado1"]; // [] para ver o "estado vazio"
+                // $proximos_agendamentos = ["dado1", "dado2"]; // ver o conteúdo
+                ?>
+
+                <?php if (empty($proximos_agendamentos)): ?>
+
+                    <div class="card-resumo mb-3 text-center">
+                        <p class="text-white-50 mb-0 py-3">Você ainda não possui sessões agendadas.</p>
+                    </div>
+
+                <?php else: ?>
+
+                    <div class="card-resumo mb-3">
+                        <p class="mb-1"><strong>Fechamento de Braço</strong></p>
+                        <p class="text-white-50 small mb-0">Data: 25/10/2025 - Horário: 14:00</p>
+                    </div>
+
+                    <div class="card-resumo mb-3">
+                        <p class="mb-1"><strong>Rosa Fineline</strong></p>
+                        <p class="text-white-50 small mb-0">Data: 15/11/2025 - Horário: 10:00</p>
+                    </div>
+
+                <?php endif; ?>
+                <?php
+                ?>
+
             </div>
 
             <div class="col-lg-4">
