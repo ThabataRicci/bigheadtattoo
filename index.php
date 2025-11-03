@@ -69,12 +69,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <div class="portfolio-item"></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <div class="portfolio-item"></div>
-            </div>
             <div class="d-flex justify-content-center mt-4">
                 <a href="pages/portfolio.php" class="btn btn-outline-light">VER PORTFÓLIO COMPLETO</a>
             </div>

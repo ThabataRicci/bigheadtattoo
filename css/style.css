@@ -307,6 +307,9 @@ footer {
     font-weight: 700;
     letter-spacing: 0.5px;
     font-size: 11px;
+    display: inline-block;
+    min-width: 150px;
+    text-align: center;
 }
 
 .status-acao {
@@ -421,10 +424,6 @@ footer {
 /* 23 - ESTILOS DO CARTÃO DE AÇÃO (AGENDAMENTOS CLIENTE) */
 .card-acao {
     background-image: linear-gradient(rgba(245, 245, 245, 0.05), rgba(245, 245, 245, 0.05));
-}
-
-.card.acao status.acao {
-    color: red;
 }
 
 .card-acao .btn-primary {

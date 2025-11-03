@@ -74,12 +74,36 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         ];
 
         $orcamentos_pendentes = [
-            ['titulo' => 'Tatuagem Fineline', 'status' => 'Aguardando Análise', 'status_class' => 'status-analise', 'detalhe' => 'Sua ideia foi enviada e está com o artista para análise.']
+            [
+                'titulo' => 'Tatuagem Fineline',
+                'status' => 'Aguardando Análise',
+                'status_class' => 'status-analise',
+                'detalhe' => 'Sua ideia foi enviada e está com o artista para análise.'
+            ]
         ];
 
         $historico = [
-            ['tipo' => 'concluido', 'titulo' => 'Rosa no Antebraço', 'status' => 'Concluído', 'status_class' => 'status-concluido', 'detalhe' => '...detalhes do projeto concluído...'],
-            ['tipo' => 'recusado', 'titulo' => 'Tatuagem Geométrica', 'status' => 'Recusado', 'status_class' => 'status-cancelado', 'detalhe' => '"Olá! Agradeço o interesse, mas no momento não estou trabalhando com este tipo de projeto."']
+            [
+                'tipo' => 'concluido',
+                'titulo' => 'Rosa no Antebraço',
+                'status' => 'Concluído',
+                'status_class' => 'status-concluido',
+                'detalhe' => '<p class="text-white-50 mb-2"><strong>Detalhes do Projeto:</strong></p>
+                             <ul class="list-unstyled card-resumo p-3 small">
+                                 <li><strong>Local do Corpo:</strong> Antebraço</li>
+                                 <li><strong>Tamanho Aproximado:</strong> Médio (aprox. 15cm)</li>
+                                 <li><strong>Sua Ideia:</strong> "Uma rosa com traços finos e um pouco de sombra..."</li>
+                                 <li><strong>Duração da Sessão:</strong> 2 horas</li>
+                                 <li><strong>Data da Sessão:</strong> 15/08/2025</li>
+                             </ul>'
+            ],
+            [
+                'tipo' => 'recusado',
+                'titulo' => 'Tatuagem Geométrica',
+                'status' => 'Recusado',
+                'status_class' => 'status-cancelado',
+                'detalhe' => '"Olá! Agradeço o interesse, mas no momento não estou trabalhando com este tipo de projeto."'
+            ]
         ];
         ?>
 
@@ -161,7 +185,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                                 <div class="d-flex justify-content-between align-items-center small p-2">
                                                     <span><?php echo $hist['desc']; ?></span>
                                                     <?php if ($hist['pode_cancelar']): ?>
-                                                        <button class="btn btn-sm btn-outline-danger">Cancelar</button>
+                                                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelarCliente">Cancelar</button>
                                                     <?php endif; ?>
                                                 </div>
                                             <?php endforeach; ?>
@@ -194,6 +218,10 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 <div id="item-analise-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoPendentes">
                                     <div class="accordion-body">
                                         <p><?php echo $proj['detalhe']; ?></p>
+
+                                        <div class="text-end mt-3">
+                                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelarOrcamento">Cancelar Solicitação</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -227,7 +255,8 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                                 <small class="mb-0"><?php echo $item['detalhe']; ?></small>
                                             </div>
                                         <?php else: ?>
-                                            <p><?php echo $item['detalhe']; ?></p>
+
+                                            <?php echo $item['detalhe']; ?>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -240,6 +269,55 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         </div>
     </div>
 </main>
+
+
+<div class="modal fade" id="modalCancelarCliente" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancelar Agendamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Você tem certeza que deseja cancelar esta sessão?</p>
+
+                <p class="small text-white-50">Atenção: Cancelamentos com menos de 48h de antecedência podem estar sujeitos à perda do sinal. Entre em contato com o artista para mais detalhes.</p>
+
+                <form onsubmit="alert('Sessão cancelada (simulação).'); return false;">
+                    <input type="hidden" name="sessao_id" value="ID_DA_SESSAO_A_CANCELAR">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-danger" data-bs-dismiss="modal">Confirmar Cancelamento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCancelarOrcamento" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancelar Solicitação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Você tem certeza que deseja cancelar esta solicitação de orçamento?</p>
+                <p class="small text-white-50">O artista ainda não analisou este pedido. Ao cancelar, ele será removido da fila.</p>
+                <form onsubmit="alert('Solicitação cancelada (simulação).'); return false;">
+                    <input type="hidden" name="orcamento_id" value="ID_DO_ORCAMENTO_A_CANCELAR">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-danger" data-bs-dismiss="modal">Confirmar Cancelamento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <?php
 include '../includes/footer.php';
 ?>
