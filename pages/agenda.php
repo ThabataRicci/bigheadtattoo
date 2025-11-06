@@ -5,12 +5,11 @@ $is_artista = (isset($_SESSION['loggedin']) && isset($_SESSION['user_role']) && 
 
 $ANO_VISUALIZACAO = 2025;
 $ANO_ATIVO = 2025;
-$MES_ATIVO = 10; // Outubro
+$MES_ATIVO = 10;
 
 $mes = isset($_GET['mes']) ? (int)$_GET['mes'] : date('n');
 $ano = isset($_GET['ano']) ? (int)$_GET['ano'] : date('Y');
 
-// Forçar visualização a partir de Outubro de 2025 (mês 10)
 if ($ano < $ANO_VISUALIZACAO) {
     $ano = $ANO_VISUALIZACAO;
     $mes = $MES_ATIVO;
@@ -20,24 +19,19 @@ if ($ano == $ANO_VISUALIZACAO && $mes < $MES_ATIVO) {
 }
 
 
-$dias_folga_semana = [0]; // domingo
+$dias_folga_semana = [0];
 
-// --- LÓGICA DE DIAS CORRIGIDA ---
-// 1. Dias com agendamentos (Clicáveis para o artista, cinza)
 $dias_com_agendamento = [
-    '2025-10-01', // Thábata (Sessão 1 Concluída)
-    '2025-11-01', // Thábata (Borboleta Concluída)
-    '2025-11-08', // Thábata (Sessão 2 Ativa)
-    '2025-11-15', // Izabella (HP Ativa)
+    '2025-10-01',
+    '2025-11-01',
+    '2025-11-08',
+    '2025-11-15',
 ];
-// 2. Dias bloqueados manualmente (NÃO-clicáveis para o artista, cinza)
 $dias_bloqueados_manualmente = [
-    '2025-11-20', // Bloqueio Manual
-    '2025-11-21'  // Bloqueio Manual
+    '2025-11-20',
+    '2025-11-21'
 ];
-// 3. Array para o CLIENTE (combina todos)
 $dias_ocupados_total_cliente = array_merge($dias_com_agendamento, $dias_bloqueados_manualmente);
-// --- FIM DA LÓGICA ---
 
 
 $primeiro_dia_timestamp = mktime(0, 0, 0, $mes, 1, $ano);
@@ -51,7 +45,6 @@ if ($mes_anterior == 0) {
     $mes_anterior = 12;
     $ano_anterior = $ano - 1;
 }
-// Trava navegação para antes de Outubro 2025
 if ($ano_anterior < $ANO_VISUALIZACAO || ($ano_anterior == $ANO_VISUALIZACAO && $mes_anterior < $MES_ATIVO)) {
     $mes_anterior = $MES_ATIVO;
     $ano_anterior = $ANO_VISUALIZACAO;
@@ -78,7 +71,6 @@ include '../includes/header.php';
 ?>
 
 <?php
-// submenu
 $pagina_ativa = basename($_SERVER['PHP_SELF']);
 
 if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
@@ -139,7 +131,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
 
                         <div class="calendario-container p-0" style="border: none; background: none; margin-bottom: 0;">
                             <div class="calendario-header text-center mb-4 d-flex justify-content-between align-items-center">
-                                <?php // Botão Anterior (com trava)
+                                <?php
                                 $href_anterior = "?mes={$mes_anterior}&ano={$ano_anterior}";
                                 $classe_anterior = "btn btn-outline-light";
                                 if ($ano == $ANO_VISUALIZACAO && $mes == $MES_ATIVO) {
@@ -152,7 +144,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                                 <form method="GET" class="d-flex align-items-center">
                                     <select name="mes" class="form-select select-calendario mx-2" onchange="this.form.submit()"><?php
                                                                                                                                 foreach ($meses_pt as $num => $nome):
-                                                                                                                                    // Trava meses anteriores
                                                                                                                                     if ($ano == $ANO_VISUALIZACAO && $num + 1 < $MES_ATIVO) continue;
                                                                                                                                 ?><option value="<?php echo $num + 1; ?>" <?php if ($num + 1 == $mes) echo 'selected'; ?>><?php echo $nome; ?></option><?php endforeach; ?></select>
                                     <select name="ano" class="form-select select-calendario" onchange="this.form.submit()"><?php for ($a = $ANO_VISUALIZACAO; $a <= $ANO_VISUALIZACAO + 5; $a++): ?><option value="<?php echo $a; ?>" <?php if ($a == $ano) echo 'selected'; ?>><?php echo $a; ?></option><?php endfor; ?></select>
@@ -169,43 +160,65 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                                 <div class="dia-semana">Sex</div>
                                 <div class="dia-semana">Sáb</div>
                                 <?php
-                                for ($i = 0; $i < $primeiro_dia_semana; $i++) {
-                                    echo '<div class="dia outro-mes"></div>';
-                                }
 
-                                // Simula data "hoje" como 1 de Outubro de 2025 para testes
-                                $hoje_dia = 1;
-                                $hoje_mes = 10;
-                                $hoje_ano = 2025;
+                                $hoje_dia = date('j');
+                                $hoje_mes = date('n');
+                                $hoje_ano = date('Y');
+                                $data_hoje_formatada = date('Y-m-d', mktime(0, 0, 0, $hoje_mes, $hoje_dia, $hoje_ano));
+
+
+                                for ($i = 0; $i < $primeiro_dia_semana; $i++) {
+                                    $timestamp_outro_mes = mktime(0, 0, 0, $mes, 1 - ($primeiro_dia_semana - $i), $ano);
+                                    $data_sql_outro_mes = date('Y-m-d', $timestamp_outro_mes);
+                                    $data_br_outro_mes = date('d/m/Y', $timestamp_outro_mes);
+                                    $dia_outro_mes = date('d', $timestamp_outro_mes);
+                                    $onclick_action = "mostrarAgendaDia(event, '{$data_sql_outro_mes}', '{$data_br_outro_mes}')";
+
+                                    echo "<a href='#' onclick=\"{$onclick_action}\" class='dia outro-mes'>$dia_outro_mes</a>";
+                                }
 
                                 for ($dia = 1; $dia <= $total_dias_mes; $dia++) {
                                     $data_atual_formatada = date('Y-m-d', mktime(0, 0, 0, $mes, $dia, $ano));
                                     $data_formatada_br = date('d/m/Y', strtotime($data_atual_formatada));
                                     $dia_da_semana_atual = date('w', strtotime($data_atual_formatada));
+                                    $onclick_action = "mostrarAgendaDia(event, '{$data_atual_formatada}', '{$data_formatada_br}')";
+                                    $extra_class = '';
 
-                                    // 1. Verifica se é NÃO-CLICÁVEL (Passado, Folga, Bloqueio Manual)
-                                    if (
-                                        ($ano < $hoje_ano || ($ano == $hoje_ano && $mes < $hoje_mes) || ($ano == $hoje_ano && $mes == $hoje_mes && $dia < $hoje_dia)) || // Passado
-                                        in_array($dia_da_semana_atual, $dias_folga_semana) || // Folga (Domingo)
-                                        in_array($data_atual_formatada, $dias_bloqueados_manualmente) // Bloqueio Manual (20, 21/11)
-                                    ) {
-                                        echo "<div class='dia dia-ocupado'>$dia</div>"; // DIV (não clicável)
-
-                                        // 2. Verifica se é CLICÁVEL-OCUPADO (Tem agendamento)
-                                    } else if (in_array($data_atual_formatada, $dias_com_agendamento)) {
-                                        $onclick_action = "mostrarAgendaDia(event, '{$data_atual_formatada}', '{$data_formatada_br}')";
-                                        echo "<a href='#' onclick=\"{$onclick_action}\" class='dia dia-ocupado'>$dia</a>"; // A (clicável, ocupado)
-
-                                        // 3. É CLICÁVEL-LIVRE
+                                    if (in_array($dia_da_semana_atual, $dias_folga_semana) || in_array($data_atual_formatada, $dias_bloqueados_manualmente)) {
+                                        echo "<div class='dia dia-bloqueado'>$dia</div>";
                                     } else {
-                                        $onclick_action = "mostrarAgendaDia(event, '{$data_atual_formatada}', '{$data_formatada_br}')";
-                                        echo "<a href='#' onclick=\"{$onclick_action}\" class='dia dia-livre'>$dia</a>"; // A (clicável, livre)
+
+                                        if (in_array($data_atual_formatada, $dias_com_agendamento)) {
+
+                                            if ($data_atual_formatada < $data_hoje_formatada) {
+                                                $extra_class = ' dia-concluido';
+                                            } else {
+                                                $extra_class = ' dia-agendado';
+                                            }
+                                        } else {
+                                            $extra_class = ' dia-livre';
+                                        }
+
+                                        if ($data_atual_formatada == $data_hoje_formatada) {
+                                            $extra_class .= ' dia-hoje';
+                                        }
+
+                                        echo "<a href='#' onclick=\"{$onclick_action}\" class='dia{$extra_class}'>$dia</a>";
                                     }
                                 }
 
                                 $total_celulas = $primeiro_dia_semana + $total_dias_mes;
+                                $dia_extra = 1;
                                 while ($total_celulas % 7 != 0) {
-                                    echo '<div class="dia outro-mes"></div>';
+                                    $timestamp_outro_mes = mktime(0, 0, 0, $mes + 1, $dia_extra, $ano);
+                                    $data_sql_outro_mes = date('Y-m-d', $timestamp_outro_mes);
+                                    $data_br_outro_mes = date('d/m/Y', $timestamp_outro_mes);
+                                    $dia_outro_mes = date('d', $timestamp_outro_mes);
+                                    $onclick_action = "mostrarAgendaDia(event, '{$data_sql_outro_mes}', '{$data_br_outro_mes}')";
+
+                                    echo "<a href='#' onclick=\"{$onclick_action}\" class='dia outro-mes'>$dia_outro_mes</a>";
+
+                                    $dia_extra++;
                                     $total_celulas++;
                                 }
                                 ?>
@@ -220,7 +233,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
 
 
                     <div class="tab-pane fade" id="tab-solicitacoes" role="tabpanel" aria-labelledby="solicitacoes-tab">
-                        <?php // SIMULAÇÃO: 1 solicitação pendente (Thábata)
+                        <?php
                         ?>
                         <?php $solicitacoes_pendentes = true; ?>
                         <?php if (!$solicitacoes_pendentes): ?>
@@ -233,7 +246,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                                     <h2 class="accordion-header">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item1">
                                             <div class="w-100 d-flex justify-content-between">
-                                                <span><strong>Ideia:</strong> Rosa Fineline | <strong>Cliente:</strong> Thábata Ricci</span>
+                                                <span><strong>Cliente:</strong> Thábata Ricci | <strong>Ideia:</strong> Rosa Fineline</span>
                                             </div>
                                         </button>
                                     </h2>
@@ -267,7 +280,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
 
 
                     <div class="tab-pane fade" id="tab-sessoes" role="tabpanel" aria-labelledby="sessoes-tab">
-                        <?php // SIMULAÇÃO: 2 sessões ativas (Thábata 08/11 e Izabella 15/11)
+                        <?php
                         ?>
                         <?php $proximas_sessoes = true; ?>
                         <?php if (!$proximas_sessoes): ?>
@@ -350,7 +363,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
 
                 <div class="calendario-container">
                     <div class="calendario-header text-center mb-4 d-flex justify-content-between align-items-center">
-                        <?php // Botão Anterior (com trava)
+                        <?php
                         $href_anterior = "?mes={$mes_anterior}&ano={$ano_anterior}&projeto_id={$projeto_id}&tamanho={$tamanho}";
                         $classe_anterior = "btn btn-outline-light";
                         if ($ano == $ANO_VISUALIZACAO && $mes == $MES_ATIVO) {
@@ -363,7 +376,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                         <form method="GET" class="d-flex align-items-center">
                             <select name="mes" class="form-select select-calendario mx-2" onchange="this.form.submit()"><?php
                                                                                                                         foreach ($meses_pt as $num => $nome):
-                                                                                                                            // Trava meses anteriores
                                                                                                                             if ($ano == $ANO_VISUALIZACAO && $num + 1 < $MES_ATIVO) continue;
                                                                                                                         ?><option value="<?php echo $num + 1; ?>" <?php if ($num + 1 == $mes) echo 'selected'; ?>><?php echo $nome; ?></option><?php endforeach; ?></select>
                             <select name="ano" class="form-select select-calendario" onchange="this.form.submit()"><?php for ($a = $ANO_VISUALIZACAO; $a <= $ANO_VISUALIZACAO + 5; $a++): ?><option value="<?php echo $a; ?>" <?php if ($a == $ano) echo 'selected'; ?>><?php echo $a; ?></option><?php endfor; ?></select>
@@ -381,10 +393,10 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                         <div class="dia-semana">Sex</div>
                         <div class="dia-semana">Sáb</div>
                         <?php
-                        // Simula data "hoje" como 1 de Outubro de 2025 para testes
-                        $hoje_dia = 1;
-                        $hoje_mes = 10;
+                        $hoje_dia = 5;
+                        $hoje_mes = 11;
                         $hoje_ano = 2025;
+                        $data_hoje_formatada = date('Y-m-d', mktime(0, 0, 0, $hoje_mes, $hoje_dia, $hoje_ano));
 
                         for ($i = 0; $i < $primeiro_dia_semana; $i++) {
                             echo '<div class="dia outro-mes"></div>';
@@ -394,13 +406,16 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                             $data_formatada_br = date('d/m/Y', strtotime($data_atual_formatada));
                             $dia_da_semana_atual = date('w', strtotime($data_atual_formatada));
 
-                            // Lógica simples do cliente: ou está ocupado (div) ou está livre (a)
                             if (
-                                ($ano < $hoje_ano || ($ano == $hoje_ano && $mes < $hoje_mes) || ($ano == $hoje_ano && $mes == $hoje_mes && $dia < $hoje_dia)) || // Passado
-                                in_array($dia_da_semana_atual, $dias_folga_semana) || // Folga
-                                in_array($data_atual_formatada, $dias_ocupados_total_cliente) // Ocupado (combina agendamentos + bloqueios)
+                                $data_atual_formatada < $data_hoje_formatada ||
+                                in_array($dia_da_semana_atual, $dias_folga_semana) ||
+                                in_array($data_atual_formatada, $dias_ocupados_total_cliente)
                             ) {
-                                echo "<div class='dia dia-ocupado'>$dia <br><small>Indisponível</small></div>";
+                                $classe_bloqueio = ($data_atual_formatada < $data_hoje_formatada) ? 'dia-passado' : 'dia-bloqueado';
+                                echo "<div class='dia {$classe_bloqueio}'>$dia <br><small>Indisponível</small></div>";
+                            } else if ($data_atual_formatada == $data_hoje_formatada) {
+                                $onclick_action = "mostrarHorarios(event, '{$data_atual_formatada}', '{$data_formatada_br}')";
+                                echo "<a href='#' onclick=\"{$onclick_action}\" class='dia dia-livre dia-hoje'>$dia</a>";
                             } else {
                                 $onclick_action = "mostrarHorarios(event, '{$data_atual_formatada}', '{$data_formatada_br}')";
                                 echo "<a href='#' onclick=\"{$onclick_action}\" class='dia dia-livre'>$dia</a>";
@@ -531,10 +546,11 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Liberar agendamento da nova sessão</h5>
+                    <h5 class="modal-title">Liberar Nova Sessão</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <p>Liberar agendamento da próxima sessão para "Fechamento de Braço"?</p>
                     <p class="small text-white-50">O cliente será notificado para agendar a próxima sessão.</p>
                     <form onsubmit="alert('Nova sessão liberada.'); return false;">
                         <input type="hidden" name="projeto_id_liberar" value="102">
@@ -556,6 +572,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <p>Você confirma que o projeto "Fechamento de Braço" foi <strong>concluído</strong>?</p>
                     <p class="small text-white-50">Ao confirmar, o projeto será movido para o histórico do cliente e não será mais possível agendar novas sessões para ele.</p>
                     <form onsubmit="alert('Projeto concluído.'); return false;">
                         <input type="hidden" name="projeto_id_concluir" value="102">
@@ -575,7 +592,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
     const tamanhoProjeto = '<?php echo $tamanho; ?>';
     const isArtista = <?php echo $is_artista ? 'true' : 'false'; ?>;
 
-    // --- FUNÇÃO DO CLIENTE (para agendar novos horários) ---
     function mostrarHorarios(event, dataSql, dataBr) {
         event.preventDefault();
         const secaoDetalhes = document.getElementById('secao-detalhes');
@@ -599,20 +615,17 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
         });
     }
 
-    // --- FUNÇÃO DO ARTISTA (para ver detalhes dos dias) (CORRIGIDA) ---
     function mostrarAgendaDia(event, dataSql, dataBr) {
         event.preventDefault();
 
-        // Só executa se for o artista
         if (!isArtista) return;
 
         const secaoDetalhes = document.getElementById('secao-detalhes');
 
         let agendamentosDoDia = '';
-        let estiloConcluido = 'style="opacity: 0.6; border-left: 4px solid #103e11;"'; // Verde para concluído
+        let estiloConcluido = 'style="border-left: 7px solid #145615ff;"';
 
         switch (dataSql) {
-            // 1. (Concluído) 01/10/2025 - Thábata
             case '2025-10-01':
                 agendamentosDoDia = `<div class="list-group-item list-group-item-action flex-column align-items-start" ${estiloConcluido}>
                     <div class="d-flex w-100 justify-content-between">
@@ -624,7 +637,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                 </div>`;
                 break;
 
-                // 2. (Concluído) 01/11/2025 - Thábata
             case '2025-11-01':
                 agendamentosDoDia = `<div class="list-group-item list-group-item-action flex-column align-items-start" ${estiloConcluido}>
                     <div class="d-flex w-100 justify-content-between">
@@ -636,7 +648,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                 </div>`;
                 break;
 
-                // 3. (Ativo) 08/11/2025 - Thábata
             case '2025-11-08':
                 agendamentosDoDia = `<div class="list-group-item list-group-item-action flex-column align-items-start">
                     <div class="d-flex w-100 justify-content-between">
@@ -651,7 +662,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                 </div>`;
                 break;
 
-                // 4. (Ativo) 15/11/2025 - Izabella
             case '2025-11-15':
                 agendamentosDoDia = `<div class="list-group-item list-group-item-action flex-column align-items-start">
                     <div class="d-flex w-100 justify-content-between">
@@ -666,13 +676,11 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                 </div>`;
                 break;
 
-                // 5. Dias de Bloqueio Manual
             case '2025-11-20':
             case '2025-11-21':
                 agendamentosDoDia = `<div class="list-group-item text-center text-white-50">Dia bloqueado (Folga/Evento).</div>`;
                 break;
 
-                // 6. Outros dias (dias livres)
             default:
                 agendamentosDoDia = `<div class="list-group-item text-center text-white-50">Nenhum agendamento para este dia.</div>`;
                 break;
@@ -695,7 +703,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
     }
 
     <?php if ($is_artista): ?>
-        // Script para fechar acordeões ao trocar de aba (Apenas para o artista)
         document.addEventListener('DOMContentLoaded', function() {
             var tabs = document.querySelectorAll('#abasAgendaArtista button[data-bs-toggle="tab"]');
             tabs.forEach(function(tab) {

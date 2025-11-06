@@ -52,6 +52,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <h5 class="detalhes-titulo">Dragão</h5>
                         <p class="detalhes-info">Estilo: Oriental</p>
                         <p class="detalhes-info">Tempo: 6 horas</p>
+                        <p class="detalhes-info">Sessões: 2</p>
                         <p class="detalhes-info">Local: Costas</p>
                         <div class="mt-3">
                             <button class="btn btn-sm btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#modalPortfolio">Editar</button>
@@ -68,6 +69,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <h5 class="detalhes-titulo">Rosa</h5>
                         <p class="detalhes-info">Estilo: Fineline</p>
                         <p class="detalhes-info">Tempo: 6 horas</p>
+                        <p class="detalhes-info">Sessões: 1</p>
                         <p class="detalhes-info">Local: Braço</p>
                         <div class="mt-3">
                             <button class="btn btn-sm btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#modalPortfolio">Editar</button>
@@ -136,6 +138,10 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     <div class="mb-3">
                         <label for="tempo" class="form-label">Tempo de Execução (em horas):</label>
                         <input type="number" class="form-control" id="tempo">
+                    </div>
+                    <div class="mb-3">
+                        <label for="sessoes" class="form-label">Número de Sessões:</label>
+                        <input type="number" class="form-control" id="sessoes" min="1" placeholder="Ex: 1">
                     </div>
                     <div class="mb-3">
                         <label for="local" class="form-label">Local do Corpo:</label>

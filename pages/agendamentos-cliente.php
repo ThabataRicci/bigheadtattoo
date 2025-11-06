@@ -41,6 +41,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         <h2 class="text-center mb-5">MEUS AGENDAMENTOS</h2>
 
         <?php
+        // --- DADOS DE SIMULAÇÃO ---
         $projetos_para_agendar = [
             [
                 'id' => 101,
@@ -68,7 +69,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 'duracao' => '2 horas'
             ]
         ];
-
         $proximas_sessoes = [
             [
                 'id' => 102,
@@ -86,7 +86,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 ]
             ]
         ];
-
         $orcamentos_pendentes = [
             [
                 'titulo' => 'Rosa Fineline',
@@ -100,6 +99,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             ]
         ];
 
+        // ***** MUDANÇA AQUI: Corrigido o HTML injetado no array $historico *****
         $historico = [
             [
                 'tipo' => 'concluido',
@@ -111,10 +111,10 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 'ideia' => '"Uma borboleta na perna"',
                 'ref' => 'borboleta.jpg',
                 'detalhe_sessao' => '<p class="text-white-50 mb-2 mt-4"><strong>Detalhes da Sessão:</strong></p>
-                                     <ul class="list-unstyled card-resumo p-3 small">
-                                         <li><strong>Duração da Sessão:</strong> 2 horas</li>
-                                         <li><strong>Data da Sessão:</strong> 01/11/2025</li>
-                                     </ul>'
+                                     <div class="small mb-3">
+                                         <p class="mb-1"><strong>Duração da Sessão:</strong> 2 horas</p>
+                                         <p class="mb-0"><strong>Data da Sessão:</strong> 01/11/2025</p>
+                                     </div>'
             ],
             [
                 'tipo' => 'recusado',
@@ -128,6 +128,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 'detalhe_status' => '"Olá! Agradeço o interesse, mas no momento não estou trabalhando com este tipo de projeto."'
             ]
         ];
+        // --- FIM DOS DADOS DE SIMULAÇÃO ---
         ?>
 
         <h4 class="mb-4">Ação Requerida</h4>
@@ -137,25 +138,36 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 Você não tem nenhuma ação pendente no momento.
             </div>
         <?php else: ?>
-            <?php foreach ($projetos_para_agendar as $proj): ?>
-                <div class="card-resumo card-acao mb-5">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0"><?php echo $proj['titulo']; ?></h5>
-                        <span class="badge <?php echo $proj['status_class']; ?>"><?php echo $proj['status']; ?></span>
+            <div class="accordion mb-5" id="acordeaoAcaoRequerida">
+                <?php foreach ($projetos_para_agendar as $i => $proj): ?>
+                    <div class="accordion-item card-acao mb-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-acao-<?php echo $i; ?>">
+                                <div class="w-100 d-flex justify-content-between align-items-center">
+                                    <span><strong>Projeto:</strong> <?php echo $proj['titulo']; ?></span>
+                                    <span class="badge <?php echo $proj['status_class']; ?> me-3"><?php echo $proj['status']; ?></span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="item-acao-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoAcaoRequerida">
+                            <div class="accordion-body">
+                                <p class="text-white-50 mb-2"><strong>Detalhes do Orçamento Aprovado:</strong></p>
+
+                                <div class="small mb-3">
+                                    <p class="mb-1"><strong>Local do Corpo:</strong> <?php echo $proj['local']; ?></p>
+                                    <p class="mb-1"><strong>Tamanho Aproximado:</strong> <?php echo $proj['tamanho_desc']; ?></p>
+                                    <p class="mb-1"><strong>Sua Ideia:</strong> <?php echo $proj['ideia']; ?></p>
+                                    <p class="mb-1"><strong>Referência Enviada:</strong> <a href="#" class="text-white-50"><?php echo $proj['ref']; ?></a></p>
+                                    <p class="mb-0"><strong>Duração da Sessão:</strong> <?php echo $proj['duracao']; ?></p>
+                                </div>
+                                <div class="text-end mt-3">
+                                    <a href="agenda.php?projeto_id=<?php echo $proj['id']; ?>&tamanho=<?php echo $proj['tamanho_cod']; ?>" class="btn btn-secondary ">AGENDAR SESSÃO</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <p class="text-white-50 mb-2"><strong>Detalhes do Orçamento Aprovado:</strong></p>
-                    <ul class="list-unstyled card-resumo p-3 small">
-                        <li><strong>Local do Corpo:</strong> <?php echo $proj['local']; ?></li>
-                        <li><strong>Tamanho Aproximado:</strong> <?php echo $proj['tamanho_desc']; ?></li>
-                        <li><strong>Sua Ideia:</strong> <?php echo $proj['ideia']; ?></li>
-                        <li><strong>Referência Enviada:</strong> <a href="#" class="text-white-50"><?php echo $proj['ref']; ?></a></li>
-                        <li><strong>Duração da Sessão:</strong> <?php echo $proj['duracao']; ?></li>
-                    </ul>
-                    <div class="text-end mt-3">
-                        <a href="agenda.php?projeto_id=<?php echo $proj['id']; ?>&tamanho=<?php echo $proj['tamanho_cod']; ?>" class="btn btn-secondary ">AGENDAR SESSÃO</a>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
 
 
@@ -195,15 +207,17 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 <div id="sessao-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoProximasSessoes">
                                     <div class="accordion-body">
                                         <p class="text-white-50 mb-2"><strong>Detalhes do Orçamento Aprovado:</strong></p>
-                                        <ul class="list-unstyled card-resumo p-3 small">
-                                            <li><strong>Local do Corpo:</strong> <?php echo $sessao['local']; ?></li>
-                                            <li><strong>Tamanho Aproximado:</strong> <?php echo $sessao['tamanho_desc']; ?></li>
-                                            <li><strong>Sua Ideia:</strong> <?php echo $sessao['ideia']; ?></li>
-                                            <li><strong>Referência Enviada:</strong> <a href="#" class="text-white-50"><?php echo $sessao['ref']; ?></a></li>
-                                            <li><strong>Duração da Sessão:</strong> <?php echo $sessao['duracao']; ?></li>
-                                        </ul>
+
+                                        <div class="small mb-3">
+                                            <p class="mb-1"><strong>Local do Corpo:</strong> <?php echo $sessao['local']; ?></p>
+                                            <p class="mb-1"><strong>Tamanho Aproximado:</strong> <?php echo $sessao['tamanho_desc']; ?></p>
+                                            <p class="mb-1"><strong>Sua Ideia:</strong> <?php echo $sessao['ideia']; ?></p>
+                                            <p class="mb-1"><strong>Referência Enviada:</strong> <a href="#" class="text-white-50"><?php echo $sessao['ref']; ?></a></p>
+                                            <p class="mb-0"><strong>Duração da Sessão:</strong> <?php echo $sessao['duracao']; ?></p>
+                                        </div>
                                         <p class="text-white-50 mb-2 mt-4"><strong>Histórico de Sessões:</strong></p>
-                                        <div class="card-resumo p-3">
+
+                                        <div class="p-3" style="background-color: #2c2c2c; border-radius: 8px;">
                                             <?php foreach ($sessao['historico_sessoes'] as $hist): ?>
                                                 <div class="d-flex justify-content-between align-items-center small p-2">
                                                     <span><?php echo $hist['desc']; ?></span>
@@ -246,12 +260,13 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                     <div class="accordion-body">
 
                                         <p class="text-white-50 mb-2"><strong>Detalhes da Solicitação:</strong></p>
-                                        <ul class="list-unstyled card-resumo p-3 small">
-                                            <li><strong>Local do Corpo:</strong> <?php echo $proj['local']; ?></li>
-                                            <li><strong>Tamanho Aproximado:</strong> <?php echo $proj['tamanho_desc']; ?></li>
-                                            <li><strong>Sua Ideia:</strong> <?php echo $proj['ideia']; ?></li>
-                                            <li><strong>Referência Enviada:</strong> <a href="#" class="text-white-50"><?php echo $proj['ref']; ?></a></li>
-                                        </ul>
+
+                                        <div class="small mb-3">
+                                            <p class="mb-1"><strong>Local do Corpo:</strong> <?php echo $proj['local']; ?></p>
+                                            <p class="mb-1"><strong>Tamanho Aproximado:</strong> <?php echo $proj['tamanho_desc']; ?></p>
+                                            <p class="mb-1"><strong>Sua Ideia:</strong> <?php echo $proj['ideia']; ?></p>
+                                            <p class="mb-0"><strong>Referência Enviada:</strong> <a href="#" class="text-white-50"><?php echo $proj['ref']; ?></a></p>
+                                        </div>
                                         <p class="mt-4"><?php echo $proj['detalhe_status']; ?></p>
 
                                         <div class="text-end mt-3">
@@ -286,12 +301,13 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                     <div class="accordion-body">
 
                                         <p class="text-white-50 mb-2"><strong>Detalhes do Projeto:</strong></p>
-                                        <ul class="list-unstyled card-resumo p-3 small">
-                                            <li><strong>Local do Corpo:</strong> <?php echo $item['local']; ?></li>
-                                            <li><strong>Tamanho Aproximado:</strong> <?php echo $item['tamanho_desc']; ?></li>
-                                            <li><strong>Sua Ideia:</strong> <?php echo $item['ideia']; ?></li>
-                                            <li><strong>Referência Enviada:</strong> <a href="#" class="text-white-50"><?php echo $item['ref']; ?></a></li>
-                                        </ul>
+
+                                        <div class="small mb-3">
+                                            <p class="mb-1"><strong>Local do Corpo:</strong> <?php echo $item['local']; ?></p>
+                                            <p class="mb-1"><strong>Tamanho Aproximado:</strong> <?php echo $item['tamanho_desc']; ?></p>
+                                            <p class="mb-1"><strong>Sua Ideia:</strong> <?php echo $item['ideia']; ?></p>
+                                            <p class="mb-0"><strong>Referência Enviada:</strong> <a href="#" class="text-white-50"><?php echo $item['ref']; ?></a></p>
+                                        </div>
                                         <?php if ($item['tipo'] == 'recusado'): ?>
                                             <p class="text-white-50 mb-2 mt-4"><strong>Motivo:</strong></p>
                                             <div class="bg-dark p-3 rounded fst-italic">
@@ -363,7 +379,8 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
         const tabButtons = document.querySelectorAll('#abasProjetos .nav-link');
 
-        const accordionCollapses = document.querySelectorAll('#abasProjetosConteudo .accordion-collapse');
+        // Seleciona TODOS os acordeões da página
+        const accordionCollapses = document.querySelectorAll('.accordion-collapse');
 
         const collapseInstances = Array.from(accordionCollapses).map(collapseEl => {
             return new bootstrap.Collapse(collapseEl, {
@@ -374,8 +391,31 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         tabButtons.forEach(button => {
             button.addEventListener('click', function() {
 
-                collapseInstances.forEach(instance => {
-                    instance.hide();
+                // Pega apenas os acordeões DENTRO das abas
+                const collapsesInsideTabs = document.querySelectorAll('#abasProjetosConteudo .accordion-collapse');
+
+                // Fecha todos os acordeões DENTRO das abas ao trocar de aba
+                collapsesInsideTabs.forEach(collapseEl => {
+                    const instance = bootstrap.Collapse.getInstance(collapseEl);
+                    if (instance) {
+                        instance.hide();
+                    }
+                });
+            });
+        });
+
+        // Adiciona lógica para fechar outros acordeões de Ação Requerida
+        const acoesCollapse = document.querySelectorAll('#acordeaoAcaoRequerida .accordion-collapse');
+        acoesCollapse.forEach(collapseEl => {
+            collapseEl.addEventListener('show.bs.collapse', () => {
+                // Fecha todos os outros acordeões de Ação Requerida
+                acoesCollapse.forEach(otherCollapseEl => {
+                    if (otherCollapseEl !== collapseEl) {
+                        const instance = bootstrap.Collapse.getInstance(otherCollapseEl);
+                        if (instance) {
+                            instance.hide();
+                        }
+                    }
                 });
             });
         });

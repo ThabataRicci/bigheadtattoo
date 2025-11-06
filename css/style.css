@@ -169,10 +169,6 @@ footer {
     gap: 5px;
 }
 
-.calendario-grid a.dia {
-    text-decoration: none;
-}
-
 .dia,
 .dia-semana {
     padding: 16px;
@@ -186,27 +182,16 @@ footer {
     min-height: auto;
 }
 
-.dia {
-    background-color: #2c2c2c;
-    border: 1px solid #444;
-}
-
-.dia.outro-mes {
-    color: #666;
-    background-color: #222;
-}
-
-.dia.dia-ocupado {
-    background-color: #333;
-    color: #777;
+.calendario-grid a.dia {
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
 }
 
 .dia.dia-livre {
     background-color: #2c2c2c;
+    border: 1px solid #444;
     color: #a0a0a0;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    text-decoration: none;
 }
 
 .dia.dia-livre:hover {
@@ -216,11 +201,78 @@ footer {
     transform: scale(1.05);
 }
 
+.dia.dia-agendado {
+    background-color: #aeaeae;
+    color: #121212;
+    border-color: #F5F5F5;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.dia.dia-agendado:hover {
+    background-color: #c0c0c0;
+    border-color: #c0c0c0;
+    color: #121212;
+    transform: scale(1.05);
+}
+
+.dia.dia-concluido {
+    background-color: #2c2c2c;
+    background-image: repeating-linear-gradient(45deg,
+            #3a3a3a,
+            #3a3a3a 2px,
+            #2c2c2c 2px,
+            #2c2c2c 5px);
+    color: #a0a0a0;
+    border: 1px solid #444;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.dia.dia-concluido:hover {
+    background-image: repeating-linear-gradient(45deg,
+            #555,
+            #555 2px,
+            #444 2px,
+            #444 5px);
+    color: #fff;
+    border-color: #666;
+    transform: scale(1.05);
+}
+
+.dia.dia-hoje {
+    border-bottom: 6px solid #5a5a5a;
+    color: #F5F5F5;
+    font-weight: 700;
+}
+
+.dia.dia-hoje:hover {
+    border-color: #F5F5F5;
+}
+
+.dia.dia-bloqueado {
+    background-color: #333;
+    color: #777;
+    border: 1px solid #444;
+}
+
+.dia.outro-mes {
+    color: #666;
+    background-color: #222;
+    border: 1px solid #333;
+}
+
+.dia.outro-mes:hover {
+    background-color: #444;
+    color: #ccc;
+    border-color: #666;
+}
+
 .select-calendario {
     min-width: 140px;
 }
 
-/* PAGINA CLIENTE */
+/* 12 - PAGINA CLIENTE */
 .card-resumo {
     background-color: #1c1c1c;
     border: 1px solid #444;
