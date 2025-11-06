@@ -186,10 +186,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
 
                                     if (in_array($dia_da_semana_atual, $dias_folga_semana) || in_array($data_atual_formatada, $dias_bloqueados_manualmente)) {
                                         echo "<div class='dia dia-bloqueado'>$dia</div>";
+                                        // 2. É CLICÁVEL (Todos os outros dias)
                                     } else {
+                                        $extra_class = ''; // Reseta a classe
 
+                                        // 1. Define o estilo base (livre, concluído, agendado)
                                         if (in_array($data_atual_formatada, $dias_com_agendamento)) {
-
                                             if ($data_atual_formatada < $data_hoje_formatada) {
                                                 $extra_class = ' dia-concluido';
                                             } else {
@@ -199,11 +201,17 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                                             $extra_class = ' dia-livre';
                                         }
 
+                                        // 2. ADICIONA a classe .dia-passado SE for anterior a hoje
+                                        if ($data_atual_formatada < $data_hoje_formatada) {
+                                            $extra_class .= ' dia-passado';
+                                        }
+
+                                        // 3. Adiciona a classe 'hoje'
                                         if ($data_atual_formatada == $data_hoje_formatada) {
                                             $extra_class .= ' dia-hoje';
                                         }
 
-                                        echo "<a href='#' onclick=\"{$onclick_action}\" class='dia{$extra_class}'>$dia</a>";
+                                        echo "<a href='#' onclick=\"{$onclick_action}\" class='dia{$extra_class}'>$dia</a>"; // Clicável
                                     }
                                 }
 
