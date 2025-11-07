@@ -67,6 +67,13 @@ if (!$is_artista && ($projeto_id == 0 || $tamanho == '')) {
 }
 
 $titulo_pagina = $is_artista ? "Gerenciar Agenda" : "Escolha o Dia e Horário";
+
+// DEFINIÇÃO ÚNICA DE "HOJE"
+$hoje_dia = 7;
+$hoje_mes = 11;
+$hoje_ano = 2025;
+$data_hoje_formatada = date('Y-m-d', mktime(0, 0, 0, $hoje_mes, $hoje_dia, $hoje_ano));
+
 include '../includes/header.php';
 ?>
 
@@ -160,13 +167,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                                 <div class="dia-semana">Sex</div>
                                 <div class="dia-semana">Sáb</div>
                                 <?php
-
-                                $hoje_dia = date('j');
-                                $hoje_mes = date('n');
-                                $hoje_ano = date('Y');
-                                $data_hoje_formatada = date('Y-m-d', mktime(0, 0, 0, $hoje_mes, $hoje_dia, $hoje_ano));
-
-
                                 for ($i = 0; $i < $primeiro_dia_semana; $i++) {
                                     $timestamp_outro_mes = mktime(0, 0, 0, $mes, 1 - ($primeiro_dia_semana - $i), $ano);
                                     $data_sql_outro_mes = date('Y-m-d', $timestamp_outro_mes);
@@ -186,11 +186,9 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
 
                                     if (in_array($dia_da_semana_atual, $dias_folga_semana) || in_array($data_atual_formatada, $dias_bloqueados_manualmente)) {
                                         echo "<div class='dia dia-bloqueado'>$dia</div>";
-                                        // 2. É CLICÁVEL (Todos os outros dias)
                                     } else {
-                                        $extra_class = ''; // Reseta a classe
+                                        $extra_class = '';
 
-                                        // 1. Define o estilo base (livre, concluído, agendado)
                                         if (in_array($data_atual_formatada, $dias_com_agendamento)) {
                                             if ($data_atual_formatada < $data_hoje_formatada) {
                                                 $extra_class = ' dia-concluido';
@@ -201,17 +199,15 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                                             $extra_class = ' dia-livre';
                                         }
 
-                                        // 2. ADICIONA a classe .dia-passado SE for anterior a hoje
                                         if ($data_atual_formatada < $data_hoje_formatada) {
                                             $extra_class .= ' dia-passado';
                                         }
 
-                                        // 3. Adiciona a classe 'hoje'
                                         if ($data_atual_formatada == $data_hoje_formatada) {
                                             $extra_class .= ' dia-hoje';
                                         }
 
-                                        echo "<a href='#' onclick=\"{$onclick_action}\" class='dia{$extra_class}'>$dia</a>"; // Clicável
+                                        echo "<a href='#' onclick=\"{$onclick_action}\" class='dia{$extra_class}'>$dia</a>";
                                     }
                                 }
 
@@ -401,11 +397,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                         <div class="dia-semana">Sex</div>
                         <div class="dia-semana">Sáb</div>
                         <?php
-                        $hoje_dia = 5;
-                        $hoje_mes = 11;
-                        $hoje_ano = 2025;
-                        $data_hoje_formatada = date('Y-m-d', mktime(0, 0, 0, $hoje_mes, $hoje_dia, $hoje_ano));
-
                         for ($i = 0; $i < $primeiro_dia_semana; $i++) {
                             echo '<div class="dia outro-mes"></div>';
                         }
@@ -419,7 +410,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
                                 in_array($dia_da_semana_atual, $dias_folga_semana) ||
                                 in_array($data_atual_formatada, $dias_ocupados_total_cliente)
                             ) {
-                                $classe_bloqueio = ($data_atual_formatada < $data_hoje_formatada) ? 'dia-passado' : 'dia-bloqueado';
+                                $classe_bloqueio = 'dia-bloqueado';
                                 echo "<div class='dia {$classe_bloqueio}'>$dia <br><small>Indisponível</small></div>";
                             } else if ($data_atual_formatada == $data_hoje_formatada) {
                                 $onclick_action = "mostrarHorarios(event, '{$data_atual_formatada}', '{$data_formatada_br}')";
@@ -631,7 +622,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true):
         const secaoDetalhes = document.getElementById('secao-detalhes');
 
         let agendamentosDoDia = '';
-        let estiloConcluido = 'style="border-left: 7px solid #145615ff;"';
+        let estiloConcluido = 'style="border-left: 4px solid #103e11;"';
 
         switch (dataSql) {
             case '2025-10-01':
