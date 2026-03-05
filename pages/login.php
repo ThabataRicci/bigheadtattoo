@@ -10,15 +10,24 @@ include '../includes/header.php';
             <div class="col-md-6 col-lg-5">
 
                 <h2 class="text-center mb-4">ACESSAR SUA CONTA</h2>
-                <form class="formulario-container" onsubmit="alert('Login realizado com sucesso! '); window.location.href='dashboard-cliente.php'; return false;">
+
+                <?php
+                // exibe mensagem de erro se o login falhar 
+                if (isset($_GET['erro'])) {
+                    echo '<div class="alert alert-danger text-center">E-mail ou senha incorretos. Tente novamente.</div>';
+                }
+                ?>
+
+                <form class="formulario-container" action="processa-login.php" method="POST">
+
                     <div class="mb-3">
                         <label for="email" class="form-label">E-mail:</label>
-                        <input type="email" class="form-control" id="email" required>
+                        <input type="email" class="form-control" id="email" name="email" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="senha" class="form-label">Senha:</label>
-                        <input type="password" class="form-control" id="senha" required>
+                        <input type="password" class="form-control" id="senha" name="senha" required>
                         <div class="text-left mt-3">
                             <a href="recuperar-senha.php" class="text-white-50 small">Esqueci minha senha</a>
                         </div>
@@ -28,21 +37,10 @@ include '../includes/header.php';
                         <button type="submit" class="btn btn-outline-light">ENTRAR</button>
                     </div>
 
-                    <?php
-                    # REMOVER A DIV ABAIXO QUANDO ADICIONAR O BANCO DE DADOS, É APENAS SIMULAÇÃO
-                    ?>
-                    <div class="text-center mt-4 d-flex justify-content-center gap-3">
-                        <a href="dashboard-cliente.php" class="btn btn-sm btn-primary">Simular Cliente</a>
-                        <a href="dashboard-artista.php" class="btn btn-sm btn-primary">Simular Artista</a>
-                    </div>
-
-
                     <div class="text-center mt-3">
                         <a href="cadastro.php" class="text-white small">Ainda não tem conta? Cadastre-se</a>
                     </div>
                 </form>
-
-
 
             </div>
         </div>
