@@ -75,7 +75,7 @@ if (isset($_SESSION['usuario_id'])) {
                     </div>
                 <?php endif; ?>
 
-                <form class="formulario-container" action="processa-perfil-artista.php" method="POST" enctype="multipart/form-data">
+                <form class="formulario-container" action="../actions/a.configuracoes-artista.php" method="POST" enctype="multipart/form-data">
 
                     <ul class="nav nav-tabs nav-tabs-dark mb-4" id="abasConfigArtista" role="tablist">
                         <li class="nav-item" role="presentation">

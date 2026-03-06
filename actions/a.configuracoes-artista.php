@@ -29,22 +29,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['usuario_id'])) {
 
             // a) valida senha atual pra ver se ta correta
             if (!password_verify($senha_atual, $user_db['senha'])) {
-                header("Location: configuracoes-artista.php?erro=senha_atual");
+                header("Location: ../pages/configuracoes-artista.php?erro=senha_atual");
                 exit();
             }
             // b) valida se a nova é igual a atual
             if (password_verify($nova_senha, $user_db['senha'])) {
-                header("Location: configuracoes-artista.php?erro=senha_igual");
+                header("Location: ../pages/configuracoes-artista.php?erro=senha_igual");
                 exit();
             }
             // c) valida confirmacao
             if ($nova_senha !== $confirmar_senha) {
-                header("Location: configuracoes-artista.php?erro=confirmacao");
+                header("Location: ../pages/configuracoes-artista.php?erro=confirmacao");
                 exit();
             }
             // d) valida regras de caracteres
             if (!preg_match('/^(?=.*[A-Z])(?=.*[0-9]).{8,}$/', $nova_senha)) {
-                header("Location: configuracoes-artista.php?erro=senha_fraca");
+                header("Location: ../pages/configuracoes-artista.php?erro=senha_fraca");
                 exit();
             }
 
@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['usuario_id'])) {
         }
 
         $_SESSION['usuario_nome'] = $nome; // atualiza nome do artista na dash
-        header("Location: configuracoes-artista.php?sucesso=" . $tipo_sucesso);
+        header("Location: ../pages/configuracoes-artista.php?sucesso=" . $tipo_sucesso);
         exit();
     } catch (PDOException $e) {
         die("Erro ao salvar: " . $e->getMessage());

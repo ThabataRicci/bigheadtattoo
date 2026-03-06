@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -9,7 +12,7 @@
     <title><?php echo $titulo_pagina; ?> | BIG HEAD TATTOO</title>
 
     <?php
-    // Define o caminho base para os assets (CSS, imagens)
+
     $base_path = (strpos($_SERVER['REQUEST_URI'], '/pages/') === false) ? '' : '../';
     ?>
 

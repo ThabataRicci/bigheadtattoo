@@ -47,7 +47,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             <div class="col-md-8 col-lg-7">
 
                 <?php if ($usuario_logado): ?>
-                    <form class="formulario-container text-center" action="processa_solicitacao.php" method="POST" enctype="multipart/form-data">
+                    <form class="formulario-container text-center" action="solicitacao-orcamento" method="POST" enctype="multipart/form-data">
 
                         <h2 class="mb-3">SOLICITAR ORÇAMENTO</h2>
                         <p class="text-white-50 mb-4">Descreva sua tatuagem e envie referências. O artista irá analisar o projeto e você receberá a notificação para agendar sua sessão.</p>

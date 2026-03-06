@@ -27,7 +27,7 @@ include '../includes/header.php';
                 }
                 ?>
 
-                <form class="formulario-container" action="processa-cadastro.php" method="POST">
+                <form class="formulario-container" action="../actions/a.cadastro.php" method="POST">
                     <div class="mb-3">
                         <label for="nome" class="form-label">Nome Completo:</label>
                         <input type="text" class="form-control" id="nome" name="nome" required>

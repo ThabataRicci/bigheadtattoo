@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['usuario_id'])) {
         $stmt_email = $pdo->prepare("SELECT id_usuario FROM usuario WHERE email = ? AND id_usuario != ?");
         $stmt_email->execute([$email, $id]);
         if ($stmt_email->fetch()) {
-            header("Location: configuracoes-cliente.php?erro=email_duplicado");
+            header("Location: ../pages/configuracoes-cliente.php?erro=email_duplicado");
             exit();
         }
 
@@ -35,22 +35,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['usuario_id'])) {
 
             // a) valida senha atual pra ver se ta correta
             if (!password_verify($senha_atual, $user_db['senha'])) {
-                header("Location: configuracoes-cliente.php?erro=senha_atual");
+                header("Location: ../pages/configuracoes-cliente.php?erro=senha_atual");
                 exit();
             }
             // b) valida se a nova é igual a atual
             if (password_verify($nova_senha, $user_db['senha'])) {
-                header("Location: configuracoes-cliente.php?erro=senha_igual");
+                header("Location: ../pages/configuracoes-cliente.php?erro=senha_igual");
                 exit();
             }
             // c) valida confirmacao
             if ($nova_senha !== $confirmar_senha) {
-                header("Location: configuracoes-cliente.php?erro=confirmacao");
+                header("Location: ../pages/configuracoes-cliente.php?erro=confirmacao");
                 exit();
             }
             // d) valida regras de caracteres
             if (!preg_match('/^(?=.*[A-Z])(?=.*[0-9]).{8,}$/', $nova_senha)) {
-                header("Location: configuracoes-cliente.php?erro=senha_fraca");
+                header("Location: ../pages/configuracoes-cliente.php?erro=senha_fraca");
                 exit();
             }
 
@@ -61,12 +61,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['usuario_id'])) {
         }
 
         $_SESSION['usuario_nome'] = $nome;
-        header("Location: configuracoes-cliente.php?sucesso=" . $tipo_sucesso);
+        header("Location: ../pages/configuracoes-cliente.php?sucesso=" . $tipo_sucesso);
         exit();
     } catch (PDOException $e) {
         die("Erro ao atualizar dados: " . $e->getMessage());
     }
 } else {
-    header("Location: login.php");
+    header("Location: ../pages/login.php");
     exit();
 }

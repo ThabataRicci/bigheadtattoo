@@ -5,7 +5,6 @@ require_once '../includes/conexao.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $senha = $_POST['senha'];
-
     $sql = "SELECT id_usuario, nome, senha, perfil FROM usuario WHERE email = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$email]);
@@ -18,13 +17,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['usuario_perfil'] = $usuario['perfil'];
 
         if ($usuario['perfil'] == 'artista') {
-            header("Location: dashboard-artista.php");
+            header("Location: ../pages/dashboard-artista.php");
         } else {
-            header("Location: dashboard-cliente.php");
+            header("Location: ../pages/dashboard-cliente.php");
         }
         exit();
     } else {
-        header("Location: login.php?erro=credenciais");
+        header("Location: ../pages/login.php?erro=credenciais");
         exit();
     }
 }

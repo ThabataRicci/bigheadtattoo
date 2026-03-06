@@ -11,13 +11,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // verificar senhas
     if ($senha !== $confirmar) {
-        header("Location: cadastro.php?erro=senha");
+        header("Location: ../pages/cadastro.php?erro=senha");
         exit();
     }
 
     // validar força da senha (mínimo 8 caracteres, 1 maiúscula, 1 número)
     if (!preg_match('/^(?=.*[A-Z])(?=.*[0-9]).{8,}$/', $senha)) {
-        header("Location: cadastro.php?erro=senha_fraca");
+        header("Location: ../pages/cadastro.php?erro=senha_fraca");
         exit();
     }
 
@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt_busca_tel->execute([$telefone_limpo]);
 
     if ($stmt_busca_tel->fetch()) {
-        header("Location: cadastro.php?erro=telefone");
+        header("Location: ../pages/cadastro.php?erro=telefone");
         exit();
     }
 
@@ -38,10 +38,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$nome, $telefone_limpo, $email, $senha_hash]);
 
-        header("Location: login.php?sucesso=1");
+        header("Location: ../pages/login.php?sucesso=1");
     } catch (PDOException $e) {
         if ($e->getCode() == 23000) {
-            header("Location: cadastro.php?erro=email");
+            header("Location: ../pages/cadastro.php?erro=email");
             exit();
         }
         die("Erro ao cadastrar: " . $e->getMessage());

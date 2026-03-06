@@ -58,7 +58,7 @@ if (isset($_SESSION['usuario_id'])) {
                     </div>
                 <?php endif; ?>
 
-                <form class="formulario-container" action="processa-configuracoes-cliente.php" method="POST">
+                <form class="formulario-container" action="../actions/a.configuracoes-cliente.php" method="POST">
 
                     <ul class="nav nav-tabs nav-tabs-dark mb-4" id="abasConfigCliente" role="tablist">
                         <li class="nav-item" role="presentation">
@@ -91,12 +91,10 @@ if (isset($_SESSION['usuario_id'])) {
                         </div>
 
                         <div class="tab-pane fade" id="tab-senha" role="tabpanel">
-                            <h5 class="text-white-50 mb-3">SEGURANÇA DA CONTA</h5>
 
                             <div class="mb-3">
                                 <label for="senha-atual" class="form-label">Senha Atual:</label>
                                 <input type="password" class="form-control" name="senha_atual" id="senha-atual">
-                                <small class="text-white-50">Obrigatória para definir uma nova senha.</small>
                             </div>
 
                             <hr class="border-secondary my-4">
