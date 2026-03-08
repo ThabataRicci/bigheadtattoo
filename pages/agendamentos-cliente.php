@@ -431,7 +431,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Lógica das abas
+
         const tabButtons = document.querySelectorAll('#abasProjetos .nav-link');
         const accordionCollapses = document.querySelectorAll('.accordion-collapse');
         const collapseInstances = Array.from(accordionCollapses).map(collapseEl => {
