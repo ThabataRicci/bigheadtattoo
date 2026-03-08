@@ -20,6 +20,8 @@ include '../includes/header.php';
 
                 <form class="formulario-container" action="../actions/a.login.php" method="POST">
 
+                    <input type="hidden" name="redirect" value="<?php echo $_GET['redirect'] ?? ''; ?>">
+
                     <div class="mb-3">
                         <label for="email" class="form-label">E-mail:</label>
                         <input type="email" class="form-control" id="email" name="email" required>
@@ -27,7 +29,12 @@ include '../includes/header.php';
 
                     <div class="mb-3">
                         <label for="senha" class="form-label">Senha:</label>
-                        <input type="password" class="form-control" id="senha" name="senha" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="senha" name="senha" required>
+                            <button class="btn btn-outline-light" type="button" id="toggle-senha">
+                                <i class="bi bi-eye" id="icone-senha"></i>
+                            </button>
+                        </div>
                         <div class="text-left mt-3">
                             <a href="recuperar-senha.php" class="text-white-50 small">Esqueci minha senha</a>
                         </div>
@@ -46,6 +53,20 @@ include '../includes/header.php';
         </div>
     </div>
 </main>
+
+<script>
+    // mostrar/esconder senha
+    const btnToggle = document.getElementById('toggle-senha');
+    const inputSenha = document.getElementById('senha');
+    const icone = document.getElementById('icone-senha');
+
+    btnToggle.addEventListener('click', () => {
+        const tipo = inputSenha.getAttribute('type') === 'password' ? 'text' : 'password';
+        inputSenha.setAttribute('type', tipo);
+        icone.classList.toggle('bi-eye');
+        icone.classList.toggle('bi-eye-slash');
+    });
+</script>
 
 <?php
 include '../includes/footer.php';

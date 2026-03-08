@@ -28,6 +28,9 @@ include '../includes/header.php';
                 ?>
 
                 <form class="formulario-container" action="../actions/a.cadastro.php" method="POST">
+
+                    <input type="hidden" name="redirect" value="<?php echo $_GET['redirect'] ?? ''; ?>">
+
                     <div class="mb-3">
                         <label for="nome" class="form-label">Nome Completo:</label>
                         <input type="text" class="form-control" id="nome" name="nome" required>
@@ -45,10 +48,12 @@ include '../includes/header.php';
 
                     <div class="mb-3">
                         <label for="senha" class="form-label">Senha:</label>
-                        <input type="password" class="form-control" id="senha" name="senha"
-                            pattern="(?=.*[A-Z])(?=.*[0-9]).{8,}"
-                            title="A senha deve conter pelo menos 8 caracteres, uma letra maiúscula e um número." required>
-
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="senha" name="senha" required>
+                            <button class="btn btn-outline-light" type="button" onclick="togglePassword('senha', 'icone-1')">
+                                <i class="bi bi-eye" id="icone-1"></i>
+                            </button>
+                        </div>
                         <div id="senha-ajuda" class="text-warning small mt-1" style="display: none;">
                             A senha deve ter pelo menos 8 caracteres, uma letra maiúscula e um número.
                         </div>
@@ -56,8 +61,12 @@ include '../includes/header.php';
 
                     <div class="mb-4">
                         <label for="confirmar-senha" class="form-label">Confirmar Senha:</label>
-                        <input type="password" class="form-control" id="confirmar-senha" name="confirmar-senha" required>
-
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmar-senha" name="confirmar-senha" required>
+                            <button class="btn btn-outline-light" type="button" onclick="togglePassword('confirmar-senha', 'icone-2')">
+                                <i class="bi bi-eye" id="icone-2"></i>
+                            </button>
+                        </div>
                         <div id="confirmar-aviso" class="text-danger small mt-1" style="display: none;">
                             As senhas não coincidem.
                         </div>
@@ -127,6 +136,18 @@ include '../includes/header.php';
 
         e.target.value = valor;
     });
+
+    // mostrar/esconder senha
+    function togglePassword(inputId, iconeId) {
+        const input = document.getElementById(inputId);
+        const icone = document.getElementById(iconeId);
+
+        const tipo = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', tipo);
+
+        icone.classList.toggle('bi-eye');
+        icone.classList.toggle('bi-eye-slash');
+    }
 </script>
 
 <?php

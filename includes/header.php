@@ -52,11 +52,11 @@ if (session_status() === PHP_SESSION_NONE) {
                 <ul class="navbar-nav d-flex flex-row align-items-center position-absolute end-0 me-3">
                     <?php if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true): ?>
                         <?php
-                        // Define a URL do dashboard e das configurações com base no tipo de usuário
-                        if ($_SESSION['user_role'] == 'cliente') {
+
+                        if ($_SESSION['usuario_perfil'] == 'cliente') {
                             $dashboard_url = '/bigheadtattoo/pages/dashboard-cliente.php';
                             $config_url = '/bigheadtattoo/pages/configuracoes-cliente.php';
-                        } elseif ($_SESSION['user_role'] == 'artista') {
+                        } elseif ($_SESSION['usuario_perfil'] == 'artista') {
                             $dashboard_url = '/bigheadtattoo/pages/dashboard-artista.php';
                             $config_url = '/bigheadtattoo/pages/configuracoes-artista.php';
                         }

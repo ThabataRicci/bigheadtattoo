@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$is_artista = (isset($_SESSION['loggedin']) && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'artista');
+$is_artista = (isset($_SESSION['loggedin']) && isset($_SESSION['usuario_perfil']) && $_SESSION['usuario_perfil'] === 'artista');
 
 $ANO_VISUALIZACAO = 2025;
 $ANO_ATIVO = 2025;

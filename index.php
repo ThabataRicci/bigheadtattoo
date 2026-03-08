@@ -12,7 +12,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
     echo '<div class="submenu-painel">';
 
-    if ($_SESSION['user_role'] == 'artista') {
+    if ($_SESSION['usuario_perfil'] == 'artista') {
         // menu do artista
         echo '<a href="' . $link_prefix . 'dashboard-artista.php" class="' . ($pagina_ativa == 'index.php' ? 'active' : '') . '">Início</a>';
         echo '<a href="' . $link_prefix . 'agenda.php">Agenda</a>';
