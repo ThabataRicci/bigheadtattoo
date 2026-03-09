@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once 'includes/conexao.php';
 $titulo_pagina = "Página Inicial";
 include 'includes/header.php';
 ?>
