@@ -6,6 +6,7 @@ include 'includes/header.php';
 ?>
 
 <?php
+
 if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
     $pagina_ativa = basename($_SERVER['PHP_SELF']);
