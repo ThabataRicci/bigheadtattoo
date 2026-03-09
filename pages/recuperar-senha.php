@@ -12,11 +12,12 @@ include '../includes/header.php';
                 <h2 class="text-center mb-4">RECUPERAR SENHA</h2>
                 <p class="text-center text-white-50 mb-4">Digite seu e-mail abaixo e enviaremos um link para você criar uma nova senha.</p>
 
-                <form class="formulario-container">
-                    <div class="mb-3">
-                        <label for="email" class="form-label">E-mail:</label>
-                        <input type="email" class="form-control" id="email" required>
-                    </div>
+                <form class="formulario-container" action="../actions/a.recuperar-senha.php" method="POST">
+    <div class="mb-3">
+        <label for="email" class="form-label">E-mail:</label>
+        <input type="email" class="form-control" id="email" name="email" required>
+    </div>
+    </form>
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-outline-light">ENVIAR LINK DE RECUPERAÇÃO</button>
