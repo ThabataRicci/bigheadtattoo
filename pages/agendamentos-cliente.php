@@ -176,6 +176,13 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     <div class="container my-5 py-5">
         <h2 class="text-center mb-5">MEUS AGENDAMENTOS</h2>
 
+        <?php if (isset($_GET['cancelado']) && $_GET['cancelado'] == 'orcamento'): ?>
+            <div class="alert alert-success text-center mb-4 alert-dismissible fade show" role="alert">
+                Sua solicitação de orçamento foi removida com sucesso.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
         <h4 class="mb-4">Ação Requerida</h4>
 
         <?php if (empty($projetos_para_agendar)): ?>
