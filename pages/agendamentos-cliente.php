@@ -10,7 +10,7 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'cliente'
 $id_usuario = $_SESSION['usuario_id'];
 $titulo_pagina = "Meus Agendamentos";
 include '../includes/header.php';
-// 
+
 $projetos_para_agendar = [];
 $proximas_sessoes = [];
 $orcamentos_pendentes = [];
