@@ -11,13 +11,15 @@ $id_usuario = $_SESSION['usuario_id'];
 $titulo_pagina = "Meus Agendamentos";
 include '../includes/header.php';
 
+// --- INÍCIO DA LÓGICA DE BANCO DE DADOS (BLINDADA) ---
+
 $projetos_para_agendar = [];
 $proximas_sessoes = [];
 $orcamentos_pendentes = [];
 $historico = [];
 
+// 1. buscar orçamentos pendentes (em análise)
 try {
-    // 1. buscar orçamentos pendentes (em análise)
     $sql_pendentes = "SELECT * FROM orcamento WHERE id_usuario = ? AND (status = 'Pendente' OR status IS NULL)";
     $stmt = $pdo->prepare($sql_pendentes);
     $stmt->execute([$id_usuario]);
@@ -25,11 +27,9 @@ try {
 
     foreach ($resultados_pendentes as $row) {
         $ideia_completa = htmlspecialchars($row['descricao_ideia']);
-        $titulo_dinamico = mb_strimwidth($ideia_completa, 0, 30, "...");
-
         $orcamentos_pendentes[] = [
             'id' => $row['id_orcamento'],
-            'titulo' => $titulo_dinamico,
+            'titulo' => mb_strimwidth($ideia_completa, 0, 30, "..."),
             'status' => 'Aguardando Análise',
             'status_class' => 'status-analise',
             'local' => htmlspecialchars($row['local_corpo']),
@@ -39,12 +39,15 @@ try {
             'detalhe_status' => 'Sua ideia foi enviada e está com o artista para análise.'
         ];
     }
+} catch (PDOException $e) {
+}
 
-    // 2. buscar próximas sessões agendadas
+// 2. buscar próximas sessões agendadas
+try {
     $sql_sessoes = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto 
                     FROM sessao s 
                     JOIN projeto p ON s.id_projeto = p.id_projeto 
-                    WHERE p.id_usuario = ? AND s.status = 'Aguardada' AND s.data_hora >= NOW() 
+                    WHERE p.id_usuario = ? AND s.status = 'Agendada' AND s.data_hora >= NOW() 
                     ORDER BY s.data_hora ASC";
     $stmt = $pdo->prepare($sql_sessoes);
     $stmt->execute([$id_usuario]);
@@ -67,8 +70,11 @@ try {
             ]
         ];
     }
+} catch (PDOException $e) {
+}
 
-    // 3. buscar orçamentos aprovados (ação requerida)
+// 3. buscar orçamentos aprovados (ação requerida)
+try {
     $sql_aprovados = "SELECT * FROM orcamento WHERE id_usuario = ? AND status = 'Aprovado'";
     $stmt = $pdo->prepare($sql_aprovados);
     $stmt->execute([$id_usuario]);
@@ -76,11 +82,9 @@ try {
 
     foreach ($resultados_aprovados as $row) {
         $ideia_completa = htmlspecialchars($row['descricao_ideia']);
-        $titulo_dinamico = mb_strimwidth($ideia_completa, 0, 30, "...");
-
         $projetos_para_agendar[] = [
             'id' => $row['id_orcamento'],
-            'titulo' => $titulo_dinamico,
+            'titulo' => mb_strimwidth($ideia_completa, 0, 30, "..."),
             'status' => 'Agende sua sessão',
             'status_class' => 'status-acao',
             'local' => htmlspecialchars($row['local_corpo']),
@@ -88,11 +92,16 @@ try {
             'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado']),
             'ideia' => '"' . $ideia_completa . '"',
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
-            'duracao' => 'A ser definida pelo artista na sessão'
+            // DADOS REAIS DO BANCO
+            'duracao' => !empty($row['estimativa_tempo']) ? htmlspecialchars($row['estimativa_tempo']) : 'A definir',
+            'sessoes_estimadas' => !empty($row['qtd_sessoes']) ? htmlspecialchars($row['qtd_sessoes']) . ' ' : 'A definir'
         ];
     }
+} catch (PDOException $e) {
+}
 
-    // 4. buscar histórico (orçamentos recusados)
+// 4. buscar histórico (orçamentos recusados)
+try {
     $sql_recusados = "SELECT * FROM orcamento WHERE id_usuario = ? AND status = 'Recusado'";
     $stmt = $pdo->prepare($sql_recusados);
     $stmt->execute([$id_usuario]);
@@ -100,22 +109,24 @@ try {
 
     foreach ($resultados_recusados as $row) {
         $ideia_completa = htmlspecialchars($row['descricao_ideia']);
-        $titulo_dinamico = mb_strimwidth($ideia_completa, 0, 30, "...");
-
         $historico[] = [
             'tipo' => 'recusado',
-            'titulo' => $titulo_dinamico,
+            'titulo' => mb_strimwidth($ideia_completa, 0, 30, "..."),
             'status' => 'Recusado',
             'status_class' => 'status-cancelado',
             'local' => htmlspecialchars($row['local_corpo']),
             'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado']),
             'ideia' => '"' . $ideia_completa . '"',
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
-            'detalhe_status' => 'O artista avaliou sua ideia, mas infelizmente não poderá realizá-la no momento. Tente enviar uma nova proposta para outro projeto!'
+            // MOTIVO REAL ESCRITO PELO ARTISTA
+            'detalhe_status' => !empty($row['motivo_recusa']) ? htmlspecialchars($row['motivo_recusa']) : 'O artista avaliou sua ideia, mas infelizmente não poderá realizá-la no momento.'
         ];
     }
+} catch (PDOException $e) {
+}
 
-    // 5. buscar histórico (sessões concluídas ou canceladas)
+// 5. buscar histórico (sessões concluídas ou canceladas)
+try {
     $sql_hist_sessoes = "SELECT s.id_sessao, s.data_hora, s.status, p.titulo 
                          FROM sessao s 
                          JOIN projeto p ON s.id_projeto = p.id_projeto 
@@ -128,13 +139,11 @@ try {
     foreach ($resultados_hist_sessoes as $row) {
         $data_obj = new DateTime($row['data_hora']);
         $status_amigavel = $row['status'];
-        $status_class = ($status_amigavel == 'Concluída') ? 'status-concluido' : 'status-cancelado';
-
         $historico[] = [
             'tipo' => 'concluido',
             'titulo' => htmlspecialchars($row['titulo']),
             'status' => $status_amigavel,
-            'status_class' => $status_class,
+            'status_class' => ($status_amigavel == 'Concluída') ? 'status-concluido' : 'status-cancelado',
             'local' => 'Definido no projeto',
             'tamanho_desc' => 'Definido no projeto',
             'ideia' => 'Sessão ' . strtolower($status_amigavel) . '.',
@@ -217,7 +226,8 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                             <span class="text-white-50">Vazio</span>
                                         <?php endif; ?>
                                     </p>
-                                    <p class="mb-0"><strong>Duração da Sessão:</strong> <?php echo $proj['duracao']; ?></p>
+                                    <p class="mb-1"><strong>Duração da Sessão:</strong> <?php echo $proj['duracao']; ?></p>
+                                    <p class="mb-0"><strong>Total de Sessões:</strong> <?php echo $proj['sessoes_estimadas']; ?></p>
                                 </div>
                                 <div class="text-end mt-3">
                                     <a href="agenda.php?projeto_id=<?php echo $proj['id']; ?>&tamanho=<?php echo $proj['tamanho_cod']; ?>" class="btn btn-secondary ">AGENDAR SESSÃO</a>
