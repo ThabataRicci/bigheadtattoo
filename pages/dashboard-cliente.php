@@ -18,7 +18,7 @@ try {
             JOIN projeto p ON s.id_projeto = p.id_projeto
             WHERE p.id_usuario = ? 
             AND s.data_hora >= NOW() 
-            AND s.status = 'Aguardada'
+            AND s.status = 'Agendado'
             ORDER BY s.data_hora ASC 
             LIMIT 3";
 
@@ -69,7 +69,8 @@ echo '</div>';
                 <?php else: ?>
                     <?php foreach ($proximos_agendamentos as $sessao): ?>
                         <div class="card-resumo mb-3 p-3">
-                            <p class="mb-1 text-primary"><strong><?php echo htmlspecialchars($sessao['titulo']); ?></strong></p>
+
+                            <p class="mb-1 text-light"><strong><?php echo htmlspecialchars($sessao['titulo']); ?></strong></p>
                             <p class="text-white-50 small mb-0">
                                 <i class="bi bi-calendar3 me-2"></i>
                                 <?php

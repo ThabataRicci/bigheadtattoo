@@ -31,7 +31,7 @@ try {
 
 // 2. busca sessoes e clientes
 try {
-    $stmt_sessoes = $pdo->query("SELECT COUNT(*) FROM sessao WHERE status = 'Agendada' AND data_hora BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 7 DAY)");
+    $stmt_sessoes = $pdo->query("SELECT COUNT(*) FROM sessao WHERE status = 'Agendado' AND data_hora BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 7 DAY)");
     $qtd_sessoes_semana = $stmt_sessoes->fetchColumn();
 
     $stmt_clientes = $pdo->query("SELECT COUNT(*) FROM usuario WHERE perfil = 'cliente' AND MONTH(data_cadastro) = MONTH(NOW()) AND YEAR(data_cadastro) = YEAR(NOW())");
@@ -41,7 +41,7 @@ try {
                           FROM sessao s 
                           JOIN projeto p ON s.id_projeto = p.id_projeto 
                           JOIN usuario u ON p.id_usuario = u.id_usuario 
-                          WHERE s.status = 'Agendada' AND s.data_hora >= NOW() 
+                          WHERE s.status = 'Agendado' AND s.data_hora >= NOW() 
                           ORDER BY s.data_hora ASC LIMIT 5";
     $proximas_sessoes = $pdo->query($sql_sessoes_lista)->fetchAll();
 } catch (PDOException $e) {
@@ -178,7 +178,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         <div class="w-100 d-flex flex-column">
                                             <div class="d-flex justify-content-between w-100">
                                                 <span><strong>Projeto:</strong> <?php echo htmlspecialchars($sessao['titulo']); ?></span>
-                                                <span class="me-3 text-info"><strong>Data:</strong> <?php echo $data_sessao->format('d/m/Y \à\s H:i'); ?></span>
+                                                <span class="me-3 text-light"><i class="bi bi-calendar3 me-1"></i> <?php echo $data_sessao->format('d/m/Y - H:i'); ?></span>
                                             </div>
                                             <span class="mt-1 small text-white-50"><strong>Cliente:</strong> <?php echo htmlspecialchars($sessao['nome_cliente']); ?></span>
                                         </div>
@@ -212,10 +212,15 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     <input type="hidden" name="orcamento_id" id="inputAprovarId" value="">
 
                     <div class="mb-3">
+                        <label for="titulo_projeto" class="form-label text-light text-warning">Título do Projeto:</label>
+                        <input type="text" class="form-control bg-dark text-light border-warning" id="titulo_projeto" name="titulo_projeto" placeholder="Ex: Fechamento Samurai" required>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="estimativa_tempo" class="form-label text-light">Estimativa de Tempo (por sessão):</label>
                         <select class="form-select bg-dark text-light border-secondary" id="estimativa_tempo" name="estimativa_tempo" required>
                             <option value="" selected disabled></option>
-                            <option value="Projeto Pequeno (Até 2h)">Projeto Pequeno (Até 2h)</option>
+                            <option value="Projeto Pequeno (até 2h)">Projeto Pequeno (até 2h)</option>
                             <option value="Projeto Médio (2h a 4h)">Projeto Médio (2h a 4h)</option>
                             <option value="Projeto Grande (5h a 6h)">Projeto Grande (5h a 6h)</option>
                             <option value="Fechamento (dia todo)">Fechamento (dia todo)</option>

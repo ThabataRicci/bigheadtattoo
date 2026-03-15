@@ -46,11 +46,11 @@ if ($is_artista) {
 
         foreach ($todas_sessoes as $s) {
             // separaa as sessoes agendadas e coloca no calendario
-            if ($s['status'] === 'Agendada') {
+            if ($s['status'] === 'Agendado') {
                 $proximas_sessoes[] = $s;
             }
             $data_apenas = date('Y-m-d', strtotime($s['data_hora']));
-            if (!in_array($data_apenas, $dias_com_agendamento) && $s['status'] !== 'Cancelada') {
+            if (!in_array($data_apenas, $dias_com_agendamento) && $s['status'] !== 'Cancelado') {
                 $dias_com_agendamento[] = $data_apenas;
             }
 
@@ -490,10 +490,10 @@ endif;
         else if (sessoesNoBanco[dataSql] && sessoesNoBanco[dataSql].length > 0) {
 
             sessoesNoBanco[dataSql].forEach(sessao => {
-                let estiloConcluido = sessao.status === 'Concluída' ? 'style="border-left: 4px solid #103e11;"' : '';
-                let statusBadge = sessao.status === 'Agendada' ? '<span class="badge bg-primary">Agendada</span>' : '<span class="badge bg-secondary">Concluída</span>';
+                let estiloConcluido = sessao.status === 'Concluído' ? 'style="border-left: 4px solid #103e11;"' : '';
+                let statusBadge = sessao.status === 'Agendado' ? '<span class="badge bg-primary">Agendado</span>' : '<span class="badge bg-secondary">Concluído</span>';
 
-                let botaoCancelar = sessao.status === 'Agendada' ? `<div class="text-end mt-3"><button class="btn btn-sm btn-outline-danger btn-cancelar-sessao-js" data-id="${sessao.id}" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Sessão</button></div>` : '';
+                let botaoCancelar = sessao.status === 'Agendado' ? `<div class="text-end mt-3"><button class="btn btn-sm btn-outline-danger btn-cancelar-sessao-js" data-id="${sessao.id}" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Sessão</button></div>` : '';
 
                 agendamentosDoDia += `
                 <div class="list-group-item flex-column align-items-start bg-dark border-secondary text-light mb-2 rounded" ${estiloConcluido}>

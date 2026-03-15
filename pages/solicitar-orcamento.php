@@ -79,7 +79,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         <option value="Pequeno (até 10cm)">Pequeno (até 10cm)</option>
                                         <option value="Médio (11cm a 20cm)">Médio (11cm a 20cm)</option>
                                         <option value="Grande (acima de 20cm)">Grande (acima de 20cm)</option>
-                                        <option value="Fechamento">Fechamento (braço, perna, etc.)</option>
+                                        <option value="Fechamento">Fechamento</option>
                                     </select>
                                 </div>
                             </div>
