@@ -4,8 +4,11 @@ require_once '../includes/conexao.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['sessao_id'])) {
     $id_sessao = $_POST['sessao_id'];
-    $motivo = $_POST['motivo'];
     $perfil = $_SESSION['usuario_perfil'];
+
+    // Adiciona a tag de quem reagendou antes do motivo
+    $quem_reagendou = ($perfil === 'artista') ? 'Artista' : 'Cliente';
+    $motivo = "Reagendado pelo " . $quem_reagendou . ": " . trim($_POST['motivo']);
 
     try {
         // 1. descobre a qual projeto a sessão pertence

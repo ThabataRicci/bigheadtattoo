@@ -274,13 +274,19 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         <?php endif; ?>
         <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'aceito'): ?>
             <div class="alert alert-success text-center mb-4 alert-dismissible fade show" role="alert">
-                Proposta aceita! O seu projeto foi criado. Escolha uma data na sua Ação Requerida para a 1ª sessão.
+                Proposta aceita! O seu projeto foi criado. Escolha uma data para a 1ª sessão.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
         <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'recusado'): ?>
             <div class="alert alert-warning text-center mb-4 alert-dismissible fade show" role="alert">
                 Sua resposta foi enviada ao artista.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'agendado'): ?>
+            <div class="alert alert-success text-center mb-4 alert-dismissible fade show" role="alert">
+                <i class="bi bi-calendar-check me-2"></i> Sua sessão foi agendada com sucesso! O artista já foi notificado.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
@@ -333,13 +339,13 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 <?php if (isset($proj['tipo_acao']) && $proj['tipo_acao'] == 'avaliar_orcamento'): ?>
                                     <p class="text-white-50 mb-2"><strong>Proposta do Artista:</strong></p>
                                     <div class="small mb-3 p-3 bg-dark border border-secondary rounded">
-                                        <p class="mb-1 text-warning"><strong>Valor por Sessão:</strong> <?php echo $proj['valor_sessao']; ?></p>
-                                        <p class="mb-1"><strong>Duração Estimada:</strong> <?php echo $proj['duracao']; ?></p>
+                                        <p class="mb-1"><strong>Valor por Sessão:</strong> <?php echo $proj['valor_sessao']; ?></p>
+                                        <p class=" mb-1"><strong>Duração Estimada:</strong> <?php echo $proj['duracao']; ?></p>
                                         <p class="mb-0"><strong>Total de Sessões:</strong> <?php echo $proj['sessoes_estimadas']; ?></p>
                                     </div>
                                     <div class="text-end mt-4">
                                         <button class="btn btn-outline-danger me-2 btn-recusar-proposta" data-id="<?php echo $proj['id_orcamento']; ?>" data-tentativas="<?php echo $proj['tentativas']; ?>" data-bs-toggle="modal" data-bs-target="#modalRecusarProposta">Recusar Proposta</button>
-                                        <button class="btn btn-success btn-aceitar-proposta" data-id="<?php echo $proj['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalAceitarProposta">Aceitar Valor</button>
+                                        <button class="btn btn-success btn-aceitar-proposta" data-id="<?php echo $proj['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalAceitarProposta">Aceitar Proposta</button>
                                     </div>
 
                                 <?php else: ?>
@@ -369,7 +375,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                                     <div class="text-end mt-4">
                                         <?php $link_agendar = "agenda.php?projeto_id=" . $proj['id_projeto']; ?>
-                                        <a href="<?php echo $link_agendar; ?>" class="btn btn-secondary ">AGENDAR SESSÃO NO CALENDÁRIO</a>
+                                        <a href="<?php echo $link_agendar; ?>" class="btn btn-secondary ">AGENDAR SESSÃO</a>
                                     </div>
                                 <?php endif; ?>
 
@@ -684,12 +690,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <h5 class="modal-title text-success">Aceitar Proposta</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-white-50">
-                <p>Ao aceitar, o projeto será criado e você poderá agendar a sua 1ª sessão na agenda do artista!</p>
+                <p>Ao aceitar, o projeto será criado e você poderá agendar a sua 1ª sessão.</p>
                 <form action="../actions/a.aceitar-orcamento.php" method="POST">
                     <input type="hidden" name="orcamento_id" id="inputAceitarOrcId" value="">
                     <div class="modal-footer border-top border-secondary p-0 pt-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                        <button type="submit" class="btn btn-success">Confirmar e Ir para Agenda</button>
+                        <button type="submit" class="btn btn-success">Confirmar</button>
                     </div>
                 </form>
             </div>
@@ -709,9 +715,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                     <p class="mb-3">Por que você deseja recusar esta proposta?</p>
 
-                    <div class="form-check mb-2" id="radioRecusarPrecoDiv">
-                        <input class="form-check-input" type="radio" name="tipo_recusa" id="radioRecusarPreco" value="preco" checked>
-                        <label class="form-check-label text-light" for="radioRecusarPreco">Achei o valor alto (Tentar negociar com o artista)</label>
+                    <div class="form-check mb-2 d-flex align-items-center" id="radioRecusarPrecoDiv">
+                        <input class="form-check-input mt-0 me-2" type="radio" name="tipo_recusa" id="radioRecusarPreco" value="preco" checked>
+                        <label class="form-check-label text-light mb-0" for="radioRecusarPreco">
+                            Achei o valor alto
+                            <i class="bi bi-info-circle text-info ms-2" style="cursor: help;" data-bs-toggle="tooltip" data-bs-placement="top" title="O orçamento voltará ao artista para ele decidir se quer dar um novo valor ou manter o mesmo. Isso só pode ser feito 1 vez."></i>
+                        </label>
                     </div>
                     <div id="avisoTentativas" class="small text-danger mb-3" style="display:none; margin-left: 24px;">
                         Você já negociou este orçamento uma vez. Não é possível negociar novamente.
@@ -719,16 +728,16 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="radio" name="tipo_recusa" id="radioRecusarOutro" value="outro">
-                        <label class="form-check-label text-light" for="radioRecusarOutro">Outro motivo (Encerrar o projeto)</label>
+                        <label class="form-check-label text-light" for="radioRecusarOutro">Outro motivo</label>
                     </div>
 
                     <div id="divMotivoOutro" class="mb-3" style="display:none;">
-                        <textarea class="form-control bg-dark text-light border-secondary" id="motivo_cancelamento_cliente" name="motivo_cancelamento_cliente" rows="2" placeholder="Explique brevemente..."></textarea>
+                        <textarea class="form-control bg-dark text-light border-secondary" id="motivo_cancelamento_cliente" name="motivo_cancelamento_cliente" rows="2" placeholder=""></textarea>
                     </div>
 
                     <div class="modal-footer border-top border-secondary p-0 pt-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                        <button type="submit" class="btn btn-danger">Confirmar Recusa</button>
+                        <button type="submit" class="btn btn-danger">Recusar</button>
                     </div>
                 </form>
             </div>
@@ -738,6 +747,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+
+        // Ativar os Tooltips (balõezinhos de informação) do Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
 
         // Tabs & Accordions
         const tabButtons = document.querySelectorAll('#abasProjetos .nav-link');

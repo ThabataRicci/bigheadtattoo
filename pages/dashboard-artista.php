@@ -94,6 +94,26 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     <div class="container my-5 py-5">
         <h2 class="text-center mb-5">PAINEL DE CONTROLE</h2>
 
+        <?php if (isset($_GET['sucesso'])): ?>
+            <?php if ($_GET['sucesso'] == 'proposta_enviada'): ?>
+                <div class="alert alert-success text-center mb-4 alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i> Orçamento aprovado! A proposta foi enviada ao cliente.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php elseif ($_GET['sucesso'] == 'recusado'): ?>
+                <div class="alert alert-warning text-center mb-4 alert-dismissible fade show" role="alert">
+                    <i class="bi bi-x-circle me-2"></i> O orçamento foi recusado e o cliente notificado.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['erro']) && $_GET['erro'] == 'bd'): ?>
+            <div class="alert alert-danger text-center mb-4 alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> Erro ao processar. Verifique se preencheu tudo corretamente.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
         <div class="row text-center">
             <div class="col-md-4 mb-4">
                 <div class="card-resumo">
@@ -151,14 +171,14 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         <?php if ($req['status'] == 'Negociacao'): ?>
                                             <hr class="my-3 border-secondary">
                                             <div class="alert alert-warning p-2 small mb-0">
-                                                <strong>⚠️ Negociação:</strong> O cliente achou o valor alto e pediu uma revisão.
-                                                <br><strong>Sua oferta anterior:</strong> <?php echo htmlspecialchars($req['valor_sessao'] ?? ''); ?>
+                                                <strong>⚠️</strong> O cliente achou o valor alto e pediu uma revisão.
+                                                <br><strong>Sua oferta anterior:</strong> R$ <?php echo htmlspecialchars($req['valor_sessao'] ?? ''); ?>
                                             </div>
                                         <?php endif; ?>
                                         <div class="d-flex justify-content-end align-items-center mt-4">
                                             <button type="button" class="btn btn-sm btn-outline-danger btn-recusar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalRecusar">Recusar</button>
 
-                                            <button type="button" class="btn btn-sm btn-success ms-2 btn-aprovar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalAprovar">Aprovar Projeto</button>
+                                            <button type="button" class="btn btn-sm btn-success ms-2 btn-aprovar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalAprovar">Enviar Proposta</button>
                                         </div>
                                     </div>
                                 </div>
@@ -224,7 +244,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-light bg-dark">
             <div class="modal-header border-bottom border-secondary">
-                <h5 class="modal-title">Enviar Proposta / Aprovar Projeto</h5>
+                <h5 class="modal-title">Enviar Proposta</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-white-50">
@@ -234,7 +254,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                     <div class="mb-3">
                         <label for="titulo_projeto" class="form-label text-light">Título do Projeto:</label>
-                        <input type="text" class="form-control bg-dark text-light border-secondary" id="titulo_projeto" name="titulo_projeto" placeholder="Ex: Fechamento Samurai" required>
+                        <input type="text" class="form-control bg-dark text-light border-secondary" id="titulo_projeto" name="titulo_projeto" placeholder="" required>
                     </div>
 
                     <div class="mb-3">
@@ -264,7 +284,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                     <div class="modal-footer border-top border-secondary p-0 pt-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                        <button type="submit" class="btn btn-success">Enviar Proposta</button>
+                        <button type="submit" class="btn btn-success">Enviar</button>
                     </div>
                 </form>
             </div>

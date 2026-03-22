@@ -32,7 +32,7 @@ if ($is_artista) {
         $sql_pendentes = "SELECT o.*, u.nome AS nome_cliente 
                           FROM orcamento o 
                           JOIN usuario u ON o.id_usuario = u.id_usuario 
-                          WHERE o.status = 'Pendente' OR o.status IS NULL 
+                          WHERE o.status = 'Pendente' OR o.status IS NULL OR o.status = 'Negociacao'
                           ORDER BY o.data_envio ASC";
         $solicitacoes_pendentes = $pdo->query($sql_pendentes)->fetchAll();
 
@@ -166,16 +166,9 @@ $bloqueios_banco = [];
 try {
     $id_para_busca_bloqueio = 0;
 
-    // Se for o artista logado, busca os bloqueios dele
-    if ($is_artista) {
-        $id_para_busca_bloqueio = $id_usuario_logado;
-    }
-    // Se for o cliente agendando, busca os bloqueios do dono do projeto
-    else if (isset($_GET['projeto_id']) && (int)$_GET['projeto_id'] > 0) {
-        $stmt_art = $pdo->prepare("SELECT id_usuario FROM projeto WHERE id_projeto = ?");
-        $stmt_art->execute([(int)$_GET['projeto_id']]);
-        $id_para_busca_bloqueio = $stmt_art->fetchColumn();
-    }
+    // Busca o ID do artista globalmente para checar os horários da agenda do estúdio
+    $stmt_art = $pdo->query("SELECT id_usuario FROM usuario WHERE perfil = 'artista' LIMIT 1");
+    $id_para_busca_bloqueio = $stmt_art->fetchColumn();
 
     if ($id_para_busca_bloqueio > 0) {
         $sql_bloq = "SELECT id_bloqueio, data_bloqueio FROM bloqueio_agenda WHERE id_artista = ? ORDER BY data_bloqueio ASC";
@@ -192,6 +185,47 @@ try {
 }
 
 $dias_ocupados_total_cliente = array_merge($dias_com_agendamento, $dias_bloqueados_manualmente);
+
+// --- LÓGICA DE HORÁRIOS PARA O CLIENTE ---
+$estimativa_tempo_projeto = 'Projeto Pequeno (Até 2h)';
+$horarios_ocupados = [];
+
+// Prepara os horários ocupados caso o CLIENTE esteja agendando
+if (!$is_artista && isset($_GET['projeto_id']) && (int)$_GET['projeto_id'] > 0) {
+    try {
+        $projeto_id = (int)$_GET['projeto_id'];
+
+        // Pega a estimativa de tempo do projeto atual
+        $stmt_proj = $pdo->prepare("SELECT o.estimativa_tempo FROM projeto p LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento WHERE p.id_projeto = ?");
+        $stmt_proj->execute([$projeto_id]);
+        $estimativa_tempo_projeto = $stmt_proj->fetchColumn() ?: 'Projeto Pequeno (Até 2h)';
+
+        // Busca as sessões já marcadas na agenda GLOBAL do artista
+        $stmt_busy = $pdo->prepare("SELECT s.data_hora, o.estimativa_tempo 
+                                  FROM sessao s 
+                                  JOIN projeto p ON s.id_projeto = p.id_projeto 
+                                  LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
+                                  WHERE s.status = 'Agendado' AND s.data_hora >= DATE_SUB(NOW(), INTERVAL 1 DAY)");
+        $stmt_busy->execute();
+
+        foreach ($stmt_busy->fetchAll() as $b) {
+            $data_apenas = date('Y-m-d', strtotime($b['data_hora']));
+            $hora_apenas = date('H:i', strtotime($b['data_hora']));
+
+            $duracao = 2; // Padrão
+            if (strpos($b['estimativa_tempo'], 'Médio') !== false) $duracao = 4;
+            if (strpos($b['estimativa_tempo'], 'Grande') !== false) $duracao = 6;
+            if (strpos($b['estimativa_tempo'], 'Todo') !== false) $duracao = 8;
+
+            $horarios_ocupados[$data_apenas][] = [
+                'hora' => $hora_apenas,
+                'duracao' => $duracao
+            ];
+        }
+    } catch (PDOException $e) {
+    }
+}
+// --- FIM LÓGICA DE HORÁRIOS PARA O CLIENTE ---
 
 $primeiro_dia_timestamp = mktime(0, 0, 0, $mes, 1, $ano);
 $total_dias_mes = date('t', $primeiro_dia_timestamp);
@@ -216,11 +250,10 @@ if ($mes_proximo == 13) {
     $ano_proximo = $ano + 1;
 }
 
-$projeto_id = $_GET['projeto_id'] ?? 0;
-$tamanho = $_GET['tamanho'] ?? '';
+$projeto_id = isset($_GET['projeto_id']) ? (int)$_GET['projeto_id'] : 0;
 
 $cliente_pode_agendar = true;
-if (!$is_artista && ($projeto_id == 0 || $tamanho == '')) {
+if (!$is_artista && $projeto_id === 0) {
     $cliente_pode_agendar = false;
 }
 
@@ -316,8 +349,26 @@ endif;
                         <i class="bi bi-calendar-plus me-2"></i> Dia liberado! Agora ele está disponível para agendamentos.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
+                <?php elseif ($_GET['sucesso'] == 'proposta_enviada'): ?>
+                    <div class="alert alert-success text-center mb-4 alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle me-2"></i> Orçamento aprovado! A proposta foi enviada ao cliente.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php elseif ($_GET['sucesso'] == 'recusado'): ?>
+                    <div class="alert alert-warning text-center mb-4 alert-dismissible fade show" role="alert">
+                        <i class="bi bi-x-circle me-2"></i> O orçamento foi recusado e removido das pendências.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 <?php endif; ?>
             <?php endif; ?>
+
+            <?php if (isset($_GET['erro']) && $_GET['erro'] == 'bd'): ?>
+                <div class="alert alert-danger text-center mb-4 alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i> Ocorreu um erro ao tentar salvar no banco de dados.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
             <div class="text-center mb-5">
                 <h2><?php echo $is_artista ? "GERENCIAR AGENDA" : "AGENDAR SESSÃO"; ?></h2>
                 <p class="text-white-50"><?php echo $is_artista ? "Aprove ou recuse solicitações e gerencie seu calendário." : "Selecione uma data disponível para ver os horários."; ?></p>
@@ -346,7 +397,8 @@ endif;
                         <div class="calendario-container p-0" style="border: none; background: none; margin-bottom: 0;">
                             <div class="calendario-header text-center mb-4 d-flex justify-content-between align-items-center">
                                 <?php
-                                $href_anterior = "?mes={$mes_anterior}&ano={$ano_anterior}";
+                                $link_extra = ($projeto_id > 0) ? "&projeto_id={$projeto_id}" : "";
+                                $href_anterior = "?mes={$mes_anterior}&ano={$ano_anterior}{$link_extra}";
                                 $classe_anterior = "btn btn-outline-light";
                                 if ($ano == $ANO_VISUALIZACAO && $mes == $MES_ATIVO) {
                                     $href_anterior = "#";
@@ -356,6 +408,9 @@ endif;
                                 <a href="<?php echo $href_anterior; ?>" class="<?php echo $classe_anterior; ?>">◄</a>
 
                                 <form method="GET" class="d-flex align-items-center">
+                                    <?php if ($projeto_id > 0): ?>
+                                        <input type="hidden" name="projeto_id" value="<?php echo $projeto_id; ?>">
+                                    <?php endif; ?>
                                     <select name="mes" class="form-select select-calendario mx-2" onchange="this.form.submit()">
                                         <?php foreach ($meses_pt as $num => $nome):
                                             if ($ano == $ANO_VISUALIZACAO && $num + 1 < $MES_ATIVO) continue; ?>
@@ -368,7 +423,7 @@ endif;
                                         <?php endfor; ?>
                                     </select>
                                 </form>
-                                <a href="?mes=<?php echo $mes_proximo; ?>&ano=<?php echo $ano_proximo; ?>" class="btn btn-outline-light">►</a>
+                                <a href="?mes=<?php echo $mes_proximo; ?>&ano=<?php echo $ano_proximo; ?><?php echo $link_extra; ?>" class="btn btn-outline-light">►</a>
                             </div>
 
                             <div class="calendario-grid">
@@ -456,9 +511,18 @@ endif;
                                                         Vazio
                                                     <?php endif; ?>
                                                 </p>
+
+                                                <?php if ($req['status'] == 'Negociacao'): ?>
+                                                    <hr class="my-3 border-secondary">
+                                                    <div class="alert alert-warning p-2 small mb-0">
+                                                        <strong>⚠️</strong> O cliente achou o valor alto e pediu uma revisão.
+                                                        <br><strong>Sua oferta anterior:</strong> R$ <?php echo htmlspecialchars($req['valor_sessao'] ?? ''); ?>
+                                                    </div>
+                                                <?php endif; ?>
+
                                                 <div class="d-flex justify-content-end align-items-center mt-4">
                                                     <button type="button" class="btn btn-sm btn-outline-danger btn-recusar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalRecusar">Recusar</button>
-                                                    <button type="button" class="btn btn-sm btn-success ms-2 btn-aprovar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalAprovar">Aprovar Projeto</button>
+                                                    <button type="button" class="btn btn-sm btn-success ms-2 btn-aprovar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalAprovar">Enviar Proposta</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -640,7 +704,7 @@ endif;
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-light bg-dark">
                 <div class="modal-header border-bottom border-secondary">
-                    <h5 class="modal-title">Aprovar Projeto</h5>
+                    <h5 class="modal-title">Enviar Proposta</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-white-50">
@@ -846,11 +910,115 @@ endif;
     const sessoesNoBanco = <?php echo json_encode($todas_sessoes_array ?? []); ?>;
     const diasBloqueados = <?php echo json_encode($dias_bloqueados_manualmente); ?>;
 
+    // VARIÁVEIS EXCLUSIVAS DO CLIENTE
+    const horariosOcupados = <?php echo json_encode($horarios_ocupados ?? []); ?>;
+    const estimativaTempo = "<?php echo $estimativa_tempo_projeto ?? 'Projeto Pequeno (Até 2h)'; ?>";
+    const projetoIdCliente = <?php echo $projeto_id ?? 0; ?>;
+
     function mostrarAgendaDia(event, dataSql, dataBr) {
         event.preventDefault();
-        if (!isArtista) return;
-
         const secaoDetalhes = document.getElementById('secao-detalhes');
+
+        // --- LÓGICA EXCLUSIVA PARA O CLIENTE ---
+        if (!isArtista) {
+            const dataHoje = new Date();
+            dataHoje.setHours(0, 0, 0, 0);
+            const dataSelecionada = new Date(dataSql + "T00:00:00");
+
+            // Verifica folgas e bloqueios (incluindo domingos)
+            if (diasBloqueados.includes(dataSql) || dataSelecionada.getDay() === 0) {
+                secaoDetalhes.innerHTML = `<div class="alert alert-warning text-center mt-4">Este dia está bloqueado na agenda do artista (Folga ou Evento).</div>`;
+                secaoDetalhes.style.display = 'block';
+                secaoDetalhes.scrollIntoView({
+                    behavior: 'smooth'
+                });
+                return;
+            }
+
+            // Verifica data passada
+            if (dataSelecionada < dataHoje) {
+                secaoDetalhes.innerHTML = `<div class="alert alert-danger text-center mt-4">Você não pode agendar em uma data que já passou.</div>`;
+                secaoDetalhes.style.display = 'block';
+                secaoDetalhes.scrollIntoView({
+                    behavior: 'smooth'
+                });
+                return;
+            }
+
+            // Define duração do slot necessário
+            let duracaoNecessaria = 2; // Pequeno (padrão)
+            if (estimativaTempo.includes('Médio')) duracaoNecessaria = 4;
+            if (estimativaTempo.includes('Grande')) duracaoNecessaria = 6;
+            if (estimativaTempo.includes('Todo')) duracaoNecessaria = 8;
+
+            // Opções de horários de início (Abertura do Estúdio)
+            let slots = [];
+            if (duracaoNecessaria <= 2) {
+                slots = ["09:00", "11:00", "14:00", "16:00"];
+            } else if (duracaoNecessaria <= 4) {
+                slots = ["09:00", "14:00"];
+            } else {
+                slots = ["10:00"];
+            }
+
+            // Remove os horários que baterem com a agenda já existente do artista
+            let slotsFiltrados = slots.filter(slot => {
+                let slotHora = parseInt(slot.split(':')[0]);
+                let slotFim = slotHora + duracaoNecessaria;
+
+                let conflito = false;
+                if (horariosOcupados[dataSql]) {
+                    horariosOcupados[dataSql].forEach(ocup => {
+                        let oHora = parseInt(ocup.hora.split(':')[0]);
+                        let oFim = oHora + ocup.duracao;
+
+                        // Checa se há cruzamento (interseção) de horários
+                        if ((slotHora < oFim) && (slotFim > oHora)) {
+                            conflito = true;
+                        }
+                    });
+                }
+                return !conflito;
+            });
+
+            let botoesHtml = '';
+            if (slotsFiltrados.length === 0) {
+                botoesHtml = `<div class="alert alert-dark text-warning border-secondary text-center w-100 m-0"><i class="bi bi-exclamation-triangle me-2"></i> A agenda já está muito cheia neste dia para comportar o tempo da sua sessão (${estimativaTempo}). Escolha outro dia.</div>`;
+            } else {
+                slotsFiltrados.forEach(slot => {
+                    botoesHtml += `
+                        <form action="../actions/a.agendar-sessao.php" method="POST" class="d-inline-block m-2">
+                            <input type="hidden" name="projeto_id" value="${projetoIdCliente}">
+                            <input type="hidden" name="data_sessao" value="${dataSql}">
+                            <input type="hidden" name="hora_sessao" value="${slot}">
+                            <button type="submit" class="btn btn-outline-success btn-lg px-4 shadow-sm"><i class="bi bi-clock me-2"></i> ${slot}</button>
+                        </form>
+                    `;
+                });
+            }
+
+            secaoDetalhes.innerHTML = `
+                <div class="row justify-content-center mt-4">
+                    <div class="col-md-8 col-lg-7">
+                        <div class="formulario-container p-4 border border-secondary shadow text-center" style="margin-bottom: 0;">
+                            <h4 class="mb-2 text-light">Horários para ${dataBr}</h4>
+                            <p class="text-info small mb-4">Tempo de máquina reservado: ${estimativaTempo}</p>
+                            <div class="d-flex justify-content-center flex-wrap">
+                                ${botoesHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            secaoDetalhes.style.display = 'block';
+            secaoDetalhes.scrollIntoView({
+                behavior: 'smooth'
+            });
+
+            return; // Encerra aqui pra não abrir o código visual do artista
+        }
+
+        // --- LÓGICA EXCLUSIVA PARA O ARTISTA ---
         let agendamentosDoDia = '';
 
         // Verifica se é dia de folga/bloqueado manual

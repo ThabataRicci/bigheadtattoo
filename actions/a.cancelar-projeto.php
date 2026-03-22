@@ -4,8 +4,11 @@ require_once '../includes/conexao.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['sessao_id'])) {
     $id_sessao = $_POST['sessao_id'];
-    $motivo = $_POST['motivo'];
     $perfil = $_SESSION['usuario_perfil'];
+
+    // Adiciona a tag de quem cancelou antes do motivo
+    $quem_cancelou = ($perfil === 'artista') ? 'Artista' : 'Cliente';
+    $motivo = "Cancelado pelo " . $quem_cancelou . ": " . trim($_POST['motivo']);
 
     try {
         $stmt = $pdo->prepare("SELECT id_projeto FROM sessao WHERE id_sessao = ?");
