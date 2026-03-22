@@ -13,6 +13,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['orcamento_id'])) {
     $id_orcamento = $_POST['orcamento_id'];
     $motivo_recusa = $_POST['motivo_recusa'];
 
+    // Captura a página de onde o artista enviou a recusa (Dashboard ou Agenda)
+    $origem = $_POST['origem'] ?? 'dashboard-artista.php';
+
     try {
         // atualiza o orcamento com o motivo da recusa
         $sql = "UPDATE orcamento 
@@ -22,11 +25,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['orcamento_id'])) {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$motivo_recusa, $id_orcamento]);
 
-        // retorna p dashboard
-        header("Location: ../pages/dashboard-artista.php?sucesso=recusado");
+        // retorna p/ a página correta
+        header("Location: ../pages/" . $origem . "?sucesso=recusado");
         exit();
     } catch (PDOException $e) {
-        header("Location: ../pages/dashboard-artista.php?erro=bd");
+        header("Location: ../pages/" . $origem . "?erro=bd");
         exit();
     }
 } else {

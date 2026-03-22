@@ -17,33 +17,35 @@ $proximas_sessoes = [];
 $orcamentos_pendentes = [];
 $historico = [];
 
-// 1. buscar orçamentos pendentes (em análise)
+// 1. BUSCAR ORÇAMENTOS PENDENTES (Em Análise ou em Negociação com o Artista)
 try {
-    $sql_pendentes = "SELECT * FROM orcamento WHERE id_usuario = ? AND (status = 'Pendente' OR status IS NULL)";
+    $sql_pendentes = "SELECT * FROM orcamento WHERE id_usuario = ? AND (status IN ('Pendente', 'Negociacao') OR status IS NULL)";
     $stmt = $pdo->prepare($sql_pendentes);
     $stmt->execute([$id_usuario]);
-    $resultados_pendentes = $stmt->fetchAll();
 
-    foreach ($resultados_pendentes as $row) {
+    foreach ($stmt->fetchAll() as $row) {
         $ideia_completa = htmlspecialchars($row['descricao_ideia']);
+        $status_amigavel = ($row['status'] == 'Negociacao') ? 'Em Negociação' : 'Aguardando Análise';
+
         $orcamentos_pendentes[] = [
             'id' => $row['id_orcamento'],
             'titulo' => mb_strimwidth($ideia_completa, 0, 30, "..."),
-            'status' => 'Aguardando Análise',
+            'status' => $status_amigavel,
             'status_class' => 'status-analise',
             'local' => htmlspecialchars($row['local_corpo']),
             'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado']),
             'ideia' => '"' . $ideia_completa . '"',
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
-            'detalhe_status' => 'Sua ideia foi enviada e está com o artista para análise.'
+            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'), // NOVO
+            'detalhe_status' => 'Sua ideia está com o artista. Aguarde o retorno com a proposta de valor.'
         ];
     }
 } catch (PDOException $e) {
 }
 
-// 2. buscar próximas sessões agendadas (COM HISTÓRICO DINÂMICO)
+// 2. BUSCAR PRÓXIMAS SESSÕES AGENDADAS
 try {
-    $sql_sessoes = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.referencia_ideia, o.qtd_sessoes 
+    $sql_sessoes = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.referencia_ideia, o.qtd_sessoes, o.valor_sessao 
                     FROM sessao s 
                     JOIN projeto p ON s.id_projeto = p.id_projeto 
                     LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
@@ -54,22 +56,23 @@ try {
     foreach ($stmt->fetchAll() as $row) {
         $data_obj = new DateTime($row['data_hora']);
 
-        // BUSCA O HISTÓRICO DE SESSÕES DESTE PROJETO
-        $stmt_hist = $pdo->prepare("SELECT id_sessao, data_hora, status FROM sessao WHERE id_projeto = ? AND status != 'Cancelado' ORDER BY data_hora ASC");
+        $stmt_hist = $pdo->prepare("SELECT id_sessao, data_hora, status, motivo_cancelamento FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
         $stmt_hist->execute([$row['id_projeto']]);
-        $sessoes_do_projeto = $stmt_hist->fetchAll();
 
         $historico_montado = [];
         $contador = 1;
-        foreach ($sessoes_do_projeto as $h) {
+        foreach ($stmt_hist->fetchAll() as $h) {
             $d = new DateTime($h['data_hora']);
             if ($h['status'] == 'Concluído') {
-                $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y'), 'pode_cancelar' => false, 'icone' => 'bi-check-circle-fill text-success'];
+                $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y'), 'icone' => 'bi-check-circle-fill text-success', 'pode_cancelar' => false];
+                $contador++;
+            } elseif ($h['status'] == 'Cancelado') {
+                $motivo = htmlspecialchars($h['motivo_cancelamento'] ?? 'Reagendado/Imprevisto');
+                $historico_montado[] = ['desc' => "Sessão Cancelada em " . $d->format('d/m/Y') . " | Motivo: {$motivo}", 'icone' => 'bi-x-circle-fill text-danger', 'pode_cancelar' => false];
             } elseif ($h['status'] == 'Agendado') {
                 $pode = ($h['id_sessao'] == $row['id_sessao']);
-                $historico_montado[] = ['desc' => "{$contador}ª Sessão: Agendada para " . $d->format('d/m/Y H:i'), 'pode_cancelar' => $pode, 'icone' => 'bi-calendar-event text-info'];
+                $historico_montado[] = ['desc' => "{$contador}ª Sessão: Agendada para " . $d->format('d/m/Y H:i'), 'icone' => 'bi-calendar-event text-info', 'pode_cancelar' => $pode];
             }
-            $contador++;
         }
 
         $proximas_sessoes[] = [
@@ -83,56 +86,58 @@ try {
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
+            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'), // NOVO
             'historico_sessoes' => $historico_montado
         ];
     }
 
-    // 3. ação requerida: buscar orçamentos aprovados
-    $sql_aprovados = "SELECT * FROM orcamento WHERE id_usuario = ? AND status = 'Aprovado' AND id_orcamento NOT IN (SELECT id_orcamento FROM projeto WHERE id_usuario = ? AND id_orcamento IS NOT NULL)";
+    // 3. AÇÃO REQUERIDA (NOVO FLUXO): Avaliar Proposta do Artista (Aguardando Aceite)
+    $sql_aprovados = "SELECT * FROM orcamento WHERE id_usuario = ? AND status = 'Aguardando Aceite'";
     $stmt = $pdo->prepare($sql_aprovados);
-    $stmt->execute([$id_usuario, $id_usuario]);
+    $stmt->execute([$id_usuario]);
     foreach ($stmt->fetchAll() as $row) {
-        $ideia_completa = htmlspecialchars($row['descricao_ideia']);
         $projetos_para_agendar[] = [
             'id_orcamento' => $row['id_orcamento'],
-            'titulo' => mb_strimwidth($ideia_completa, 0, 30, "..."),
-            'status' => 'Agende sua sessão',
+            'titulo' => htmlspecialchars($row['titulo_sugerido'] ?? 'Proposta de Projeto'),
+            'status' => 'Avaliar Proposta',
             'status_class' => 'status-acao',
             'local' => htmlspecialchars($row['local_corpo']),
             'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado']),
-            'ideia' => '"' . $ideia_completa . '"',
+            'ideia' => htmlspecialchars($row['descricao_ideia']),
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
-            'duracao' => !empty($row['estimativa_tempo']) ? htmlspecialchars($row['estimativa_tempo']) : 'A definir',
-            'sessoes_estimadas' => !empty($row['qtd_sessoes']) ? htmlspecialchars($row['qtd_sessoes']) : 'A definir',
-            'motivo_reagendamento' => null
+            'duracao' => htmlspecialchars($row['estimativa_tempo']),
+            'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes']),
+            'valor_sessao' => htmlspecialchars($row['valor_sessao']), // JÁ EXISTIA
+            'tentativas' => $row['tentativas_negociacao'],
+            'motivo_reagendamento' => null,
+            'tipo_acao' => 'avaliar_orcamento'
         ];
     }
 
-    // 3.B ação requerida: buscar projetos aguardando agendamento/reagendamento
-    $sql_reagendar = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.qtd_sessoes 
+    // 3.B AÇÃO REQUERIDA (FLUXO ANTIGO): Agendar ou Reagendar Sessão (Projeto já existente)
+    $sql_reagendar = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.qtd_sessoes, o.valor_sessao 
                       FROM projeto p 
                       LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento 
                       WHERE p.id_usuario = ? AND p.status = 'Agendamento Pendente'";
     $stmt = $pdo->prepare($sql_reagendar);
     $stmt->execute([$id_usuario]);
     foreach ($stmt->fetchAll() as $row) {
-
-        // Busca o histórico de sessões pra exibir mesmo na aba de pendências
-        $stmt_hist = $pdo->prepare("SELECT id_sessao, data_hora, status FROM sessao WHERE id_projeto = ? AND status != 'Cancelado' ORDER BY data_hora ASC");
+        $stmt_hist = $pdo->prepare("SELECT id_sessao, data_hora, status, motivo_cancelamento FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
         $stmt_hist->execute([$row['id_projeto']]);
-        $sessoes_do_projeto = $stmt_hist->fetchAll();
 
         $historico_montado = [];
         $contador = 1;
-        foreach ($sessoes_do_projeto as $h) {
+        foreach ($stmt_hist->fetchAll() as $h) {
             $d = new DateTime($h['data_hora']);
             if ($h['status'] == 'Concluído') {
                 $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y'), 'icone' => 'bi-check-circle-fill text-success'];
+                $contador++;
+            } elseif ($h['status'] == 'Cancelado') {
+                $motivo = htmlspecialchars($h['motivo_cancelamento'] ?? 'Reagendado/Imprevisto');
+                $historico_montado[] = ['desc' => "Sessão Cancelada em " . $d->format('d/m/Y') . " | Motivo: {$motivo}", 'icone' => 'bi-x-circle-fill text-danger'];
             }
-            $contador++;
         }
 
-        // Inteligência: Se tem motivo, é Reagendar. Se não tem, é Agendar nova etapa.
         $is_reagendamento = !empty($row['motivo_reagendamento']);
 
         $projetos_para_agendar[] = [
@@ -142,41 +147,48 @@ try {
             'status_class' => 'status-acao',
             'local' => htmlspecialchars($row['local_corpo'] ?? 'Não informado'),
             'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado'] ?? 'Não informado'),
-            'ideia' => htmlspecialchars($row['descricao_ideia'] ?? 'Escolha a nova data.'),
+            'ideia' => htmlspecialchars($row['descricao_ideia'] ?? 'Escolha a data.'),
             'ref' => 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
+            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'), // NOVO
             'motivo_reagendamento' => $row['motivo_reagendamento'],
-            'historico_sessoes' => $historico_montado
+            'historico_sessoes' => $historico_montado,
+            'tipo_acao' => 'agendar_sessao'
         ];
     }
 } catch (PDOException $e) {
 }
 
-// 4 e 5. histórico 
+// 4. HISTÓRICO GERAL 
 try {
-    // orçamentos recusados
-    $sql_recusados = "SELECT * FROM orcamento WHERE id_usuario = ? AND status = 'Recusado'";
+    // Orçamentos Recusados (Pelo Artista) ou Cancelados (Pelo Cliente na negociação)
+    $sql_recusados = "SELECT * FROM orcamento WHERE id_usuario = ? AND status IN ('Recusado', 'Cancelado pelo Cliente')";
     $stmt = $pdo->prepare($sql_recusados);
     $stmt->execute([$id_usuario]);
     foreach ($stmt->fetchAll() as $row) {
         $ideia_completa = htmlspecialchars($row['descricao_ideia']);
+
+        $motivo_exibicao = !empty($row['motivo_cancelamento_cliente']) ? htmlspecialchars($row['motivo_cancelamento_cliente']) : htmlspecialchars($row['motivo_recusa'] ?? 'Sem detalhes');
+
         $historico[] = [
             'tipo' => 'recusado',
             'titulo' => mb_strimwidth($ideia_completa, 0, 30, "..."),
-            'status' => 'Recusado',
+            'status' => $row['status'],
             'status_class' => 'status-cancelado',
             'local' => htmlspecialchars($row['local_corpo']),
             'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado']),
             'ideia' => '"' . $ideia_completa . '"',
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
-            'detalhe_status' => !empty($row['motivo_recusa']) ? htmlspecialchars($row['motivo_recusa']) : 'O artista avaliou sua ideia, mas não poderá realizá-la no momento.',
-            'data_sort' => $row['data_envio'] ?? '1970-01-01 00:00:00' // Guarda a data para o filtro
+            'sessoes_realizadas' => 0,
+            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
+            'detalhe_status' => $motivo_exibicao,
+            'data_sort' => $row['data_envio'] ?? '1970-01-01 00:00:00'
         ];
     }
 
-    // projetos finalizados ou cancelados
-    $sql_hist_proj = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.qtd_sessoes 
+    // Projetos Finalizados ou Cancelados definitivamente
+    $sql_hist_proj = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.qtd_sessoes, o.valor_sessao 
                       FROM projeto p 
                       LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
                       WHERE p.id_usuario = ? AND p.status IN ('Finalizado', 'Cancelado')
@@ -184,19 +196,16 @@ try {
     $stmt = $pdo->prepare($sql_hist_proj);
     $stmt->execute([$id_usuario]);
     foreach ($stmt->fetchAll() as $row) {
-
-        // busca todas as sessoes do projeto
         $stmt_hist = $pdo->prepare("SELECT data_hora, status, motivo_cancelamento FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
         $stmt_hist->execute([$row['id_projeto']]);
-        $sessoes_do_projeto = $stmt_hist->fetchAll();
 
         $historico_montado = [];
         $contador = 1;
-        $ultima_data = '1970-01-01 00:00:00'; // Inicializa a data limite
+        $ultima_data = '1970-01-01 00:00:00';
 
-        foreach ($sessoes_do_projeto as $h) {
+        foreach ($stmt_hist->fetchAll() as $h) {
             $d = new DateTime($h['data_hora']);
-            $ultima_data = $h['data_hora']; // Salva a data da última sessão rodada no loop
+            $ultima_data = $h['data_hora'];
 
             if ($h['status'] == 'Concluído') {
                 $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y'), 'icone' => 'bi-check-circle-fill text-success'];
@@ -217,12 +226,13 @@ try {
             'ideia' => htmlspecialchars($row['descricao_ideia'] ?? ''),
             'ref' => 'Sem referência',
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
+            'sessoes_realizadas' => $contador - 1, // <-- NOVO AQUI
+            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
             'historico_sessoes' => $historico_montado,
-            'data_sort' => $ultima_data // Guarda a última data deste projeto
+            'data_sort' => $ultima_data
         ];
     }
 
-    // MAGIA DE ORDENAÇÃO: Pega o array completo e ordena puxando as datas mais recentes para cima
     usort($historico, function ($a, $b) {
         return strtotime($b['data_sort']) - strtotime($a['data_sort']);
     });
@@ -262,6 +272,18 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
+        <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'aceito'): ?>
+            <div class="alert alert-success text-center mb-4 alert-dismissible fade show" role="alert">
+                Proposta aceita! O seu projeto foi criado. Escolha uma data na sua Ação Requerida para a 1ª sessão.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'recusado'): ?>
+            <div class="alert alert-warning text-center mb-4 alert-dismissible fade show" role="alert">
+                Sua resposta foi enviada ao artista.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
 
         <h4 class="mb-4">Ação Requerida</h4>
 
@@ -283,6 +305,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         </h2>
                         <div id="item-acao-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoAcaoRequerida">
                             <div class="accordion-body">
+
                                 <?php if (!empty($proj['motivo_reagendamento'])): ?>
                                     <div class="alert alert-warning p-2 small mt-2">
                                         <strong>⚠️</strong> Escolha uma nova data | Motivo informado: <em>"<?php echo htmlspecialchars($proj['motivo_reagendamento']); ?>"</em>
@@ -307,35 +330,49 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                                 <hr class="my-4" style="border-color: #444;">
 
-                                <p class="text-white-50 mb-2"><strong>Detalhes da Sessão:</strong></p>
-                                <div class="small mb-3">
-                                    <p class="mb-1"><strong>Duração da Sessão:</strong> <?php echo $proj['duracao']; ?></p>
-                                    <p class="mb-0"><strong>Total de Sessões:</strong> <?php echo $proj['sessoes_estimadas']; ?></p>
-                                </div>
+                                <?php if (isset($proj['tipo_acao']) && $proj['tipo_acao'] == 'avaliar_orcamento'): ?>
+                                    <p class="text-white-50 mb-2"><strong>Proposta do Artista:</strong></p>
+                                    <div class="small mb-3 p-3 bg-dark border border-secondary rounded">
+                                        <p class="mb-1 text-warning"><strong>Valor por Sessão:</strong> <?php echo $proj['valor_sessao']; ?></p>
+                                        <p class="mb-1"><strong>Duração Estimada:</strong> <?php echo $proj['duracao']; ?></p>
+                                        <p class="mb-0"><strong>Total de Sessões:</strong> <?php echo $proj['sessoes_estimadas']; ?></p>
+                                    </div>
+                                    <div class="text-end mt-4">
+                                        <button class="btn btn-outline-danger me-2 btn-recusar-proposta" data-id="<?php echo $proj['id_orcamento']; ?>" data-tentativas="<?php echo $proj['tentativas']; ?>" data-bs-toggle="modal" data-bs-target="#modalRecusarProposta">Recusar Proposta</button>
+                                        <button class="btn btn-success btn-aceitar-proposta" data-id="<?php echo $proj['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalAceitarProposta">Aceitar Valor</button>
+                                    </div>
 
-                                <?php if (!empty($proj['historico_sessoes'])): ?>
+                                <?php else: ?>
+                                    <p class="text-white-50 mb-2"><strong>Detalhes da Sessão:</strong></p>
+                                    <div class="small mb-3">
+                                        <p class="mb-1"><strong>Duração da Sessão:</strong> <?php echo $proj['duracao']; ?></p>
+                                        <p class="mb-1"><strong>Total de Sessões:</strong> <?php echo $proj['sessoes_estimadas']; ?></p>
+                                        <p class="mb-1"><strong>Valor da Sessão:</strong> R$ <?php echo $proj['valor']; ?></p>
+                                    </div>
+
                                     <hr class="my-4" style="border-color: #444;">
 
                                     <p class="text-white-50 mb-2"><strong>Histórico de Sessões:</strong></p>
                                     <div class="p-3" style="background-color: #2c2c2c; border-radius: 8px;">
-                                        <?php foreach ($proj['historico_sessoes'] as $hist): ?>
-                                            <div class="d-flex justify-content-between align-items-center small p-2 border-bottom border-dark">
-                                                <span class="text-white-50">
-                                                    <i class="bi <?php echo $hist['icone']; ?> me-2"></i> <?php echo $hist['desc']; ?>
-                                                </span>
-                                            </div>
-                                        <?php endforeach; ?>
+                                        <?php if (empty($proj['historico_sessoes'])): ?>
+                                            <div class="small text-white-50 p-2">Nenhuma sessão registrada.</div>
+                                        <?php else: ?>
+                                            <?php foreach ($proj['historico_sessoes'] as $hist): ?>
+                                                <div class="d-flex justify-content-between align-items-center small p-2 border-bottom border-dark">
+                                                    <span class="<?php echo strpos($hist['icone'], 'text-danger') !== false ? 'text-warning' : 'text-white-50'; ?>">
+                                                        <i class="bi <?php echo $hist['icone']; ?> me-2"></i> <?php echo $hist['desc']; ?>
+                                                    </span>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="text-end mt-4">
+                                        <?php $link_agendar = "agenda.php?projeto_id=" . $proj['id_projeto']; ?>
+                                        <a href="<?php echo $link_agendar; ?>" class="btn btn-secondary ">AGENDAR SESSÃO NO CALENDÁRIO</a>
                                     </div>
                                 <?php endif; ?>
 
-                                <div class="text-end mt-4">
-                                    <?php
-                                    $link_agendar = "agenda.php?";
-                                    if (isset($proj['id_projeto'])) $link_agendar .= "projeto_id=" . $proj['id_projeto'];
-                                    else $link_agendar .= "orcamento_id=" . $proj['id'];
-                                    ?>
-                                    <a href="<?php echo $link_agendar; ?>" class="btn btn-secondary ">AGENDAR SESSÃO</a>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -347,19 +384,19 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
         <ul class="nav nav-tabs nav-tabs-dark mb-4" id="abasProjetos" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="proximas-tab" data-bs-toggle="tab" data-bs-target="#tab-proximas" type="button" role="tab" aria-controls="tab-proximas" aria-selected="true">Próximas Sessões</button>
+                <button class="nav-link active" id="proximas-tab" data-bs-toggle="tab" data-bs-target="#tab-proximas" type="button" role="tab">Próximas Sessões</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="analise-tab" data-bs-toggle="tab" data-bs-target="#tab-analise" type="button" role="tab" aria-controls="tab-analise" aria-selected="false">Em Análise</button>
+                <button class="nav-link" id="analise-tab" data-bs-toggle="tab" data-bs-target="#tab-analise" type="button" role="tab">Em Análise</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#tab-historico" type="button" role="tab" aria-controls="tab-historico" aria-selected="false">Histórico</button>
+                <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#tab-historico" type="button" role="tab">Histórico</button>
             </li>
         </ul>
 
         <div class="tab-content tab-content-boxed" id="abasProjetosConteudo">
 
-            <div class="tab-pane fade show active" id="tab-proximas" role="tabpanel" aria-labelledby="proximas-tab">
+            <div class="tab-pane fade show active" id="tab-proximas" role="tabpanel">
                 <?php if (empty($proximas_sessoes)): ?>
                     <div class="card-resumo text-center text-white-50">
                         Você não possui nenhuma sessão agendada.
@@ -399,9 +436,9 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         <p class="text-white-50 mb-2"><strong>Detalhes da Sessão:</strong></p>
                                         <div class="small mb-3">
                                             <p class="mb-1"><strong>Duração da Sessão:</strong> <?php echo $sessao['duracao']; ?></p>
-                                            <p class="mb-0"><strong>Total de Sessões:</strong> <?php echo $sessao['sessoes_estimadas']; ?></p>
+                                            <p class="mb-1"><strong>Total de Sessões:</strong> <?php echo $sessao['sessoes_estimadas']; ?></p>
+                                            <p class="mb-1"><strong>Valor da Sessão:</strong> R$ <?php echo $sessao['valor']; ?></p>
                                         </div>
-
                                         <hr class="my-4" style="border-color: #444;">
 
                                         <p class="text-white-50 mb-2"><strong>Histórico de Sessões:</strong></p>
@@ -428,7 +465,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <?php endif; ?>
             </div>
 
-            <div class="tab-pane fade" id="tab-analise" role="tabpanel" aria-labelledby="analise-tab">
+            <div class="tab-pane fade" id="tab-analise" role="tabpanel">
                 <?php if (empty($orcamentos_pendentes)): ?>
                     <div class="card-resumo text-center text-white-50">
                         Você não possui nenhum orçamento em análise.
@@ -452,6 +489,9 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                             <p class="mb-1"><strong>Local do Corpo:</strong> <?php echo $proj['local']; ?></p>
                                             <p class="mb-1"><strong>Tamanho Aproximado:</strong> <?php echo $proj['tamanho_desc']; ?></p>
                                             <p class="mb-1"><strong>Sua Ideia:</strong> <?php echo $proj['ideia']; ?></p>
+                                            <?php if ($proj['valor'] !== 'Não definido' && $proj['valor'] !== ''): ?>
+                                                <p class="mb-1 text-warning"><strong>Valor Proposto:</strong> R$ <?php echo $proj['valor']; ?></p>
+                                            <?php endif; ?>
                                             <p class="mb-0"><strong>Referência Enviada:</strong>
                                                 <?php if ($proj['ref'] !== 'Sem referência' && $proj['ref'] !== ''): ?>
                                                     <a href="../imagens/orcamentos/<?php echo $proj['ref']; ?>" target="_blank" class="text-info text-decoration-none">
@@ -478,7 +518,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <?php endif; ?>
             </div>
 
-            <div class="tab-pane fade" id="tab-historico" role="tabpanel" aria-labelledby="historico-tab">
+            <div class="tab-pane fade" id="tab-historico" role="tabpanel">
                 <?php if (empty($historico)): ?>
                     <div class="card-resumo text-center text-white-50">
                         Seu histórico está vazio.
@@ -495,7 +535,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                     <div class="accordion" id="acordeaoHistorico">
                         <?php foreach ($historico as $i => $item): ?>
-                            <div class="accordion-item mb-3 historico-item-js" data-status="<?php echo $item['status']; ?>">
+                            <div class="accordion-item mb-3 historico-item-js" data-status="<?php echo strpos($item['status'], 'Cancelado') !== false ? 'Cancelado' : $item['status']; ?>">
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-hist-<?php echo $i; ?>">
                                         <div class="w-100 d-flex justify-content-between align-items-center">
@@ -511,6 +551,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                             <p class="mb-1"><strong>Local do Corpo:</strong> <?php echo $item['local']; ?></p>
                                             <p class="mb-1"><strong>Tamanho Aproximado:</strong> <?php echo $item['tamanho_desc']; ?></p>
                                             <p class="mb-1"><strong>Sua Ideia:</strong> <?php echo $item['ideia']; ?></p>
+                                            <?php if (isset($item['sessoes_estimadas']) && $item['sessoes_estimadas'] !== '-'): ?>
+                                                <p class="mb-1"><strong>Sessões Realizadas:</strong> <?php echo $item['sessoes_realizadas'] ?? 0; ?> | Estimado: <?php echo $item['sessoes_estimadas']; ?></p>
+                                            <?php endif; ?>
+                                            <?php if ($item['valor'] !== 'Não definido' && $item['valor'] !== ''): ?>
+                                                <p class="mb-1"><strong>Valor da Sessão:</strong> R$ <?php echo $item['valor']; ?></p>
+                                            <?php endif; ?>
                                             <p class="mb-0"><strong>Referência Enviada:</strong>
                                                 <?php if ($item['ref'] !== 'Sem referência' && $item['ref'] !== ''): ?>
                                                     <a href="../imagens/orcamentos/<?php echo $item['ref']; ?>" target="_blank" class="text-info text-decoration-none">
@@ -529,7 +575,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                             <div class="p-3" style="background-color: #2c2c2c; border-radius: 8px;">
                                                 <div class="d-flex justify-content-between align-items-center small p-2 border-bottom border-dark">
                                                     <span class="text-warning">
-                                                        <i class="bi bi-x-circle-fill text-danger me-2"></i> Solicitação Recusada | Motivo: <?php echo $item['detalhe_status']; ?>
+                                                        <i class="bi bi-x-circle-fill text-danger me-2"></i> Solicitação Encerrada | Motivo: <?php echo $item['detalhe_status']; ?>
                                                     </span>
                                                 </div>
                                             </div>
@@ -631,9 +677,69 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     </div>
 </div>
 
+<div class="modal fade" id="modalAceitarProposta" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-success">Aceitar Proposta</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-white-50">
+                <p>Ao aceitar, o projeto será criado e você poderá agendar a sua 1ª sessão na agenda do artista!</p>
+                <form action="../actions/a.aceitar-orcamento.php" method="POST">
+                    <input type="hidden" name="orcamento_id" id="inputAceitarOrcId" value="">
+                    <div class="modal-footer border-top border-secondary p-0 pt-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-success">Confirmar e Ir para Agenda</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRecusarProposta" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-danger">Recusar Proposta</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-white-50">
+                <form action="../actions/a.recusar-orcamento-cliente.php" method="POST">
+                    <input type="hidden" name="orcamento_id" id="inputRecusarOrcIdCli" value="">
+
+                    <p class="mb-3">Por que você deseja recusar esta proposta?</p>
+
+                    <div class="form-check mb-2" id="radioRecusarPrecoDiv">
+                        <input class="form-check-input" type="radio" name="tipo_recusa" id="radioRecusarPreco" value="preco" checked>
+                        <label class="form-check-label text-light" for="radioRecusarPreco">Achei o valor alto (Tentar negociar com o artista)</label>
+                    </div>
+                    <div id="avisoTentativas" class="small text-danger mb-3" style="display:none; margin-left: 24px;">
+                        Você já negociou este orçamento uma vez. Não é possível negociar novamente.
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="tipo_recusa" id="radioRecusarOutro" value="outro">
+                        <label class="form-check-label text-light" for="radioRecusarOutro">Outro motivo (Encerrar o projeto)</label>
+                    </div>
+
+                    <div id="divMotivoOutro" class="mb-3" style="display:none;">
+                        <textarea class="form-control bg-dark text-light border-secondary" id="motivo_cancelamento_cliente" name="motivo_cancelamento_cliente" rows="2" placeholder="Explique brevemente..."></textarea>
+                    </div>
+
+                    <div class="modal-footer border-top border-secondary p-0 pt-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-danger">Confirmar Recusa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
+        // Tabs & Accordions
         const tabButtons = document.querySelectorAll('#abasProjetos .nav-link');
         const accordionCollapses = document.querySelectorAll('.accordion-collapse');
         const collapseInstances = Array.from(accordionCollapses).map(collapseEl => {
@@ -642,7 +748,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             });
         });
 
-        // O filtro estava num lugar errado, agora está blindado aqui:
+        // Filtro Histórico
         const filtroHistorico = document.getElementById('filtroStatusHistorico');
         if (filtroHistorico) {
             filtroHistorico.addEventListener('change', function() {
@@ -650,7 +756,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 const itensHistorico = document.querySelectorAll('.historico-item-js');
 
                 itensHistorico.forEach(item => {
-                    if (filtro === 'todos' || item.getAttribute('data-status') === filtro) {
+                    if (filtro === 'todos' || item.getAttribute('data-status').includes(filtro)) {
                         item.style.display = '';
                     } else {
                         item.style.display = 'none';
@@ -681,6 +787,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             });
         });
 
+        // Botões de Ação (Puxar IDs pros Modais)
         const btnsReagendar = document.querySelectorAll('.btn-reagendar');
         const inputReagendarId = document.getElementById('inputReagendarId');
         btnsReagendar.forEach(btn => {
@@ -704,6 +811,57 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 inputOrcamentoId.value = this.getAttribute('data-id');
             });
         });
+
+        // NOVOS BOTÕES (Avaliar Proposta)
+        const btnsAceitarProp = document.querySelectorAll('.btn-aceitar-proposta');
+        const inputAceitarOrcId = document.getElementById('inputAceitarOrcId');
+        btnsAceitarProp.forEach(btn => {
+            btn.addEventListener('click', function() {
+                inputAceitarOrcId.value = this.getAttribute('data-id');
+            });
+        });
+
+        const radioMotivo = document.querySelectorAll('input[name="tipo_recusa"]');
+        const divMotivoOutro = document.getElementById('divMotivoOutro');
+        const inputMotivoOutro = document.getElementById('motivo_cancelamento_cliente');
+
+        radioMotivo.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'outro') {
+                    divMotivoOutro.style.display = 'block';
+                    inputMotivoOutro.required = true;
+                } else {
+                    divMotivoOutro.style.display = 'none';
+                    inputMotivoOutro.required = false;
+                }
+            });
+        });
+
+        const btnsRecusarCli = document.querySelectorAll('.btn-recusar-proposta');
+        const inputRecusarOrcIdCli = document.getElementById('inputRecusarOrcIdCli');
+        btnsRecusarCli.forEach(btn => {
+            btn.addEventListener('click', function() {
+                inputRecusarOrcIdCli.value = this.getAttribute('data-id');
+                const tentativas = parseInt(this.getAttribute('data-tentativas'));
+
+                if (tentativas >= 1) {
+                    document.getElementById('radioRecusarPreco').disabled = true;
+                    document.getElementById('radioRecusarPrecoDiv').classList.add('text-muted');
+                    document.getElementById('avisoTentativas').style.display = 'block';
+                    document.getElementById('radioRecusarOutro').checked = true;
+                    divMotivoOutro.style.display = 'block';
+                    inputMotivoOutro.required = true;
+                } else {
+                    document.getElementById('radioRecusarPreco').disabled = false;
+                    document.getElementById('radioRecusarPrecoDiv').classList.remove('text-muted');
+                    document.getElementById('avisoTentativas').style.display = 'none';
+                    document.getElementById('radioRecusarPreco').checked = true;
+                    divMotivoOutro.style.display = 'none';
+                    inputMotivoOutro.required = false;
+                }
+            });
+        });
+
     });
 </script>
 

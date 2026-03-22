@@ -2,7 +2,7 @@
 session_start();
 require_once '../includes/conexao.php';
 
-// aepnas o artista pode aprovar
+// apenas o artista pode aprovar
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'artista') {
     header("Location: ../pages/login.php");
     exit();
@@ -15,30 +15,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['orcamento_id'])) {
     $qtd_sessoes = $_POST['qtd_sessoes'];
     $titulo_projeto = trim($_POST['titulo_projeto']);
 
+    // NOVOS CAMPOS
+    $valor_sessao = $_POST['valor_sessao'];
+
+    // A mágica de saber pra qual tela voltar (se veio da Dashboard ou da Agenda):
+    $origem = $_POST['origem'] ?? 'dashboard-artista.php';
+
     try {
-        // 1. descobrir a que cliente (id_usuario) eh o orçamento
-        $stmt_user = $pdo->prepare("SELECT id_usuario FROM orcamento WHERE id_orcamento = ?");
-        $stmt_user->execute([$id_orcamento]);
-        $id_cliente = $stmt_user->fetchColumn();
+        // Atualiza o orçamento enviando a proposta para o cliente avaliar
+        // Atenção: O Projeto NÃO é criado aqui mais, só quando o cliente aceitar!
+        $sql = "UPDATE orcamento 
+                SET status = 'Aguardando Aceite', estimativa_tempo = ?, qtd_sessoes = ?, valor_sessao = ?, titulo_sugerido = ? 
+                WHERE id_orcamento = ?";
 
-        if ($id_cliente) {
-            // 2. atualiza o orçamento com as estimativas e muda o status
-            $sql_orcamento = "UPDATE orcamento 
-                              SET status = 'Aprovado', estimativa_tempo = ?, qtd_sessoes = ? 
-                              WHERE id_orcamento = ?";
-            $pdo->prepare($sql_orcamento)->execute([$estimativa_tempo, $qtd_sessoes, $id_orcamento]);
+        $pdo->prepare($sql)->execute([$estimativa_tempo, $qtd_sessoes, $valor_sessao, $titulo_projeto, $id_orcamento]);
 
-            // o projeto entra automaticamente como 'Agendamento Pendente' para aparecer na Ação Requerida do cliente
-            $sql_projeto = "INSERT INTO projeto (id_usuario, titulo, status, id_orcamento) 
-                            VALUES (?, ?, 'Agendamento Pendente', ?)";
-            $pdo->prepare($sql_projeto)->execute([$id_cliente, $titulo_projeto, $id_orcamento]);
-        }
-
-        // retorna para a dashboard com sucesso
-        header("Location: ../pages/dashboard-artista.php?sucesso=aprovado");
+        // Retorna para a tela de onde o artista clicou (origem)
+        header("Location: ../pages/" . $origem . "?sucesso=proposta_enviada");
         exit();
     } catch (PDOException $e) {
-        header("Location: ../pages/dashboard-artista.php?erro=bd");
+        header("Location: ../pages/" . $origem . "?erro=bd");
         exit();
     }
 } else {

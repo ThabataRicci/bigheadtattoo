@@ -12,16 +12,15 @@ $titulo_pagina = "Painel de Controle";
 $id_artista = $_SESSION['usuario_id'];
 
 // lógica do banco de dados:
-
-// 1. busca os orçamentos pendentes
+// 1. busca os orçamentos pendentes (incluindo os que estão em negociação)
 try {
-    $stmt_pendentes = $pdo->query("SELECT COUNT(*) FROM orcamento WHERE status = 'Pendente' OR status IS NULL");
+    $stmt_pendentes = $pdo->query("SELECT COUNT(*) FROM orcamento WHERE status = 'Pendente' OR status IS NULL OR status = 'Negociacao'");
     $qtd_pendentes = $stmt_pendentes->fetchColumn();
 
     $sql_pendentes_lista = "SELECT o.*, u.nome AS nome_cliente 
                             FROM orcamento o 
                             JOIN usuario u ON o.id_usuario = u.id_usuario 
-                            WHERE o.status = 'Pendente' OR o.status IS NULL 
+                            WHERE o.status = 'Pendente' OR o.status IS NULL OR o.status = 'Negociacao'
                             ORDER BY o.data_envio ASC";
     $solicitacoes_pendentes = $pdo->query($sql_pendentes_lista)->fetchAll();
 } catch (PDOException $e) {
@@ -37,10 +36,12 @@ try {
     $stmt_clientes = $pdo->query("SELECT COUNT(*) FROM usuario WHERE perfil = 'cliente' AND MONTH(data_cadastro) = MONTH(NOW()) AND YEAR(data_cadastro) = YEAR(NOW())");
     $qtd_novos_clientes = $stmt_clientes->fetchColumn();
 
-    $sql_sessoes_lista = "SELECT s.id_sessao, s.data_hora, p.titulo, u.nome AS nome_cliente 
+    $sql_sessoes_lista = "SELECT s.id_sessao, s.data_hora, p.titulo, u.nome AS nome_cliente, 
+                                 o.descricao_ideia, o.local_corpo, o.referencia_ideia
                           FROM sessao s 
                           JOIN projeto p ON s.id_projeto = p.id_projeto 
                           JOIN usuario u ON p.id_usuario = u.id_usuario 
+                          LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
                           WHERE s.status = 'Agendado' AND s.data_hora >= NOW() 
                           ORDER BY s.data_hora ASC LIMIT 5";
     $proximas_sessoes = $pdo->query($sql_sessoes_lista)->fetchAll();
@@ -147,6 +148,13 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                                 Vazio
                                             <?php endif; ?>
                                         </p>
+                                        <?php if ($req['status'] == 'Negociacao'): ?>
+                                            <hr class="my-3 border-secondary">
+                                            <div class="alert alert-warning p-2 small mb-0">
+                                                <strong>⚠️ Negociação:</strong> O cliente achou o valor alto e pediu uma revisão.
+                                                <br><strong>Sua oferta anterior:</strong> <?php echo htmlspecialchars($req['valor_sessao'] ?? ''); ?>
+                                            </div>
+                                        <?php endif; ?>
                                         <div class="d-flex justify-content-end align-items-center mt-4">
                                             <button type="button" class="btn btn-sm btn-outline-danger btn-recusar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalRecusar">Recusar</button>
 
@@ -186,6 +194,18 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 </h2>
                                 <div id="sessao-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoSessoesAgendadas">
                                     <div class="accordion-body text-white-50">
+                                        <p class="mb-1"><strong>Local do Corpo:</strong> <?php echo htmlspecialchars($sessao['local_corpo'] ?? 'Não informado'); ?></p>
+                                        <p class="mb-1"><strong>Ideia do Cliente:</strong> "<?php echo htmlspecialchars($sessao['descricao_ideia'] ?? 'Não informada'); ?>"</p>
+                                        <p class="mb-3"><strong>Referência Enviada:</strong>
+                                            <?php if (!empty($sessao['referencia_ideia'])): ?>
+                                                <a href="../imagens/orcamentos/<?php echo $sessao['referencia_ideia']; ?>" target="_blank" class="text-info text-decoration-none"><i class="bi bi-image me-1"></i>Ver Anexo</a>
+                                            <?php else: ?>
+                                                Vazio
+                                            <?php endif; ?>
+                                        </p>
+
+                                        <hr class="my-3 border-secondary">
+
                                         <div class="text-end mt-2">
                                             <button class="btn btn-sm btn-outline-danger btn-cancelar-sessao" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarSessao">Cancelar Sessão</button>
                                         </div>
@@ -204,16 +224,25 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-light bg-dark">
             <div class="modal-header border-bottom border-secondary">
-                <h5 class="modal-title">Aprovar Projeto</h5>
+                <h5 class="modal-title">Enviar Proposta / Aprovar Projeto</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-white-50">
                 <form action="../actions/a.aprovar-orcamento.php" method="POST">
                     <input type="hidden" name="orcamento_id" id="inputAprovarId" value="">
+                    <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
 
                     <div class="mb-3">
-                        <label for="titulo_projeto" class="form-label text-light text-warning">Título do Projeto:</label>
-                        <input type="text" class="form-control bg-dark text-light border-warning" id="titulo_projeto" name="titulo_projeto" placeholder="Ex: Fechamento Samurai" required>
+                        <label for="titulo_projeto" class="form-label text-light">Título do Projeto:</label>
+                        <input type="text" class="form-control bg-dark text-light border-secondary" id="titulo_projeto" name="titulo_projeto" placeholder="Ex: Fechamento Samurai" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-light">Valor da Sessão:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-white-50 border-secondary border-end-0">R$</span>
+                            <input type="text" class="form-control bg-dark text-light border-secondary border-start-0 mascara-dinheiro" name="valor_sessao" placeholder="0,00" required>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -230,12 +259,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     <div class="mb-4">
                         <label for="qtd_sessoes" class="form-label text-light">Estimativa de Sessões Necessárias:</label>
                         <input type="number" class="form-control bg-dark text-light border-secondary" id="qtd_sessoes" name="qtd_sessoes" min="1" max="20" placeholder="Ex: 1" required>
-                        <div class="form-text text-white-50">O cliente será notificado para realizar o agendamento.</div>
+                        <div class="form-text text-white-50">O cliente receberá a proposta e decidirá se aceita o valor para agendar.</div>
                     </div>
 
                     <div class="modal-footer border-top border-secondary p-0 pt-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                        <button type="submit" class="btn btn-success">Confirmar Aprovação</button>
+                        <button type="submit" class="btn btn-success">Enviar Proposta</button>
                     </div>
                 </form>
             </div>
@@ -253,6 +282,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             <div class="modal-body text-white-50">
                 <form action="../actions/a.recusar-orcamento.php" method="POST">
                     <input type="hidden" name="orcamento_id" id="inputRecusarId" value="">
+                    <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
                     <div class="mb-3">
                         <label for="motivo_recusa" class="form-label text-light">Motivo:</label>
                         <textarea class="form-control bg-dark text-light border-secondary" id="motivo_recusa" name="motivo_recusa" rows="3" placeholder="Ex: No momento não estou trabalhando com esse estilo..." required></textarea>
@@ -278,12 +308,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <form action="../actions/a.cancelar-sessao.php" method="POST">
                     <input type="hidden" name="sessao_id" id="inputSessaoIdArtista" value="">
                     <div class="mb-3">
-                        <label for="motivo_cancelamento" class="form-label text-light">Motivo (O cliente será avisado):</label>
+                        <label for="motivo_cancelamento" class="form-label text-light">Motivo:</label>
                         <textarea class="form-control bg-dark text-light border-secondary" id="motivo_cancelamento" name="motivo_cancelamento" rows="3" required></textarea>
                     </div>
                     <div class="modal-footer border-top border-secondary p-0 pt-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                        <button type="submit" class="btn btn-danger">Confirmar Cancelamento</button>
+                        <button type="submit" class="btn btn-danger">Confirmar</button>
                     </div>
                 </form>
             </div>
@@ -293,6 +323,32 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Máscara inteligente para o Valor da Sessão (Dinheiro)
+        const inputsDinheiro = document.querySelectorAll('.mascara-dinheiro');
+        inputsDinheiro.forEach(input => {
+            input.addEventListener('input', function(e) {
+                let valor = e.target.value;
+
+                // Remove tudo que não for número
+                valor = valor.replace(/\D/g, "");
+
+                // Se estiver vazio, limpa o campo
+                if (valor === "") {
+                    e.target.value = "";
+                    return;
+                }
+
+                // Converte para float e divide por 100 para criar os decimais (centavos)
+                valor = (parseInt(valor, 10) / 100).toFixed(2);
+
+                // Troca o ponto por vírgula e aplica os pontos de milhar
+                valor = valor.replace(".", ",");
+                valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+
+                e.target.value = valor;
+            });
+        });
+
         // aprovar orçamento
         const btnsAprovar = document.querySelectorAll('.btn-aprovar');
         const inputAprovarId = document.getElementById('inputAprovarId');
