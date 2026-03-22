@@ -158,7 +158,39 @@ if ($is_artista) {
 
 // Dias fixos para o calendário
 $dias_folga_semana = [0]; // Domingo
-$dias_bloqueados_manualmente = ['2025-11-20', '2025-11-21']; // Pode vir de uma tabela futura
+
+// Busca os bloqueios manuais no banco de dados
+$dias_bloqueados_manualmente = [];
+$bloqueios_banco = [];
+
+try {
+    $id_para_busca_bloqueio = 0;
+
+    // Se for o artista logado, busca os bloqueios dele
+    if ($is_artista) {
+        $id_para_busca_bloqueio = $id_usuario_logado;
+    }
+    // Se for o cliente agendando, busca os bloqueios do dono do projeto
+    else if (isset($_GET['projeto_id']) && (int)$_GET['projeto_id'] > 0) {
+        $stmt_art = $pdo->prepare("SELECT id_usuario FROM projeto WHERE id_projeto = ?");
+        $stmt_art->execute([(int)$_GET['projeto_id']]);
+        $id_para_busca_bloqueio = $stmt_art->fetchColumn();
+    }
+
+    if ($id_para_busca_bloqueio > 0) {
+        $sql_bloq = "SELECT id_bloqueio, data_bloqueio FROM bloqueio_agenda WHERE id_artista = ? ORDER BY data_bloqueio ASC";
+        $stmt_bloq = $pdo->prepare($sql_bloq);
+        $stmt_bloq->execute([$id_para_busca_bloqueio]);
+        $bloqueios_banco = $stmt_bloq->fetchAll();
+
+        foreach ($bloqueios_banco as $b) {
+            $dias_bloqueados_manualmente[] = $b['data_bloqueio'];
+        }
+    }
+} catch (PDOException $e) {
+    // Silencioso
+}
+
 $dias_ocupados_total_cliente = array_merge($dias_com_agendamento, $dias_bloqueados_manualmente);
 
 $primeiro_dia_timestamp = mktime(0, 0, 0, $mes, 1, $ano);
@@ -272,6 +304,16 @@ endif;
                 <?php elseif ($_GET['sucesso'] == 'reagendado'): ?>
                     <div class="alert alert-warning text-center mb-4 alert-dismissible fade show" role="alert">
                         <i class="bi bi-calendar-x me-2"></i> O pedido de reagendamento foi enviado ao cliente.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php elseif ($_GET['sucesso'] == 'bloqueado'): ?>
+                    <div class="alert alert-success text-center mb-4 alert-dismissible fade show" role="alert">
+                        <i class="bi bi-calendar-minus me-2"></i> Dia bloqueado na sua agenda com sucesso!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php elseif ($_GET['sucesso'] == 'desbloqueado'): ?>
+                    <div class="alert alert-info text-center mb-4 alert-dismissible fade show" role="alert">
+                        <i class="bi bi-calendar-plus me-2"></i> Dia liberado! Agora ele está disponível para agendamentos.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
@@ -676,16 +718,16 @@ endif;
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-white-50">
-                    <p>Atenção: Ao cancelar a sessão por aqui, você estará <strong>cancelando o projeto inteiro</strong> e ele não poderá mais ser reagendado.</p>
+                    <p>Atenção: O projeto inteiro será cancelado e não poderá ser reagendado.</p>
                     <form action="../actions/a.cancelar-projeto.php" method="POST">
                         <input type="hidden" name="sessao_id" id="inputSessaoId" value="">
                         <div class="mb-3">
-                            <label for="motivo_cancelamento" class="form-label text-light">Motivo do cancelamento (O cliente lerá isso):</label>
+                            <label for="motivo_cancelamento" class="form-label text-light">Motivo:</label>
                             <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="3" required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                            <button type="submit" class="btn btn-danger">Confirmar Cancelamento</button>
+                            <button type="submit" class="btn btn-danger">Cancelar</button>
                         </div>
                     </form>
                 </div>
@@ -697,20 +739,20 @@ endif;
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-light bg-dark">
                 <div class="modal-header border-bottom border-secondary">
-                    <h5 class="modal-title text-warning">Pedir Reagendamento</h5>
+                    <h5 class="modal-title text-warning">Solicitar Reagendamento</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-white-50">
-                    <p>A sessão sairá da sua agenda e o projeto voltará para a <strong>"Ação Requerida"</strong> do cliente para que ele escolha uma nova data.</p>
+                    <p>Solicitar que o cliente agende uma nova data/horário.</p>
                     <form action="../actions/a.reagendar-artista.php" method="POST">
                         <input type="hidden" name="sessao_id" id="inputReagendarIdArtista" value="">
                         <div class="mb-3">
-                            <label class="form-label text-light">Motivo do imprevisto (O cliente lerá isso):</label>
+                            <label class="form-label text-light">Motivo:</label>
                             <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="Ex: Tive um imprevisto, peço que remarque para a próxima semana..." required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                            <button type="submit" class="btn btn-warning">Devolver para o Cliente</button>
+                            <button type="submit" class="btn btn-warning">Solicitar</button>
                         </div>
                     </form>
                 </div>
@@ -722,17 +764,17 @@ endif;
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-light bg-dark">
                 <div class="modal-header border-bottom border-secondary">
-                    <h5 class="modal-title text-success">Concluir Sessão e Projeto</h5>
+                    <h5 class="modal-title text-success">Concluir Projeto</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-white-50">
-                    <p>Tem certeza que deseja <strong>finalizar completamente</strong> este projeto?</p>
-                    <p class="small">A sessão será dada como concluída e o projeto irá direto para o seu Histórico.</p>
+                    <p>Tem certeza que deseja <strong>finalizar</strong> este projeto?</p>
+                    <p class="small">A sessão será dada como concluída e o projeto irá direto para o seu histórico.</p>
                     <form action="../actions/a.concluir-sessao.php" method="POST">
                         <input type="hidden" name="sessao_id" id="inputConfirmarConcluirId" value="">
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                            <button type="submit" class="btn btn-success">Sim, Finalizar Projeto</button>
+                            <button type="submit" class="btn btn-success">Concluir</button>
                         </div>
                     </form>
                 </div>
@@ -744,18 +786,12 @@ endif;
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-light bg-dark">
                 <div class="modal-header border-bottom border-secondary">
-                    <h5 class="modal-title text-info">Liberar Nova Sessão</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title text-info">Liberar Nova Sessão</h5> <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-white-50">
-                    <p>Deseja marcar a sessão atual como <strong>concluída</strong> e pedir para o cliente agendar a próxima?</p>
-                    <p class="small">O projeto voltará para a "Ação Requerida" do cliente para ele escolher a nova data.</p>
-                    <form action="../actions/a.liberar-sessao.php" method="POST">
-                        <input type="hidden" name="projeto_id" id="inputConfirmarLiberarId" value="">
-                        <div class="modal-footer border-top border-secondary p-0 pt-3">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                            <button type="submit" class="btn btn-info text-white">Sim, Liberar Sessão</button>
-                        </div>
+                    <p>Deseja marcar a sessão atual como concluída e pedir para o cliente agendar a próxima?</p>
+                    <form action="../actions/a.liberar-sessao.php" method="POST"> <input type="hidden" name="projeto_id" id="inputConfirmarLiberarId" value="">
+                        <div class="modal-footer border-top border-secondary p-0 pt-3"> <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button> <button type="submit" class="btn btn-info text-white">Liberar</button> </div>
                     </form>
                 </div>
             </div>
@@ -766,10 +802,37 @@ endif;
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-light bg-dark">
                 <div class="modal-header border-bottom border-secondary">
-                    <h5 class="modal-title">Gerenciar Disponibilidade</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title">Gerenciar Bloqueios</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-white-50">
-                    <p>Futuramente você poderá bloquear seus dias por aqui.</p>
+                    <form action="../actions/a.bloquear-dia.php" method="POST" class="mb-4">
+                        <label for="data_bloqueio" class="form-label text-light">Bloquear Dia:</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control bg-dark text-light border-secondary" id="data_bloqueio" name="data_bloqueio" required>
+                            <button class="btn btn-warning text-dark fw-bold" type="submit">Bloquear</button>
+                        </div>
+                        <div class="form-text text-white-50 mt-2"><i class="bi bi-info-circle me-1"></i> Domingos já são bloqueados automaticamente.</div>
+                    </form>
+
+                    <hr class="border-secondary my-4">
+                    <h6 class="text-light mb-3">Dias Bloqueados:</h6>
+
+                    <?php if (empty($bloqueios_banco)): ?>
+                        <div class="alert alert-dark text-center border-secondary small mb-0">Nenhum dia bloqueado manualmente.</div>
+                    <?php else: ?>
+                        <ul class="list-group list-group-flush border border-secondary rounded">
+                            <?php foreach ($bloqueios_banco as $b): ?>
+                                <li class="list-group-item bg-dark text-light border-secondary d-flex justify-content-between align-items-center py-2 px-3">
+                                    <span><i class="bi bi-calendar-x text-warning me-2"></i> <?php echo date('d/m/Y', strtotime($b['data_bloqueio'])); ?></span>
+                                    <form action="../actions/a.desbloquear-dia.php" method="POST" class="m-0 p-0">
+                                        <input type="hidden" name="id_bloqueio" value="<?php echo $b['id_bloqueio']; ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Desbloquear e abrir na agenda"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -792,7 +855,7 @@ endif;
 
         // Verifica se é dia de folga/bloqueado manual
         if (diasBloqueados.includes(dataSql)) {
-            agendamentosDoDia = `<div class="list-group-item text-center text-white-50 bg-dark border-secondary">Dia bloqueado (Folga/Evento).</div>`;
+            agendamentosDoDia = `<div class="list-group-item text-center text-white-50 bg-dark border-secondary">Dia bloqueado.</div>`;
         }
         // Procura no JSON gerado pelo banco de dados se existem sessões nesse dia
         else if (sessoesNoBanco[dataSql] && sessoesNoBanco[dataSql].length > 0) {
