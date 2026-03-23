@@ -29,18 +29,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     try {
-        // insere no banco de dados
-        $sql = "INSERT INTO orcamento (id_usuario, local_corpo, tamanho_aproximado, descricao_ideia, referencia_ideia) 
-                VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO orcamento (id_usuario, local_corpo, tamanho_aproximado, descricao_ideia, referencia_ideia, data_envio) 
+                VALUES (?, ?, ?, ?, ?, NOW())";
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id_usuario, $local_corpo, $tamanho_aproximado, $descricao_ideia, $nome_foto]);
 
-        // redireciona de volta com sucesso
         header("Location: ../pages/solicitar-orcamento.php?sucesso=1");
         exit();
     } catch (PDOException $e) {
-        // em caso de erro redireciona com erro
         header("Location: ../pages/solicitar-orcamento.php?erro=1");
         exit();
     }

@@ -218,11 +218,10 @@ if (!$is_artista && $projeto_id === 0) {
 
 $titulo_pagina = $is_artista ? "Gerenciar Agenda" : "Escolha o Dia e Horário";
 
-// DEFINIÇÃO ÚNICA DE "HOJE" (Simulação)
-$hoje_dia = 7;
-$hoje_mes = 11;
-$hoje_ano = 2025;
-$data_hoje_formatada = date('Y-m-d', mktime(0, 0, 0, $hoje_mes, $hoje_dia, $hoje_ano));
+$hoje_dia = date('d');
+$hoje_mes = date('m');
+$hoje_ano = date('Y');
+$data_hoje_formatada = date('Y-m-d');
 
 include '../includes/header.php';
 ?>
