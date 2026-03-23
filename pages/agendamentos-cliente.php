@@ -134,7 +134,7 @@ try {
                 $contador++;
             } elseif ($h['status'] == 'Cancelado') {
                 $motivo = htmlspecialchars($h['motivo_cancelamento'] ?? 'Reagendado/Imprevisto');
-                $historico_montado[] = ['desc' => "Sessão Cancelada em " . $d->format('d/m/Y') . " | Motivo: {$motivo}", 'icone' => 'bi-x-circle-fill text-danger'];
+                $historico_montado[] = ['desc' => "Sessão Cancelada em " . $d->format('d/m/Y') . " | {$motivo}", 'icone' => 'bi-x-circle-fill text-danger'];
             }
         }
 
@@ -284,12 +284,38 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
-        <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'agendado'): ?>
+        <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'cancelado'): ?>
             <div class="alert alert-success text-center mb-4 alert-dismissible fade show" role="alert">
-                <i class="bi bi-calendar-check me-2"></i> Sua sessão foi agendada com sucesso! O artista já foi notificado.
+                <i class="bi bi-check-circle me-2"></i> O projeto foi cancelado com sucesso.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
+
+        <style>
+            .card-hover {
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                border: 1px solid #444;
+                border-radius: 8px;
+                padding: 20px;
+                background-color: #212529;
+            }
+
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 15px rgba(13, 202, 240, 0.2);
+                border-color: #0dcaf0;
+                cursor: pointer;
+            }
+
+            .card-resumo-numero {
+                font-size: 2.5rem;
+                font-weight: bold;
+                color: #fff;
+                margin-bottom: 5px;
+            }
+        </style>
+
+
 
         <h4 class="mb-4">Ação Requerida</h4>
 
@@ -314,7 +340,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                                 <?php if (!empty($proj['motivo_reagendamento'])): ?>
                                     <div class="alert alert-warning p-2 small mt-2">
-                                        <strong>⚠️</strong> Escolha uma nova data | Motivo informado: <em>"<?php echo htmlspecialchars($proj['motivo_reagendamento']); ?>"</em>
+                                        <strong>⚠️</strong> Escolha uma nova data | <em><?php echo htmlspecialchars($proj['motivo_reagendamento']); ?></em>
                                     </div>
                                 <?php endif; ?>
 
@@ -373,13 +399,24 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         <?php endif; ?>
                                     </div>
 
-                                    <div class="text-end mt-4">
-                                        <?php $link_agendar = "agenda.php?projeto_id=" . $proj['id_projeto']; ?>
-                                        <a href="<?php echo $link_agendar; ?>" class="btn btn-secondary ">AGENDAR SESSÃO</a>
+                                    <div class="d-flex justify-content-end align-items-center mt-4 gap-2">
+                                        <button type="button" class="btn btn-outline-danger btn-cancelar-projeto-pendente" data-id="<?php echo $proj['id_projeto']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarProjetoPendente">Cancelar Projeto</button>
+
+                                        <?php $link_agendar = "agendar-sessao-cliente.php?projeto_id=" . $proj['id_projeto']; ?>
+                                        <a href="<?php echo $link_agendar; ?>" class="btn btn meu-botao">Agendar Sessão</a>
                                     </div>
                                 <?php endif; ?>
 
                             </div>
+
+                            <style>
+                                .meu-botao {
+                                    background-color: #b7b7b7;
+                                    color: #000;
+                                    border: none;
+                                }
+                            </style>
+
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -637,6 +674,32 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     </div>
 </div>
 
+<div class="modal fade" id="modalCancelarProjetoPendente" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-danger">Cancelar Projeto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-white-50">
+                <p>Essa ação cancelará o projeto, se desejar realizar a tatuagem precisará enviar o orçamento novamente.</p>
+                <form action="../actions/a.cancelar-projeto.php" method="POST">
+                    <input type="hidden" name="projeto_id" id="inputCancelarProjetoPendenteId" value="">
+
+                    <div class="mb-3">
+                        <label class="form-label text-light">Motivo:</label>
+                        <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="Ex: Tive um imprevisto financeiro e não poderei tatuar agora..." required></textarea>
+                    </div>
+                    <div class="modal-footer border-top border-secondary p-0 pt-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-danger">Cancelar Projeto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="modalCancelarProjeto" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-light bg-dark">
@@ -747,6 +810,20 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // --- LÓGICA PARA ABRIR ABA DIRETO PELA URL ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const abaAtiva = urlParams.get('aba');
+
+        if (abaAtiva) {
+            // Se for aba "proximas" ou "analise", clica no botão da tab
+            if (abaAtiva === 'proximas') {
+                const btn = document.getElementById('proximas-tab');
+                if (btn) new bootstrap.Tab(btn).show();
+            } else if (abaAtiva === 'analise') {
+                const btn = document.getElementById('analise-tab');
+                if (btn) new bootstrap.Tab(btn).show();
+            }
+        }
 
         // Ativar os Tooltips (balõezinhos de informação) do Bootstrap
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -811,11 +888,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             });
         });
 
-        const btnsCancelarProj = document.querySelectorAll('.btn-cancelar-projeto');
-        const inputCancelarProjetoId = document.getElementById('inputCancelarProjetoId');
-        btnsCancelarProj.forEach(btn => {
+        // Cancelar projeto pendente (Ação Requerida - antes de ter sessão)
+        const btnsCancelarProjPendente = document.querySelectorAll('.btn-cancelar-projeto-pendente');
+        const inputCancelarProjetoPendenteId = document.getElementById('inputCancelarProjetoPendenteId');
+        btnsCancelarProjPendente.forEach(btn => {
             btn.addEventListener('click', function() {
-                inputCancelarProjetoId.value = this.getAttribute('data-id');
+                inputCancelarProjetoPendenteId.value = this.getAttribute('data-id');
             });
         });
 

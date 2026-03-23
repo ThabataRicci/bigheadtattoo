@@ -2,35 +2,43 @@
 session_start();
 require_once '../includes/conexao.php';
 
+// Proteção
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'cliente') {
+    header("Location: ../pages/login.php");
     exit();
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['orcamento_id'])) {
     $id_orcamento = $_POST['orcamento_id'];
+    $id_usuario = $_SESSION['usuario_id'];
 
     try {
-        // Pega os dados aprovados pelo artista
-        $stmt = $pdo->prepare("SELECT id_usuario, titulo_sugerido FROM orcamento WHERE id_orcamento = ?");
-        $stmt->execute([$id_orcamento]);
-        $orc = $stmt->fetch();
+        // 1. Busca os detalhes do orçamento
+        $stmt = $pdo->prepare("SELECT titulo_sugerido FROM orcamento WHERE id_orcamento = ? AND id_usuario = ?");
+        $stmt->execute([$id_orcamento, $id_usuario]);
+        $titulo = $stmt->fetchColumn() ?: 'Projeto de Tatuagem';
 
-        // 1. Cria oficialmente a tatuagem (Projeto)
-        $sql_projeto = "INSERT INTO projeto (id_usuario, titulo, status, id_orcamento) VALUES (?, ?, 'Agendamento Pendente', ?)";
-        $pdo->prepare($sql_projeto)->execute([$orc['id_usuario'], $orc['titulo_sugerido'], $id_orcamento]);
+        // 2. Marca o orçamento como Aprovado
+        $pdo->prepare("UPDATE orcamento SET status = 'Aprovado' WHERE id_orcamento = ?")->execute([$id_orcamento]);
 
-        // Pega o ID gerado do novo projeto com segurança
+        // 3. Cria o Projeto na tabela 'projeto'
+        $sql_proj = "INSERT INTO projeto (id_usuario, id_orcamento, titulo, status) VALUES (?, ?, ?, 'Agendamento Pendente')";
+        $pdo->prepare($sql_proj)->execute([$id_usuario, $id_orcamento, $titulo]);
+
+        // 4. Busca o ID DO PROJETO recém-criado forçando a leitura no banco
         $stmt_new = $pdo->prepare("SELECT id_projeto FROM projeto WHERE id_orcamento = ? ORDER BY id_projeto DESC LIMIT 1");
         $stmt_new->execute([$id_orcamento]);
         $id_projeto = $stmt_new->fetchColumn();
 
-        // 2. Muda o orçamento para aprovado final
-        $pdo->prepare("UPDATE orcamento SET status = 'Aprovado' WHERE id_orcamento = ?")->execute([$id_orcamento]);
-
-        // 3. Manda direto para a agenda com o ID DO PROJETO na URL! (Isso resolve o "Acesso Inválido")
-        header("Location: ../pages/agenda.php?projeto_id=" . $id_projeto);
+        // 5. Manda para a agenda COM O ID do projeto na URL
+        if ($id_projeto) {
+            header("Location: ../pages/agendar-sessao-cliente.php?projeto_id=" . $id_projeto);
+        } else {
+            header("Location: ../pages/agendamentos-cliente.php?erro=bd");
+        }
         exit();
     } catch (PDOException $e) {
+        header("Location: ../pages/agendamentos-cliente.php?erro=bd");
         exit();
     }
 }

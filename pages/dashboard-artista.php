@@ -114,24 +114,44 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
+
+        <style>
+            .card-hover {
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 15px rgba(7, 94, 255, 0.2);
+                border-color: #0dcaf0 !important;
+                cursor: pointer;
+            }
+        </style>
+
         <div class="row text-center">
             <div class="col-md-4 mb-4">
-                <div class="card-resumo">
-                    <h3><?php echo $qtd_pendentes; ?></h3>
-                    <p class="text-white-50 mb-0">Solicitações para Aprovar</p>
-                </div>
+                <a href="agenda.php?aba=solicitacoes" class="text-decoration-none text-light">
+                    <div class="card-resumo card-hover">
+                        <h3><?php echo $qtd_pendentes; ?></h3>
+                        <p class="text-white-50 mb-0">Solicitações para Aprovar</p>
+                    </div>
+                </a>
             </div>
             <div class="col-md-4 mb-4">
-                <div class="card-resumo">
-                    <h3><?php echo $qtd_sessoes_semana; ?></h3>
-                    <p class="text-white-50 mb-0">Sessões na Semana</p>
-                </div>
+                <a href="agenda.php?aba=sessoes" class="text-decoration-none text-light">
+                    <div class="card-resumo card-hover">
+                        <h3><?php echo $qtd_sessoes_semana; ?></h3>
+                        <p class="text-white-50 mb-0">Sessões na Semana</p>
+                    </div>
+                </a>
             </div>
             <div class="col-md-4 mb-4">
-                <div class="card-resumo">
-                    <h3><?php echo $qtd_novos_clientes; ?></h3>
-                    <p class="text-white-50 mb-0">Novos Clientes no Mês</p>
-                </div>
+                <a href="relatorios-artista.php" class="text-decoration-none text-light">
+                    <div class="card-resumo card-hover">
+                        <h3><?php echo $qtd_novos_clientes; ?></h3>
+                        <p class="text-white-50 mb-0">Novos Clientes no Mês</p>
+                    </div>
+                </a>
             </div>
         </div>
 
@@ -227,6 +247,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         <hr class="my-3 border-secondary">
 
                                         <div class="text-end mt-2">
+                                            <button class="btn btn-sm btn-outline-warning btn-reagendar-sessao me-2" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalReagendarArtista">Reagendar</button>
                                             <button class="btn btn-sm btn-outline-danger btn-cancelar-sessao" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarSessao">Cancelar Sessão</button>
                                         </div>
                                     </div>
@@ -341,6 +362,32 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     </div>
 </div>
 
+<div class="modal fade" id="modalReagendarArtista" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-warning">Solicitar Reagendamento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-white-50">
+                <p>Solicitar que o cliente agende uma nova data/horário.</p>
+                <form action="../actions/a.reagendar-artista.php" method="POST">
+                    <input type="hidden" name="sessao_id" id="inputReagendarIdArtista" value="">
+                    <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
+                    <div class="mb-3">
+                        <label class="form-label text-light">Motivo:</label>
+                        <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="Ex: Tive um imprevisto, peço que remarque para a próxima semana..." required></textarea>
+                    </div>
+                    <div class="modal-footer border-top border-secondary p-0 pt-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-warning">Solicitar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Máscara inteligente para o Valor da Sessão (Dinheiro)
@@ -393,6 +440,15 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         btnsCancelarSessao.forEach(btn => {
             btn.addEventListener('click', function() {
                 inputSessaoIdArtista.value = this.getAttribute('data-id');
+            });
+        });
+
+        // reagendar sessao
+        const btnsReagendarSessao = document.querySelectorAll('.btn-reagendar-sessao');
+        const inputReagendarIdArtista = document.getElementById('inputReagendarIdArtista');
+        btnsReagendarSessao.forEach(btn => {
+            btn.addEventListener('click', function() {
+                inputReagendarIdArtista.value = this.getAttribute('data-id');
             });
         });
     });
