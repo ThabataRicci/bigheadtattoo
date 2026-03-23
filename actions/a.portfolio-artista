@@ -1,0 +1,73 @@
+<?php
+session_start();
+require_once __DIR__ . '/../includes/conexao.php';
+
+// 1. SEGURANÇA: Só permite se for um artista logado
+if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'artista') {
+    header("Location: ../pages/login.php");
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    // 2. PEGAR DADOS DO FORMULÁRIO
+    $id_artista     = $_SESSION['usuario_id'];
+    $id_estilo      = $_POST['id_estilo'];
+    $titulo         = $_POST['titulo'];
+    $descricao      = $_POST['descricao'];
+    $local_corpo    = $_POST['local_corpo'];
+    $tempo_execucao = $_POST['tempo_execucao'];
+    $qtd_sessoes    = (int)$_POST['qtd_sessoes'];
+
+    // 3. TRATAR O UPLOAD DA IMAGEM
+    if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === 0) {
+        $arquivo = $_FILES['imagem'];
+        $extensao = strtolower(pathinfo($arquivo['name'], PATHINFO_EXTENSION));
+        
+        // Gera um nome aleatório para o arquivo não sobrescrever outro
+        $novo_nome_imagem = md5(uniqid()) . "." . $extensao;
+        $diretorio = "../imagens/portfolio/";
+
+        // Move o arquivo para a pasta real
+        if (move_uploaded_file($arquivo['tmp_name'], $diretorio . $novo_nome_imagem)) {
+            
+            // 4. SALVAR NO BANCO DE DADOS (PDO)
+            try {
+                $sql = "INSERT INTO portfolio (
+                            id_artista, id_estilo, titulo, descricao, 
+                            imagem, local_corpo, tempo_execucao, 
+                            qtd_sessoes, data_publicacao
+                        ) VALUES (
+                            :id_artista, :id_estilo, :titulo, :descricao, 
+                            :imagem, :local_corpo, :tempo_execucao, 
+                            :qtd_sessoes, NOW()
+                        )";
+
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([
+                    ':id_artista'     => $id_artista,
+                    ':id_estilo'      => $id_estilo,
+                    ':titulo'         => $titulo,
+                    ':descricao'      => $descricao,
+                    ':imagem'         => $novo_nome_imagem,
+                    ':local_corpo'    => $local_corpo,
+                    ':tempo_execucao' => $tempo_execucao,
+                    ':qtd_sessoes'    => $qtd_sessoes
+                ]);
+
+                // Sucesso! Volta para a página com aviso
+                header("Location: ../pages/portfolio-artista.php?msg=sucesso");
+                exit();
+
+            } catch (PDOException $e) {
+                // Se o banco falhar, deletamos a imagem que subiu para não sobrar lixo
+                unlink($diretorio . $novo_nome_imagem);
+                die("Erro no Banco de Dados: " . $e->getMessage());
+            }
+        } else {
+            die("Erro ao mover o arquivo para a pasta imagens/portfolio/");
+        }
+    } else {
+        die("Nenhuma imagem enviada ou erro no upload.");
+    }
+}
