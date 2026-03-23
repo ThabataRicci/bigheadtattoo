@@ -36,6 +36,16 @@ if ($is_artista) {
                           ORDER BY o.data_envio ASC";
         $solicitacoes_pendentes = $pdo->query($sql_pendentes)->fetchAll();
 
+        // --- ADICIONAR DAQUI ---
+        // busca propostas enviadas (aguardando cliente agendar)
+        $sql_enviadas = "SELECT o.id_orcamento, o.titulo_sugerido AS titulo, o.local_corpo, o.descricao_ideia, o.valor_sessao, o.estimativa_tempo, o.qtd_sessoes, u.nome AS nome_cliente 
+                         FROM orcamento o 
+                         JOIN usuario u ON o.id_usuario = u.id_usuario 
+                         WHERE o.status = 'Aguardando Aceite'
+                         ORDER BY o.id_orcamento DESC";
+        $propostas_enviadas = $pdo->query($sql_enviadas)->fetchAll();
+        // --- ATÉ AQUI ---
+
         // busca todas as sessões e pega dados do orcamento
         $sql_sessoes = "SELECT s.id_sessao, s.data_hora, s.status, p.titulo, p.id_projeto, p.status AS status_projeto, u.nome AS nome_cliente,
                                o.local_corpo, o.descricao_ideia, o.referencia_ideia, o.valor_sessao, o.estimativa_tempo, o.qtd_sessoes,
@@ -262,6 +272,8 @@ endif;
 
     .accordion-item {
         border-color: #444 !important;
+        background-color: #2c2c2c !important;
+        /* NOVO: Fundo cinza das abas */
     }
 
     .accordion-button,
@@ -338,12 +350,19 @@ endif;
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="calendario-tab" data-bs-toggle="tab" data-bs-target="#tab-calendario" type="button" role="tab" aria-controls="tab-calendario" aria-selected="true">Calendário</button>
                     </li>
+
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="solicitacoes-tab" data-bs-toggle="tab" data-bs-target="#tab-solicitacoes" type="button" role="tab" aria-controls="tab-solicitacoes" aria-selected="false">Solicitações Pendentes</button>
                     </li>
+
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="enviadas-tab" data-bs-toggle="tab" data-bs-target="#tab-enviadas" type="button" role="tab" aria-controls="tab-enviadas" aria-selected="false">Propostas Enviadas</button>
+                    </li>
+
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="sessoes-tab" data-bs-toggle="tab" data-bs-target="#tab-sessoes" type="button" role="tab" aria-controls="tab-sessoes" aria-selected="false">Sessões Agendadas</button>
                     </li>
+
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#tab-historico" type="button" role="tab" aria-controls="tab-historico" aria-selected="false">Histórico</button>
                     </li>
@@ -456,7 +475,8 @@ endif;
                                             <h2 class="accordion-header">
                                                 <button class="accordion-button collapsed text-light" type="button" data-bs-toggle="collapse" data-bs-target="#req-<?php echo $i; ?>">
                                                     <div class="w-100 d-flex justify-content-between align-items-center">
-                                                        <span><strong>Cliente:</strong> <?php echo htmlspecialchars($req['nome_cliente']); ?></span>
+                                                        <span><strong>Orçamento</strong></span>
+                                                        <span class="me-3 text-white-50 small"><i class="bi bi-person me-1"></i> <?php echo htmlspecialchars($req['nome_cliente']); ?></span>
                                                     </div>
                                                 </button>
                                             </h2>
@@ -483,7 +503,51 @@ endif;
 
                                                     <div class="d-flex justify-content-end align-items-center mt-4">
                                                         <button type="button" class="btn btn-sm btn-outline-danger btn-recusar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalRecusar">Recusar</button>
-                                                        <button type="button" class="btn btn-sm btn-success ms-2 btn-aprovar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalAprovar">Enviar Proposta</button>
+                                                        <button type="button" class="btn btn-sm btn-success ms-2 btn-aprovar"
+                                                            data-id="<?php echo $req['id_orcamento']; ?>"
+                                                            data-titulo="<?php echo htmlspecialchars($req['titulo_sugerido'] ?? ''); ?>"
+                                                            data-tempo="<?php echo htmlspecialchars($req['estimativa_tempo'] ?? ''); ?>"
+                                                            data-sessoes="<?php echo htmlspecialchars($req['qtd_sessoes'] ?? ''); ?>"
+                                                            data-bs-toggle="modal" data-bs-target="#modalAprovar">
+                                                            Enviar Proposta
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+
+
+                        <div class="tab-pane fade" id="tab-enviadas" role="tabpanel" aria-labelledby="enviadas-tab">
+                            <?php if (empty($propostas_enviadas)): ?>
+                                <div class="card-resumo text-center text-white-50 mb-0">
+                                    Nenhuma proposta enviada até o momento.
+                                </div>
+                            <?php else: ?>
+                                <div class="accordion" id="acordeaoEnviadas">
+                                    <?php foreach ($propostas_enviadas as $i => $prop): ?>
+                                        <div class="accordion-item bg-dark border-secondary mb-2">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed text-light" type="button" data-bs-toggle="collapse" data-bs-target="#prop-<?php echo $i; ?>">
+                                                    <div class="w-100 d-flex justify-content-between align-items-center">
+                                                        <span><strong>Projeto:</strong> <?php echo htmlspecialchars($prop['titulo']); ?></span>
+                                                        <span class="me-3 text-white-50 small"><i class="bi bi-person me-1"></i> <?php echo htmlspecialchars($prop['nome_cliente']); ?></span>
+                                                    </div>
+                                                </button>
+                                            </h2>
+                                            <div id="prop-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoEnviadas">
+                                                <div class="accordion-body text-white-50">
+                                                    <p class="mb-1"><strong>Local:</strong> <?php echo htmlspecialchars($prop['local_corpo']); ?></p>
+                                                    <p class="mb-1"><strong>Ideia:</strong> "<?php echo htmlspecialchars($prop['descricao_ideia']); ?>"</p>
+                                                    <p class="mb-1"><strong>Duração:</strong> <?php echo htmlspecialchars($prop['estimativa_tempo']); ?> | <strong>Sessões:</strong> <?php echo htmlspecialchars($prop['qtd_sessoes']); ?></p>
+                                                    <p class="mb-3"><strong>Valor:</strong> R$ <?php echo htmlspecialchars($prop['valor_sessao']); ?></p>
+
+                                                    <div class="d-flex justify-content-end align-items-center mt-4 border-top border-secondary pt-3">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger btn-cancelar-proposta-js" data-id="<?php echo $prop['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarPendenteArtista">Cancelar Proposta</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -506,12 +570,12 @@ endif;
                                         <div class="accordion-item mb-2">
                                             <h2 class="accordion-header">
                                                 <button class="accordion-button collapsed text-light" type="button" data-bs-toggle="collapse" data-bs-target="#sessao-<?php echo $i; ?>">
-                                                    <div class="w-100 d-flex flex-column">
-                                                        <div class="d-flex justify-content-between w-100">
-                                                            <span><strong>Projeto:</strong> <?php echo htmlspecialchars($sessao['titulo']); ?></span>
-                                                            <span class="me-3 text-light"><i class="bi bi-calendar3 me-1"></i> <?php echo $data_sessao->format('d/m/Y - H:i'); ?></span>
-                                                        </div>
-                                                        <span class="mt-1 small text-white-50"><strong>Cliente:</strong> <?php echo htmlspecialchars($sessao['nome_cliente']); ?></span>
+                                                    <div class="w-100 d-flex justify-content-between align-items-center">
+                                                        <span>
+                                                            <strong><?php echo htmlspecialchars($sessao['titulo']); ?></strong>
+                                                            <span class="text-light ms-2 small"><i class="bi bi-calendar3"></i> <?php echo $data_sessao->format('d/m/Y - H:i'); ?></span>
+                                                        </span>
+                                                        <span class="me-3 text-white-50 small"><i class="bi bi-person me-1"></i> <?php echo htmlspecialchars($sessao['nome_cliente']); ?></span>
                                                     </div>
                                                 </button>
                                             </h2>
@@ -552,9 +616,9 @@ endif;
                                 </div>
                             <?php endif; ?>
                         </div>
+
                         <div class="tab-pane fade" id="tab-historico" role="tabpanel" aria-labelledby="historico-tab">
                             <div class="p-3">
-                                <h4 class="mb-4">Histórico Geral</h4>
                                 <?php if (empty($historico_artista)): ?>
                                     <div class="card-resumo text-center text-white-50 mb-0">O histórico está vazio.</div>
                                 <?php else: ?>
@@ -680,9 +744,14 @@ endif;
 
                         <div class="mb-3">
                             <label class="form-label text-light">Valor da Sessão:</label>
+
+                            <div id="aviso_renegociacao" class="alert alert-info p-2 small mb-2 text-center fw-bold" style="display: none;">
+                                <i class="bi bi-info-circle me-1"></i> Informe um novo valor ou repita o valor anterior.
+                            </div>
+
                             <div class="input-group">
                                 <span class="input-group-text bg-dark text-white-50 border-secondary border-end-0">R$</span>
-                                <input type="text" class="form-control bg-dark text-light border-secondary border-start-0 mascara-dinheiro" name="valor_sessao" placeholder="0,00" required>
+                                <input type="text" class="form-control bg-dark text-light border-secondary border-start-0 mascara-dinheiro" id="input_valor_destaque" name="valor_sessao" placeholder="0,00" required>
                             </div>
                         </div>
 
@@ -823,6 +892,33 @@ endif;
         </div>
     </div>
 
+    <div class="modal fade" id="modalCancelarPendenteArtista" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-light bg-dark">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title text-danger">Cancelar Proposta</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white-50">
+                    <p>O cliente ainda não aceitou a proposta. Deseja cancelar e encerrar a solicitação?</p>
+                    <form action="../actions/a.recusar-orcamento.php" method="POST">
+                        <input type="hidden" name="orcamento_id" id="inputCancelarPropostaId" value="">
+                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
+
+                        <div class="mb-3">
+                            <label class="form-label text-light">Motivo do Cancelamento:</label>
+                            <textarea class="form-control bg-dark text-light border-secondary" name="motivo_recusa" rows="2" placeholder="Ex: Perda de contato, projeto inviável..." required></textarea>
+                        </div>
+                        <div class="modal-footer border-top border-secondary p-0 pt-3">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                            <button type="submit" class="btn btn-danger">Cancelar Proposta</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="modalDisponibilidade" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-light bg-dark">
@@ -863,7 +959,6 @@ endif;
         </div>
     </div>
 <?php endif; ?>
-
 <script>
     const isArtista = <?php echo $is_artista ? 'true' : 'false'; ?>;
 
@@ -932,7 +1027,7 @@ endif;
                         <h5 class="mb-0 text-info"><i class="bi bi-clock me-1"></i> ${sessao.hora}</h5>
                         ${statusBadge}
                     </div>
-                    <p class="mb-1 text-light"><strong>${sessao.titulo}</strong></p>
+                   <p class="mb-1 text-light"><strong>${sessao.titulo}</strong></p>
                     <p class="mb-3 text-white-50 small"><i class="bi bi-person me-1"></i> Cliente: ${sessao.cliente}</p>
                     
                     <div class="small text-white-50">  
@@ -988,7 +1083,14 @@ endif;
                 document.getElementById('inputConfirmarLiberarId').value = this.getAttribute('data-idproj');
             });
         });
+        // Reconecta botão de cancelar projeto na aba Propostas Enviadas
+        document.querySelectorAll('.btn-cancelar-proposta-js').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('inputCancelarPropostaId').value = this.getAttribute('data-id');
+            });
+        });
     }
+
     <?php if ($is_artista): ?>
         document.addEventListener('DOMContentLoaded', function() {
             // Máscara inteligente para o Valor da Sessão (Dinheiro)
@@ -1008,12 +1110,50 @@ endif;
                 });
             });
 
-            // Modais de Aprovar/Recusar/Cancelar listagem estática
-            document.querySelectorAll('.btn-aprovar').forEach(btn => {
+            // --- LÓGICA DE APROVAR ORÇAMENTO (COM PREENCHIMENTO AUTOMÁTICO E AVISO) ---
+            const btnsAprovar = document.querySelectorAll('.btn-aprovar');
+            const inputAprovarId = document.getElementById('inputAprovarId');
+            const inputTituloProjeto = document.getElementById('titulo_projeto');
+            const selectEstimativaTempo = document.getElementById('estimativa_tempo');
+            const inputQtdSessoes = document.getElementById('qtd_sessoes');
+
+            // Novos elementos para o destaque
+            const avisoRenegociacao = document.getElementById('aviso_renegociacao');
+            const inputValorDestaque = document.getElementById('input_valor_destaque');
+
+            btnsAprovar.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    document.getElementById('inputAprovarId').value = this.getAttribute('data-id');
+                    inputAprovarId.value = this.getAttribute('data-id');
+
+                    const tituloAntigo = this.getAttribute('data-titulo') || '';
+                    inputTituloProjeto.value = tituloAntigo;
+                    inputQtdSessoes.value = this.getAttribute('data-sessoes') || '';
+
+                    const tempoValue = this.getAttribute('data-tempo');
+                    if (tempoValue) {
+                        selectEstimativaTempo.value = tempoValue;
+                    } else {
+                        selectEstimativaTempo.value = '';
+                    }
+
+                    inputValorDestaque.value = '';
+
+                    // Se tiver um título antigo, significa que é RENEGOCIAÇÃO!
+                    if (tituloAntigo !== '') {
+                        avisoRenegociacao.style.display = 'block'; // Mostra o aviso
+                        inputValorDestaque.classList.remove('border-secondary');
+                        inputValorDestaque.classList.add('border-info'); // Borda AZUL
+                        inputValorDestaque.style.boxShadow = '0 0 10px rgba(13, 202, 240, 0.4)'; // Brilho AZUL
+                    } else {
+                        avisoRenegociacao.style.display = 'none'; // Esconde o aviso
+                        inputValorDestaque.classList.add('border-secondary');
+                        inputValorDestaque.classList.remove('border-info');
+                        inputValorDestaque.style.boxShadow = 'none';
+                    }
                 });
             });
+
+            // Modais de Recusar/Cancelar listagem estática
             document.querySelectorAll('.btn-recusar').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.getElementById('inputRecusarId').value = this.getAttribute('data-id');
@@ -1024,16 +1164,7 @@ endif;
                     document.getElementById('inputSessaoId').value = this.getAttribute('data-id');
                 });
             });
-            document.querySelectorAll('.btn-concluir-sessao-js').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.getElementById('inputConfirmarConcluirId').value = this.getAttribute('data-id');
-                });
-            });
-            document.querySelectorAll('.btn-liberar-sessao-js').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.getElementById('inputConfirmarLiberarId').value = this.getAttribute('data-idproj');
-                });
-            });
+
             // --- LÓGICA DO FILTRO DO HISTÓRICO DO ARTISTA ---
             const filtroHistoricoArt = document.getElementById('filtroStatusHistoricoArt');
             if (filtroHistoricoArt) {
@@ -1060,6 +1191,9 @@ endif;
                     bsTab.show();
                 }
             }
+
+            // Corrige o comportamento dos accordions dentro das tabs
+            const tabs = document.querySelectorAll('#abasAgendaArtista button[data-bs-toggle="tab"]');
             tabs.forEach(function(tab) {
                 tab.addEventListener('show.bs.tab', function(event) {
                     var containerId = event.target.getAttribute('data-bs-target');
@@ -1077,5 +1211,4 @@ endif;
         });
     <?php endif; ?>
 </script>
-
 <?php include '../includes/footer.php'; ?>

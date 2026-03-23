@@ -27,7 +27,13 @@ try {
     $qtd_pendentes = 0;
     $solicitacoes_pendentes = [];
 }
-
+// 1.5 busca as propostas enviadas (aguardando cliente agendar)
+try {
+    $stmt_enviadas = $pdo->query("SELECT COUNT(*) FROM orcamento WHERE status = 'Aguardando Aceite'");
+    $qtd_enviadas = $stmt_enviadas->fetchColumn();
+} catch (PDOException $e) {
+    $qtd_enviadas = 0;
+}
 // 2. busca sessoes e clientes
 try {
     $stmt_sessoes = $pdo->query("SELECT COUNT(*) FROM sessao WHERE status = 'Agendado' AND data_hora BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 7 DAY)");
@@ -129,28 +135,28 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         </style>
 
         <div class="row text-center">
-            <div class="col-md-4 mb-4">
-                <a href="agenda.php?aba=solicitacoes" class="text-decoration-none text-light">
-                    <div class="card-resumo card-hover">
-                        <h3><?php echo $qtd_pendentes; ?></h3>
-                        <p class="text-white-50 mb-0">Solicitações para Aprovar</p>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="agenda.php?aba=solicitacoes" class="card-resumo card-hover text-decoration-none text-light d-block h-100">
+                    <h3><?php echo $qtd_pendentes; ?></h3>
+                    <p class="text-white-50 mb-0">Para Aprovar</p>
                 </a>
             </div>
-            <div class="col-md-4 mb-4">
-                <a href="agenda.php?aba=sessoes" class="text-decoration-none text-light">
-                    <div class="card-resumo card-hover">
-                        <h3><?php echo $qtd_sessoes_semana; ?></h3>
-                        <p class="text-white-50 mb-0">Sessões na Semana</p>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="agenda.php?aba=enviadas" class="card-resumo card-hover text-decoration-none text-light d-block h-100">
+                    <h3><?php echo $qtd_enviadas; ?></h3>
+                    <p class="text-white-50 mb-0">Propostas Enviadas</p>
                 </a>
             </div>
-            <div class="col-md-4 mb-4">
-                <a href="relatorios-artista.php" class="text-decoration-none text-light">
-                    <div class="card-resumo card-hover">
-                        <h3><?php echo $qtd_novos_clientes; ?></h3>
-                        <p class="text-white-50 mb-0">Novos Clientes no Mês</p>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="agenda.php?aba=sessoes" class="card-resumo card-hover text-decoration-none text-light d-block h-100">
+                    <h3><?php echo $qtd_sessoes_semana; ?></h3>
+                    <p class="text-white-50 mb-0">Sessões na Semana</p>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="relatorios-artista.php" class="card-resumo card-hover text-decoration-none text-light d-block h-100">
+                    <h3><?php echo $qtd_novos_clientes; ?></h3>
+                    <p class="text-white-50 mb-0">Novos Clientes no Mês</p>
                 </a>
             </div>
         </div>
@@ -198,7 +204,14 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         <div class="d-flex justify-content-end align-items-center mt-4">
                                             <button type="button" class="btn btn-sm btn-outline-danger btn-recusar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalRecusar">Recusar</button>
 
-                                            <button type="button" class="btn btn-sm btn-success ms-2 btn-aprovar" data-id="<?php echo $req['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalAprovar">Enviar Proposta</button>
+                                            <button type="button" class="btn btn-sm btn-success ms-2 btn-aprovar"
+                                                data-id="<?php echo $req['id_orcamento']; ?>"
+                                                data-titulo="<?php echo htmlspecialchars($req['titulo_sugerido'] ?? ''); ?>"
+                                                data-tempo="<?php echo htmlspecialchars($req['estimativa_tempo'] ?? ''); ?>"
+                                                data-sessoes="<?php echo htmlspecialchars($req['qtd_sessoes'] ?? ''); ?>"
+                                                data-bs-toggle="modal" data-bs-target="#modalAprovar">
+                                                Enviar Proposta
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -280,9 +293,14 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                     <div class="mb-3">
                         <label class="form-label text-light">Valor da Sessão:</label>
+
+                        <div id="aviso_renegociacao" class="alert alert-info p-2 small mb-2 text-center fw-bold" style="display: none;">
+                            <i class="bi bi-info-circle me-1"></i> Informe um novo valor ou repita o valor anterior.
+                        </div>
+
                         <div class="input-group">
                             <span class="input-group-text bg-dark text-white-50 border-secondary border-end-0">R$</span>
-                            <input type="text" class="form-control bg-dark text-light border-secondary border-start-0 mascara-dinheiro" name="valor_sessao" placeholder="0,00" required>
+                            <input type="text" class="form-control bg-dark text-light border-secondary border-start-0 mascara-dinheiro" id="input_valor_destaque" name="valor_sessao" placeholder="0,00" required>
                         </div>
                     </div>
 
@@ -416,12 +434,47 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             });
         });
 
-        // aprovar orçamento
+        // --- LÓGICA DE APROVAR ORÇAMENTO (COM PREENCHIMENTO AUTOMÁTICO E AVISO AZUL) ---
         const btnsAprovar = document.querySelectorAll('.btn-aprovar');
         const inputAprovarId = document.getElementById('inputAprovarId');
+        const inputTituloProjeto = document.getElementById('titulo_projeto');
+        const selectEstimativaTempo = document.getElementById('estimativa_tempo');
+        const inputQtdSessoes = document.getElementById('qtd_sessoes');
+
+        const avisoRenegociacao = document.getElementById('aviso_renegociacao');
+        const inputValorDestaque = document.getElementById('input_valor_destaque');
+
         btnsAprovar.forEach(btn => {
             btn.addEventListener('click', function() {
+                // Seta o ID
                 inputAprovarId.value = this.getAttribute('data-id');
+
+                // Preenche os campos
+                const tituloAntigo = this.getAttribute('data-titulo') || '';
+                inputTituloProjeto.value = tituloAntigo;
+                inputQtdSessoes.value = this.getAttribute('data-sessoes') || '';
+
+                const tempoValue = this.getAttribute('data-tempo');
+                if (tempoValue) {
+                    selectEstimativaTempo.value = tempoValue;
+                } else {
+                    selectEstimativaTempo.value = '';
+                }
+
+                inputValorDestaque.value = '';
+
+                // Se tiver um título antigo, é RENEGOCIAÇÃO (Pinta de AZUL)
+                if (tituloAntigo !== '') {
+                    avisoRenegociacao.style.display = 'block';
+                    inputValorDestaque.classList.remove('border-secondary');
+                    inputValorDestaque.classList.add('border-info'); // Borda AZUL
+                    inputValorDestaque.style.boxShadow = '0 0 10px rgba(13, 202, 240, 0.4)'; // Brilho AZUL
+                } else {
+                    avisoRenegociacao.style.display = 'none';
+                    inputValorDestaque.classList.add('border-secondary');
+                    inputValorDestaque.classList.remove('border-info');
+                    inputValorDestaque.style.boxShadow = 'none';
+                }
             });
         });
 

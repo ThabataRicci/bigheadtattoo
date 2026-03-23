@@ -27,19 +27,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['orcamento_id'])) {
     $origem = $_POST['origem'] ?? 'dashboard-artista.php';
 
     try {
-        // Atualiza o orçamento enviando a proposta para o cliente avaliar
-        // Atenção: O Projeto NÃO é criado aqui mais, só quando o cliente aceitar!
+        // TRUQUE DE MESTRE: 
+        // 'valor_sessao_anterior = valor_sessao' pega o valor que estava lá e guarda na gaveta nova.
+        // 'valor_sessao = ?' pega o valor novo que o artista digitou e põe na gaveta principal.
         $sql = "UPDATE orcamento 
-                SET status = 'Aguardando Aceite', estimativa_tempo = ?, qtd_sessoes = ?, valor_sessao = ?, titulo_sugerido = ? 
+                SET status = 'Aguardando Aceite', 
+                    estimativa_tempo = ?, 
+                    qtd_sessoes = ?, 
+                    titulo_sugerido = ?,
+                    valor_sessao_anterior = valor_sessao, 
+                    valor_sessao = ? 
                 WHERE id_orcamento = ?";
 
-        $pdo->prepare($sql)->execute([$estimativa_tempo, $qtd_sessoes, $valor_sessao_formatado, $titulo_projeto, $id_orcamento]);
+        $pdo->prepare($sql)->execute([$estimativa_tempo, $qtd_sessoes, $titulo_projeto, $valor_sessao_formatado, $id_orcamento]);
 
         // Retorna para a tela de onde o artista clicou (origem)
         header("Location: ../pages/" . $origem . "?sucesso=proposta_enviada");
         exit();
     } catch (PDOException $e) {
-        // Se ainda der erro, agora ele vai te mostrar o real motivo na URL!
+        // Se der erro, mostra o real motivo na URL
         header("Location: ../pages/" . $origem . "?erro=bd&msg=" . urlencode($e->getMessage()));
         exit();
     }

@@ -37,6 +37,7 @@ try {
             'ideia' => '"' . $ideia_completa . '"',
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
             'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'), // NOVO
+            'valor_anterior' => htmlspecialchars($row['valor_sessao_anterior'] ?? ''), // <--- ADICIONE ESTA LINHA
             'detalhe_status' => 'Sua ideia está com o artista. Aguarde o retorno com a proposta de valor.'
         ];
     }
@@ -108,6 +109,7 @@ try {
             'duracao' => htmlspecialchars($row['estimativa_tempo']),
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes']),
             'valor_sessao' => htmlspecialchars($row['valor_sessao']), // JÁ EXISTIA
+            'valor_anterior' => htmlspecialchars($row['valor_sessao_anterior'] ?? ''), // NOVO: Puxa o valor velho
             'tentativas' => $row['tentativas_negociacao'],
             'motivo_reagendamento' => null,
             'tipo_acao' => 'avaliar_orcamento'
@@ -364,9 +366,26 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                                 <?php if (isset($proj['tipo_acao']) && $proj['tipo_acao'] == 'avaliar_orcamento'): ?>
                                     <p class="text-white-50 mb-2"><strong>Proposta do Artista:</strong></p>
-                                    <div class="small mb-3 p-3 bg-dark border border-secondary rounded">
-                                        <p class="mb-1"><strong>Valor por Sessão:</strong> <?php echo $proj['valor_sessao']; ?></p>
-                                        <p class=" mb-1"><strong>Duração Estimada:</strong> <?php echo $proj['duracao']; ?></p>
+                                    <div class="small">
+
+                                        <?php if ($proj['tentativas'] > 0 && !empty($proj['valor_anterior'])): ?>
+                                            <p class="mb-1 text-light">
+                                                <strong>Novo Valor:</strong>
+                                                <span class="text-success"><strong>R$ <?php echo $proj['valor_sessao']; ?></strong></span>
+                                                |
+                                                <span class="small">
+                                                    <strong class="text-white-50">Valor Anterior:</strong>
+                                                    <span class="text-danger"><strong>R$ <?php echo $proj['valor_anterior']; ?></strong></span>
+                                                </span>
+                                            </p>
+                                        <?php else: ?>
+                                            <p class="mb-1">
+                                                <strong>Valor por Sessão:</strong>
+                                                R$ <?php echo $proj['valor_sessao']; ?>
+                                            </p>
+                                        <?php endif; ?>
+
+                                        <p class="mb-1"><strong>Duração Estimada:</strong> <?php echo $proj['duracao']; ?></p>
                                         <p class="mb-0"><strong>Total de Sessões:</strong> <?php echo $proj['sessoes_estimadas']; ?></p>
                                     </div>
                                     <div class="text-end mt-4">

@@ -13,9 +13,10 @@ $titulo_pagina = "Meu Painel";
 
 // consulta SQL pra localizar os 3 agendamentos mais proximos
 try {
-    $sql = "SELECT p.titulo, s.data_hora 
+    $sql = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.referencia_ideia, o.qtd_sessoes, o.valor_sessao 
             FROM sessao s
             JOIN projeto p ON s.id_projeto = p.id_projeto
+            LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
             WHERE p.id_usuario = ? 
             AND s.data_hora >= NOW() 
             AND s.status = 'Agendado'
@@ -81,6 +82,26 @@ echo '</div>';
         <h2 class="text-center mb-5">BEM-VINDO, <?php echo strtoupper($_SESSION['usuario_nome']); ?></h2>
 
         <style>
+            .accordion-button:not(.collapsed) {
+                background-color: transparent !important;
+                color: #fff !important;
+                box-shadow: none !important;
+            }
+
+            .accordion-button:focus {
+                box-shadow: none !important;
+            }
+
+            .accordion-item {
+                border-color: #444 !important;
+                background-color: #2c2c2c !important;
+            }
+
+            .accordion-button,
+            .accordion-body {
+                background-color: transparent !important;
+            }
+
             .card-hover {
                 transition: transform 0.2s ease, box-shadow 0.2s ease;
             }
@@ -95,9 +116,10 @@ echo '</div>';
 
         <div class="row text-center mb-5">
             <div class="col-md-4 mb-4">
-                <a href="agendamentos-cliente.php#acordeaoAcaoRequerida" class="card-resumo card-hover text-decoration-none text-light d-block <?php echo ($qtd_acoes_requeridas > 0) ? 'border-warning' : ''; ?>">
-                    <h3 class="<?php echo ($qtd_acoes_requeridas > 0) ? 'text-warning' : ''; ?>"><?php echo $qtd_acoes_requeridas; ?></h3>
-                    <p class="text-white-50 mb-0">Pendentes para Agendar</p>
+                <a href="agendamentos-cliente.php#acordeaoAcaoRequerida"
+                    class="card-resumo card-hover text-decoration-none text-light d-block">
+                    <h3><?php echo $qtd_acoes_requeridas; ?></h3>
+                    <p class="text-white-50 mb-0">Ações Requeridas</p>
                 </a>
             </div>
             <div class="col-md-4 mb-4">
@@ -122,19 +144,46 @@ echo '</div>';
                         <p class="text-white-50 mb-0 py-3">Você ainda não possui sessões agendadas.</p>
                     </div>
                 <?php else: ?>
-                    <?php foreach ($proximos_agendamentos as $sessao): ?>
-                        <div class="card-resumo mb-3 p-3">
-
-                            <p class="mb-1 text-light"><strong><?php echo htmlspecialchars($sessao['titulo']); ?></strong></p>
-                            <p class="text-white-50 small mb-0">
-                                <i class="bi bi-calendar3 me-2"></i>
-                                <?php
-                                $data = new DateTime($sessao['data_hora']);
-                                echo $data->format('d/m/Y - H:i');
-                                ?>
-                            </p>
-                        </div>
-                    <?php endforeach; ?>
+                    <div class="accordion" id="acordeaoProximosDash">
+                        <?php foreach ($proximos_agendamentos as $i => $sessao):
+                            $data = new DateTime($sessao['data_hora']);
+                        ?>
+                            <div class="accordion-item mb-3">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed text-light" type="button" data-bs-toggle="collapse" data-bs-target="#sessao-dash-<?php echo $i; ?>">
+                                        <div class="w-100 d-flex justify-content-between align-items-center">
+                                            <span><strong>Projeto:</strong> <?php echo htmlspecialchars($sessao['titulo']); ?></span>
+                                            <span class="me-3 text-light small"><i class="bi bi-calendar3 me-1"></i> <?php echo $data->format('d/m/Y - H:i'); ?></span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="sessao-dash-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoProximosDash">
+                                    <div class="accordion-body text-white-50">
+                                        <div class="small mb-3">
+                                            <p class="mb-1"><strong>Local:</strong> <?php echo htmlspecialchars($sessao['local_corpo'] ?? 'Não informado'); ?></p>
+                                            <p class="mb-1"><strong>Ideia:</strong> "<?php echo htmlspecialchars($sessao['descricao_ideia'] ?? 'Não informada'); ?>"</p>
+                                            <p class="mb-1"><strong>Duração:</strong> <?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? 'A definir'); ?></p>
+                                            <p class="mb-1"><strong>Sessões Estimadas:</strong> <?php echo htmlspecialchars($sessao['qtd_sessoes'] ?? '-'); ?></p>
+                                            <p class="mb-1"><strong>Valor da Sessão:</strong> R$ <?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : 'Não definido'; ?></p>
+                                            <p class="mb-0"><strong>Referência:</strong>
+                                                <?php if (!empty($sessao['referencia_ideia'])): ?>
+                                                    <a href="../imagens/orcamentos/<?php echo htmlspecialchars($sessao['referencia_ideia']); ?>" target="_blank" class="text-info text-decoration-none">
+                                                        <i class="bi bi-image me-1"></i> Ver Anexo
+                                                    </a>
+                                                <?php else: ?>
+                                                    <span class="text-white-50">Vazio</span>
+                                                <?php endif; ?>
+                                            </p>
+                                        </div>
+                                        <div class="text-end border-top border-secondary pt-3">
+                                            <button class="btn btn-sm btn-outline-warning btn-reagendar-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalReagendar">Reagendar</button>
+                                            <button class="btn btn-sm btn-outline-danger btn-cancelar-js ms-2" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarProjeto">Cancelar Projeto</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 <?php endif; ?>
             </div>
 
@@ -151,5 +200,77 @@ echo '</div>';
         </div>
     </div>
 </main>
+
+<div class="modal fade" id="modalReagendar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title">Reagendar Sessão</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-white-50">
+                <p>A data atual será desmarcada e você será levado para o calendário para escolher um novo dia.</p>
+                <form action="../actions/a.reagendar.php" method="POST">
+                    <input type="hidden" name="sessao_id" id="inputReagendarId" value="">
+                    <div class="mb-3">
+                        <label class="form-label text-light">Motivo do reagendamento:</label>
+                        <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" required></textarea>
+                    </div>
+                    <div class="modal-footer border-top border-secondary p-0 pt-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-warning">Reagendar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCancelarProjeto" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-danger">Cancelar Projeto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-white-50">
+                <p>Atenção: Isso cancelará não apenas esta sessão, mas o <strong>projeto inteiro</strong>.</p>
+                <form action="../actions/a.cancelar-projeto.php" method="POST">
+                    <input type="hidden" name="sessao_id" id="inputCancelarProjetoId" value="">
+                    <div class="mb-3">
+                        <label class="form-label text-light">Motivo:</label>
+                        <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" required></textarea>
+                    </div>
+                    <div class="modal-footer border-top border-secondary p-0 pt-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-danger">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Conecta o botão Reagendar ao Modal
+        const btnsReagendar = document.querySelectorAll('.btn-reagendar-js');
+        const inputReagendarId = document.getElementById('inputReagendarId');
+        btnsReagendar.forEach(btn => {
+            btn.addEventListener('click', function() {
+                inputReagendarId.value = this.getAttribute('data-id');
+            });
+        });
+
+        // Conecta o botão Cancelar ao Modal
+        const btnsCancelar = document.querySelectorAll('.btn-cancelar-js');
+        const inputCancelarProjetoId = document.getElementById('inputCancelarProjetoId');
+        btnsCancelar.forEach(btn => {
+            btn.addEventListener('click', function() {
+                inputCancelarProjetoId.value = this.getAttribute('data-id');
+            });
+        });
+    });
+</script>
 
 <?php include '../includes/footer.php'; ?>
