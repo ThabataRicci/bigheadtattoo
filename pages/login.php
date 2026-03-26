@@ -12,9 +12,13 @@ include '../includes/header.php';
                 <h2 class="text-center mb-4">ACESSAR SUA CONTA</h2>
 
                 <?php
-                // exibe mensagem de erro se o login falhar 
+                // exibe mensagem de erro
                 if (isset($_GET['erro'])) {
-                    echo '<div class="alert alert-danger text-center">E-mail ou senha incorretos. Tente novamente.</div>';
+                    if ($_GET['erro'] == 'bloqueado') {
+                        echo '<div class="alert alert-warning text-center">Sua conta foi bloqueada. Entre em contato com o artista para mais detalhes.</div>';
+                    } else {
+                        echo '<div class="alert alert-danger text-center">E-mail ou senha incorretos. Tente novamente.</div>';
+                    }
                 }
                 ?>
 

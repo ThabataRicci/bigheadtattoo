@@ -402,7 +402,10 @@ include '../includes/header.php';
 
         let botoesHtml = '';
         if (slotsFiltrados.length === 0) {
-            botoesHtml = `<div class="alert alert-dark text-warning border-secondary text-center w-100 m-0"><i class="bi bi-exclamation-triangle me-2"></i> A agenda já está muito cheia neste dia para comportar o tempo da sua sessão (${estimativaTempo}). Escolha outro dia.</div>`;
+            botoesHtml = `<div class="bg-dark text-white text-center w-100 m-0 p-3">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Não há horários disponíveis, escolha outro dia.
+</div>`;
         } else {
             slotsFiltrados.forEach(slot => {
                 botoesHtml += `

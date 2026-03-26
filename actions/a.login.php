@@ -7,12 +7,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $senha = $_POST['senha'];
     $redirect = $_POST['redirect'] ?? '';
 
-    $sql = "SELECT id_usuario, nome, senha, perfil FROM usuario WHERE email = ?";
+    // CORREÇÃO AQUI: Adicionado o "status" na busca do banco
+    $sql = "SELECT id_usuario, nome, senha, perfil, status FROM usuario WHERE email = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$email]);
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($usuario && password_verify($senha, $usuario['senha'])) {
+
+        // verificar se o cliente está bloqueado
+        if (isset($usuario['status']) && $usuario['status'] === 'Bloqueado') {
+            header("Location: ../pages/login.php?erro=bloqueado");
+            exit();
+        }
+
         // sucesso login
         $_SESSION['usuario_id'] = $usuario['id_usuario'];
         $_SESSION['usuario_nome'] = $usuario['nome'];

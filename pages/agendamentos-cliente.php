@@ -69,7 +69,7 @@ try {
                 $contador++;
             } elseif ($h['status'] == 'Cancelado') {
                 $motivo = htmlspecialchars($h['motivo_cancelamento'] ?? 'Reagendado/Imprevisto');
-                $historico_montado[] = ['desc' => "Sessão Cancelada em " . $d->format('d/m/Y') . " | Motivo: {$motivo}", 'icone' => 'bi-x-circle-fill text-danger', 'pode_cancelar' => false];
+                $historico_montado[] = ['desc' => "Sessão Cancelada em " . $d->format('d/m/Y') . " | {$motivo}", 'icone' => 'bi-x-circle-fill text-danger', 'pode_cancelar' => false];
             } elseif ($h['status'] == 'Agendado') {
                 $pode = ($h['id_sessao'] == $row['id_sessao']);
                 $historico_montado[] = ['desc' => "{$contador}ª Sessão: Agendada para " . $d->format('d/m/Y H:i'), 'icone' => 'bi-calendar-event text-info', 'pode_cancelar' => $pode];
@@ -214,7 +214,7 @@ try {
                 $contador++;
             } elseif ($h['status'] == 'Cancelado') {
                 $motivo = htmlspecialchars($h['motivo_cancelamento'] ?? 'Desistência/Imprevisto');
-                $historico_montado[] = ['desc' => "Sessão Cancelada em " . $d->format('d/m/Y') . " | Motivo: {$motivo}", 'icone' => 'bi-x-circle-fill text-danger'];
+                $historico_montado[] = ['desc' => "Sessão Cancelada em " . $d->format('d/m/Y') . " | {$motivo}", 'icone' => 'bi-x-circle-fill text-danger'];
             }
         }
 
