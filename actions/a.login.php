@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         exit();
     } else {
-        // erro no login (senha ou e-mail incorretos)
+        // erro no login (senha ou email incorretos)
         // redireciona de volta para o login com o aviso de erro
         header("Location: ../pages/login.php?erro=credenciais&redirect=" . urlencode($redirect));
         exit();

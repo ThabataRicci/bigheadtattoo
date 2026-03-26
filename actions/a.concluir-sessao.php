@@ -2,7 +2,6 @@
 session_start();
 require_once '../includes/conexao.php';
 
-// Proteção de acesso
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'artista') {
     exit();
 }
@@ -19,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['sessao_id'])) {
         $stmt->execute([$sessao_id]);
         $id_projeto = $stmt->fetchColumn();
 
-        // 3. FINALIZA O PROJETO (Vai direto para o Histórico, independentemente da estimativa)
+        // 3. FINALIZA O PROJETO (Vai direto para o Histórico)
         $pdo->prepare("UPDATE projeto SET status = 'Finalizado' WHERE id_projeto = ?")->execute([$id_projeto]);
 
         header("Location: ../pages/agenda.php?sucesso=concluido");

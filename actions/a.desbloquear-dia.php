@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../includes/conexao.php';
+require_once '../includes/conexao.php'; //
 
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'artista') {
     exit();

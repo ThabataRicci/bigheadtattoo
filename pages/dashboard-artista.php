@@ -408,7 +408,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Máscara inteligente para o Valor da Sessão (Dinheiro)
+        // máscara inteligente para o Valor da Sessão
         const inputsDinheiro = document.querySelectorAll('.mascara-dinheiro');
         inputsDinheiro.forEach(input => {
             input.addEventListener('input', function(e) {
@@ -434,7 +434,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             });
         });
 
-        // --- LÓGICA DE APROVAR ORÇAMENTO (COM PREENCHIMENTO AUTOMÁTICO E AVISO AZUL) ---
+        // --- LÓGICA DE APROVAR ORÇAMENTO ---
         const btnsAprovar = document.querySelectorAll('.btn-aprovar');
         const inputAprovarId = document.getElementById('inputAprovarId');
         const inputTituloProjeto = document.getElementById('titulo_projeto');
@@ -446,7 +446,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
         btnsAprovar.forEach(btn => {
             btn.addEventListener('click', function() {
-                // Seta o ID
                 inputAprovarId.value = this.getAttribute('data-id');
 
                 // Preenche os campos
@@ -463,12 +462,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                 inputValorDestaque.value = '';
 
-                // Se tiver um título antigo, é RENEGOCIAÇÃO (Pinta de AZUL)
+                // Se tiver um título antigo, é RENEGOCIAÇÃO 
                 if (tituloAntigo !== '') {
                     avisoRenegociacao.style.display = 'block';
                     inputValorDestaque.classList.remove('border-secondary');
-                    inputValorDestaque.classList.add('border-info'); // Borda AZUL
-                    inputValorDestaque.style.boxShadow = '0 0 10px rgba(13, 202, 240, 0.4)'; // Brilho AZUL
+                    inputValorDestaque.classList.add('border-info');
+                    inputValorDestaque.style.boxShadow = '0 0 10px rgba(13, 202, 240, 0.4)';
                 } else {
                     avisoRenegociacao.style.display = 'none';
                     inputValorDestaque.classList.add('border-secondary');

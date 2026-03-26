@@ -36,8 +36,8 @@ try {
             'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado']),
             'ideia' => '"' . $ideia_completa . '"',
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
-            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'), // NOVO
-            'valor_anterior' => htmlspecialchars($row['valor_sessao_anterior'] ?? ''), // <--- ADICIONE ESTA LINHA
+            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
+            'valor_anterior' => htmlspecialchars($row['valor_sessao_anterior'] ?? ''),
             'detalhe_status' => 'Sua ideia está com o artista. Aguarde o retorno com a proposta de valor.'
         ];
     }
@@ -87,12 +87,12 @@ try {
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
-            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'), // NOVO
+            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
             'historico_sessoes' => $historico_montado
         ];
     }
 
-    // 3. AÇÃO REQUERIDA (NOVO FLUXO): Avaliar Proposta do Artista (Aguardando Aceite)
+    // 3. AÇÃO REQUERIDA: Avaliar Proposta do Artista (Aguardando Aceite)
     $sql_aprovados = "SELECT * FROM orcamento WHERE id_usuario = ? AND status = 'Aguardando Aceite'";
     $stmt = $pdo->prepare($sql_aprovados);
     $stmt->execute([$id_usuario]);
@@ -108,15 +108,15 @@ try {
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo']),
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes']),
-            'valor_sessao' => htmlspecialchars($row['valor_sessao']), // JÁ EXISTIA
-            'valor_anterior' => htmlspecialchars($row['valor_sessao_anterior'] ?? ''), // NOVO: Puxa o valor velho
+            'valor_sessao' => htmlspecialchars($row['valor_sessao']),
+            'valor_anterior' => htmlspecialchars($row['valor_sessao_anterior'] ?? ''),
             'tentativas' => $row['tentativas_negociacao'],
             'motivo_reagendamento' => null,
             'tipo_acao' => 'avaliar_orcamento'
         ];
     }
 
-    // 3.B AÇÃO REQUERIDA (FLUXO ANTIGO): Agendar ou Reagendar Sessão (Projeto já existente)
+    // 3.B AÇÃO REQUERIDA: Agendar ou Reagendar Sessão (Projeto já existente)
     $sql_reagendar = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.qtd_sessoes, o.valor_sessao 
                       FROM projeto p 
                       LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento 
@@ -153,7 +153,7 @@ try {
             'ref' => 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
-            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'), // NOVO
+            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
             'motivo_reagendamento' => $row['motivo_reagendamento'],
             'historico_sessoes' => $historico_montado,
             'tipo_acao' => 'agendar_sessao'
@@ -228,7 +228,7 @@ try {
             'ideia' => htmlspecialchars($row['descricao_ideia'] ?? ''),
             'ref' => 'Sem referência',
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
-            'sessoes_realizadas' => $contador - 1, // <-- NOVO AQUI
+            'sessoes_realizadas' => $contador - 1,
             'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
             'historico_sessoes' => $historico_montado,
             'data_sort' => $ultima_data
@@ -844,7 +844,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             }
         }
 
-        // Ativar os Tooltips (balõezinhos de informação) do Bootstrap
+        // Ativar os balõezinhos de informação
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
@@ -924,7 +924,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             });
         });
 
-        // NOVOS BOTÕES (Avaliar Proposta)
+        // avaliar proposta
         const btnsAceitarProp = document.querySelectorAll('.btn-aceitar-proposta');
         const inputAceitarOrcId = document.getElementById('inputAceitarOrcId');
         btnsAceitarProp.forEach(btn => {

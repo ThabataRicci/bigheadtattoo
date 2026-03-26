@@ -8,14 +8,16 @@ $titulo_pagina = "Página Inicial";
 
 // --- BUSCA OS DESTAQUES DO PORTFÓLIO NO BANCO ---
 try {
-    // Busca os 4 últimos trabalhos adicionados no portfólio
-    $sql_portfolio = "SELECT titulo, imagem, estilo, tempo_execucao, qtd_sessoes, local_corpo FROM portfolio ORDER BY id_portfolio DESC LIMIT 4";
+    // Busca 4 trabalhos aleatórios adicionados no portfólio
+    $sql_portfolio = "SELECT p.titulo, p.imagem, p.tempo_execucao, p.qtd_sessoes, p.local_corpo, e.nome as estilo_nome 
+                      FROM portfolio p 
+                      INNER JOIN estilo e ON p.id_estilo = e.id_estilo 
+                      ORDER BY RAND() LIMIT 4";
     $stmt_portfolio = $pdo->query($sql_portfolio);
     $destaques_portfolio = $stmt_portfolio->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $destaques_portfolio = []; // Se der erro, cria uma lista vazia para não quebrar a tela
 }
-
 include 'includes/header.php';
 ?>
 
@@ -73,7 +75,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                             <img src="imagens/portfolio/<?php echo htmlspecialchars($item['imagem']); ?>" alt="<?php echo htmlspecialchars($item['titulo']); ?>">
                             <div class="portfolio-detalhes-overlay">
                                 <h5 class="detalhes-titulo"><?php echo htmlspecialchars($item['titulo']); ?></h5>
-                                <p class="detalhes-info mb-0">Estilo: <?php echo htmlspecialchars($item['estilo']); ?></p>
+                                <p class="detalhes-info mb-0">Estilo: <?php echo htmlspecialchars($item['estilo_nome']); ?></p>
                                 <p class="detalhes-info mb-0">Tempo: <?php echo htmlspecialchars($item['tempo_execucao']); ?></p>
                                 <p class="detalhes-info mb-0">Sessões: <?php echo htmlspecialchars($item['qtd_sessoes']); ?></p>
                                 <p class="detalhes-info mb-0">Local: <?php echo htmlspecialchars($item['local_corpo']); ?></p>

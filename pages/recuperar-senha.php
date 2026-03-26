@@ -1,7 +1,7 @@
 <?php
 session_start();
 $titulo_pagina = "Recuperar Senha";
-include '../includes/header.php';
+include '../includes/header.php'; //
 ?>
 
 <main>
@@ -13,15 +13,15 @@ include '../includes/header.php';
                 <p class="text-center text-white-50 mb-4">Digite seu e-mail abaixo e enviaremos um link para você criar uma nova senha.</p>
 
                 <form class="formulario-container" action="../actions/a.recuperar-senha.php" method="POST">
-    <div class="mb-3">
-        <label for="email" class="form-label">E-mail:</label>
-        <input type="email" class="form-control" id="email" name="email" required>
-    </div>
-    </form>
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-outline-light">ENVIAR LINK DE RECUPERAÇÃO</button>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-mail:</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
                     </div>
+                </form>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-outline-light">ENVIAR LINK DE RECUPERAÇÃO</button>
+                </div>
                 </form>
 
             </div>

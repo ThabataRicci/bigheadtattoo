@@ -7,10 +7,8 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'artista'
 if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['sessao_id'])) {
     $sessao_id = $_POST['sessao_id'];
 
-    // Pega a página de origem (se não existir, o padrão será a agenda)
+    // pega a página de origem (se não existir, o padrão será a agenda)
     $pagina_origem = isset($_POST['origem']) && !empty($_POST['origem']) ? $_POST['origem'] : 'agenda.php';
-
-    // Deixa no mesmo padrão das outras telas
     $motivo = "Reagendado pelo Artista: " . trim($_POST['motivo']);
 
     try {
@@ -22,11 +20,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['sessao_id'])) {
 
         $pdo->prepare("UPDATE projeto SET status = 'Agendamento Pendente', motivo_reagendamento = ? WHERE id_projeto = ?")->execute([$motivo, $id_projeto]);
 
-        // Redireciona de volta para a página que enviou a requisição
+        // redireciona de volta para a página que enviou a requisição
         header("Location: ../pages/" . $pagina_origem . "?sucesso=reagendado");
         exit();
     } catch (PDOException $e) {
-        // Se der erro, também volta para a página certa
         header("Location: ../pages/" . $pagina_origem . "?erro=bd");
         exit();
     }

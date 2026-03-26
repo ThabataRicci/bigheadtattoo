@@ -2,7 +2,6 @@
 session_start();
 require_once '../includes/conexao.php';
 
-// Proteção
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'cliente') {
     header("Location: ../pages/login.php");
     exit();

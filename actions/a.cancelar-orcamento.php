@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['orcamento_id'])) {
             header("Location: ../pages/agendamentos-cliente.php?cancelado=orcamento");
             exit();
         } else {
-            // se cair aqui tentou cancelar o orçamento de outra pessoa ou um orçamento já avaliado
+            // se cair aqui o cliente tentou cancelar o orçamento de outra pessoa ou um orçamento já avaliado
             header("Location: ../pages/agendamentos-cliente.php?erro=permissao");
             exit();
         }

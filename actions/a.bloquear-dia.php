@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['data_bloqueio'])) {
     $data_bloqueio = $_POST['data_bloqueio'];
 
     try {
-        // Verifica se a data já não está bloqueada para evitar duplicação
+        // verifica se a data já não está bloqueada para evitar duplicação
         $stmt_check = $pdo->prepare("SELECT id_bloqueio FROM bloqueio_agenda WHERE id_artista = ? AND data_bloqueio = ?");
         $stmt_check->execute([$id_artista, $data_bloqueio]);
 

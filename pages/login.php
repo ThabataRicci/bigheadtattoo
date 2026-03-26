@@ -55,7 +55,7 @@ include '../includes/header.php';
 </main>
 
 <script>
-    // mostrar/esconder senha
+    // mostrar ou esconder senha
     const btnToggle = document.getElementById('toggle-senha');
     const inputSenha = document.getElementById('senha');
     const icone = document.getElementById('icone-senha');

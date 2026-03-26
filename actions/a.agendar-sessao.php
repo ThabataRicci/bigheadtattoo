@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['projeto_id']) && !emp
         $stmt_proj = $pdo->prepare("UPDATE projeto SET status = 'Em Andamento', motivo_reagendamento = NULL WHERE id_projeto = ?");
         $stmt_proj->execute([$projeto_id]);
 
-        // Manda o cliente de volta pro painel dele para comemorar!
+        // Manda o cliente de volta pro painel dele
         header("Location: ../pages/agendamentos-cliente.php?sucesso=agendado");
         exit();
     } catch (PDOException $e) {

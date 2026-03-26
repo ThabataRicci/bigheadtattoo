@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['usuario_id'])) {
         $sql = "UPDATE usuario SET nome = ?, email = ?, telefone = ?, biografia = ? WHERE id_usuario = ?";
         $pdo->prepare($sql)->execute([$nome, $email, $tel_limpo, $biografia, $id]);
 
-        // logica da senha (se a nova senha for preenchida)
+        // lógica da senha (se a nova senha for preenchida)
         if (!empty($nova_senha)) {
             $stmt_senha = $pdo->prepare("SELECT senha FROM usuario WHERE id_usuario = ?");
             $stmt_senha->execute([$id]);

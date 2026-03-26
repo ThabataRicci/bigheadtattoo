@@ -12,11 +12,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['orcamento_id'])) {
 
     try {
         if ($tipo_recusa == 'preco') {
-            // Volta pro artista e queima o cartucho de negociação
+            // volta pro artista
             $sql = "UPDATE orcamento SET status = 'Negociacao', tentativas_negociacao = tentativas_negociacao + 1 WHERE id_orcamento = ?";
             $pdo->prepare($sql)->execute([$id_orcamento]);
         } else {
-            // Recusa por outro motivo (Encerra o fluxo)
+            // recusa por outro motivo (encerra o fluxo)
             $motivo = $_POST['motivo_cancelamento_cliente'];
             $sql = "UPDATE orcamento SET status = 'Cancelado pelo Cliente', motivo_cancelamento_cliente = ? WHERE id_orcamento = ?";
             $pdo->prepare($sql)->execute([$motivo, $id_orcamento]);

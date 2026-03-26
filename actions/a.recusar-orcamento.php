@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['orcamento_id'])) {
     $id_orcamento = $_POST['orcamento_id'];
     $motivo_recusa = $_POST['motivo_recusa'];
 
-    // Captura a página de onde o artista enviou a recusa (Dashboard ou Agenda)
+    // captura a página de onde o artista enviou a recusa (Dashboard ou Agenda)
     $origem = $_POST['origem'] ?? 'dashboard-artista.php';
 
     try {

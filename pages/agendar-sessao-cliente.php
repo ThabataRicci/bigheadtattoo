@@ -2,7 +2,7 @@
 session_start();
 require_once '../includes/conexao.php';
 
-// Apenas clientes podem acessar esta tela
+// apenas clientes podem acessar esta tela
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'cliente') {
     header("Location: login.php");
     exit();
@@ -11,13 +11,13 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'cliente'
 $id_usuario_logado = $_SESSION['usuario_id'];
 $projeto_id = isset($_GET['projeto_id']) ? (int)$_GET['projeto_id'] : 0;
 
-// Se não tiver projeto na URL, manda de volta pros agendamentos
+// se não tiver projeto na URL, manda de volta pros agendamentos
 if ($projeto_id === 0) {
     header("Location: agendamentos-cliente.php");
     exit();
 }
 
-// 1. Busca os dados do projeto para saber a duração
+// 1. busca os dados do projeto para saber a duração
 try {
     $stmt_proj = $pdo->prepare("SELECT p.titulo, o.estimativa_tempo FROM projeto p LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento WHERE p.id_projeto = ? AND p.id_usuario = ? AND p.status = 'Agendamento Pendente'");
     $stmt_proj->execute([$projeto_id, $id_usuario_logado]);
@@ -33,11 +33,11 @@ try {
     exit("Erro ao buscar projeto.");
 }
 
-// 2. Busca o ID do artista (dono do estúdio)
+// 2. busca o ID do artista 
 $stmt_art = $pdo->query("SELECT id_usuario FROM usuario WHERE perfil = 'artista' LIMIT 1");
 $id_artista = $stmt_art->fetchColumn();
 
-// 3. Busca os bloqueios de agenda do artista (Folgas)
+// 3. busca os bloqueios de agenda do artista 
 $dias_bloqueados_manualmente = [];
 if ($id_artista) {
     $stmt_bloq = $pdo->prepare("SELECT data_bloqueio FROM bloqueio_agenda WHERE id_artista = ?");
@@ -47,11 +47,11 @@ if ($id_artista) {
     }
 }
 
-// 4. Busca os horários já ocupados pelo artista
+// 4. busca os horários já ocupados pelo artista
 $horarios_ocupados = [];
 $dias_com_agendamento = [];
-$dias_minhas_sessoes = []; // Guarda os dias do próprio cliente
-$detalhes_minhas_sessoes = []; // NOVO: Guarda os detalhes da sessão para exibir no clique
+$dias_minhas_sessoes = [];
+$detalhes_minhas_sessoes = [];
 
 $stmt_busy = $pdo->query("SELECT s.data_hora, o.estimativa_tempo, p.id_usuario, p.titulo FROM sessao s JOIN projeto p ON s.id_projeto = p.id_projeto LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento WHERE s.status = 'Agendado' AND s.data_hora >= DATE_SUB(NOW(), INTERVAL 1 DAY)");
 foreach ($stmt_busy->fetchAll() as $b) {
@@ -60,7 +60,6 @@ foreach ($stmt_busy->fetchAll() as $b) {
 
     $dias_com_agendamento[] = $data_apenas;
 
-    // Se o dono desse projeto for o cliente logado, guarda os detalhes
     if ($b['id_usuario'] == $id_usuario_logado) {
         $dias_minhas_sessoes[] = $data_apenas;
         if (!isset($detalhes_minhas_sessoes[$data_apenas])) {
@@ -72,7 +71,7 @@ foreach ($stmt_busy->fetchAll() as $b) {
         ];
     }
 
-    $duracao = 2; // Padrão
+    $duracao = 2;
     if (strpos($b['estimativa_tempo'], 'Médio') !== false) $duracao = 4;
     if (strpos($b['estimativa_tempo'], 'Grande') !== false) $duracao = 6;
     if (strpos($b['estimativa_tempo'], 'Todo') !== false) $duracao = 8;
@@ -83,7 +82,7 @@ foreach ($stmt_busy->fetchAll() as $b) {
     ];
 }
 
-// LÓGICA DE DURAÇÃO (Para calcular a barrinha de vaga)
+// LÓGICA DE DURAÇÃO 
 $duracao_necessaria = 2;
 if (strpos($estimativa_tempo_projeto, 'Médio') !== false) $duracao_necessaria = 4;
 if (strpos($estimativa_tempo_projeto, 'Grande') !== false) $duracao_necessaria = 6;
@@ -148,15 +147,12 @@ include '../includes/header.php';
         background-color: #0dcaf0 !important;
     }
 
-    /* Destaca os dias que O CLIENTE já tem sessão marcada de forma minimalista */
     .dia-minha-sessao {
         color: #0dcaf0 !important;
-        /* Dourado/Amarelo suave */
         font-weight: bold;
         position: relative;
     }
 
-    /* Pontinho dourado elegante no canto superior direito */
     .dia-minha-sessao::before {
         content: '';
         position: absolute;
@@ -168,30 +164,24 @@ include '../includes/header.php';
         border-radius: 50%;
     }
 
-    /* Barrinha cinza embaixo do dia informando que HÁ VAGA */
     .dia-com-vaga {
         border-bottom: 4px solid #6c757d !important;
     }
 
-    /* Estética escura e tamanho menor para o calendário do cliente */
     .calendario-wrapper {
 
-        /* Deixa o calendário menorzinho e centralizado */
         margin: 0 auto;
         background-color: #1C1C1C;
-        /* Fundo cinza escuro igual do artista */
         border: 1px solid #444;
         border-radius: 12px;
         padding: 25px;
     }
 
-    /* Dias bloqueados ou passados ficam cinza, sem cursor e não clicáveis */
     .dia-inativo {
         background-color: #2a2a2a !important;
         color: #555 !important;
         cursor: not-allowed !important;
         pointer-events: none !important;
-        /* Arranca 100% a capacidade de clicar */
     }
 </style>
 
@@ -256,7 +246,7 @@ include '../includes/header.php';
                         $is_passado = ($data_atual_formatada < $data_hoje_formatada);
                         $is_bloqueado = ($dia_da_semana_atual == 0 || in_array($data_atual_formatada, $dias_bloqueados_manualmente));
 
-                        // Se estiver inativo, usa uma <div> vazia (arranca o clique e o hover)
+                        // Se estiver inativo, usa uma <div> vazia 
                         if ($is_passado || $is_bloqueado) {
                             echo "<div class='dia dia-inativo'>$dia</div>";
                         } else {
@@ -364,7 +354,7 @@ include '../includes/header.php';
         event.preventDefault();
         const secaoDetalhes = document.getElementById('secao-detalhes');
 
-        // --- COMEÇO DA ADIÇÃO: Monta o aviso se o cliente já tiver sessões marcadas nesse dia ---
+        // monta o aviso se o cliente já tiver sessões marcadas nesse dia ---
         let avisosSessoes = '';
         if (minhasSessoesDetalhes[dataSql]) {
             const sessoesDia = minhasSessoesDetalhes[dataSql];
@@ -378,9 +368,8 @@ include '../includes/header.php';
                 `;
             });
         }
-        // --- FIM DA ADIÇÃO ---
 
-        let duracaoNecessaria = 2; // Pequeno
+        let duracaoNecessaria = 2;
         if (estimativaTempo.includes('Médio')) duracaoNecessaria = 4;
         if (estimativaTempo.includes('Grande')) duracaoNecessaria = 6;
         if (estimativaTempo.includes('Todo')) duracaoNecessaria = 8;
@@ -448,22 +437,17 @@ include '../includes/header.php';
             behavior: 'smooth'
         });
 
-        // --- ADICIONE DAQUI PARA BAIXO ---
         document.querySelectorAll('.btn-escolher-horario').forEach(btn => {
             btn.addEventListener('click', function() {
                 const dataSql = this.getAttribute('data-datasql');
                 const dataBr = this.getAttribute('data-databr');
                 const hora = this.getAttribute('data-hora');
 
-                // Preenche os campos ocultos do form no Modal
                 document.getElementById('inputDataSessao').value = dataSql;
                 document.getElementById('inputHoraSessao').value = hora;
-
-                // Exibe a data e hora formatada pro cliente ler na tela
                 document.getElementById('displayDataHora').innerText = dataBr + " | " + hora;
             });
         });
-        // --- ATÉ AQUI ---
     }
 </script>
 

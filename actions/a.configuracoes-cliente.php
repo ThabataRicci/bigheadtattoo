@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['usuario_id'])) {
             $stmt_senha->execute([$id]);
             $user_db = $stmt_senha->fetch();
 
-            // a) valida senha atual pra ver se ta correta
+            // a) valida senha atual pra ver se tá correta
             if (!password_verify($senha_atual, $user_db['senha'])) {
                 header("Location: ../pages/configuracoes-cliente.php?erro=senha_atual");
                 exit();

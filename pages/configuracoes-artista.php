@@ -10,7 +10,7 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'artista'
 
 $id = $_SESSION['usuario_id'];
 
-// Busca todos os dados do banco
+// Busca todos os dados do BD
 $stmt = $pdo->prepare("SELECT nome, email, telefone, biografia, foto_perfil FROM usuario WHERE id_usuario = ?");
 $stmt->execute([$id]);
 $user = $stmt->fetch();

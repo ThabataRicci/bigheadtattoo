@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         exit();
     } catch (PDOException $e) {
-        // código 23000 indica que o email já existe
+        // código 23000 indica que o email ja existe
         if ($e->getCode() == 23000) {
             header("Location: ../pages/cadastro.php?erro=email&redirect=" . urlencode($redirect));
             exit();

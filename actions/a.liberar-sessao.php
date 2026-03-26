@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['projeto_id'])) {
     $projeto_id = $_POST['projeto_id'];
 
     try {
-        // 1. Marca qualquer sessão pendente de hoje como Concluída (pra não ficar sessão voando no passado)
+        // 1. Marca qualquer sessão pendente de hoje como Concluída (pra não ficar sessão no passado)
         $sql_sessao = "UPDATE sessao SET status = 'Concluído' WHERE id_projeto = ? AND status = 'Agendado'";
         $pdo->prepare($sql_sessao)->execute([$projeto_id]);
 

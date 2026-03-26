@@ -2,7 +2,7 @@
 session_start();
 require_once '../includes/conexao.php';
 
-// verifica qual o usuario logado
+// verifica qual o usuário logado
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'cliente') {
     header("Location: ../pages/login.php");
     exit();

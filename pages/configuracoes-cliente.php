@@ -9,7 +9,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
 $id = $_SESSION['usuario_id'];
 
-// busca os dados do cliente no banco
+// busca os dados do cliente no BD
 $stmt = $pdo->prepare("SELECT nome, email, telefone FROM usuario WHERE id_usuario = ?");
 $stmt->execute([$id]);
 $user = $stmt->fetch();

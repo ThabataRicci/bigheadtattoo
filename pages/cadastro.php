@@ -123,7 +123,7 @@ include '../includes/header.php';
     tel.addEventListener('input', (e) => {
         let valor = e.target.value.replace(/\D/g, ""); // remove o que não é número
 
-        // limitar a 11 numeros
+        // limitar a 11 números
         if (valor.length > 11) {
             valor = valor.slice(0, 11);
         }

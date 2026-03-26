@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../includes/conexao.php'; // Conecta ao banco de dados
+require_once '../includes/conexao.php'; // conexao com BD
 
 $is_artista = (isset($_SESSION['loggedin']) && isset($_SESSION['usuario_perfil']) && $_SESSION['usuario_perfil'] === 'artista');
 $id_usuario_logado = $_SESSION['usuario_id'] ?? 0;
@@ -36,7 +36,6 @@ if ($is_artista) {
                           ORDER BY o.data_envio ASC";
         $solicitacoes_pendentes = $pdo->query($sql_pendentes)->fetchAll();
 
-        // --- ADICIONAR DAQUI ---
         // busca propostas enviadas (aguardando cliente agendar)
         $sql_enviadas = "SELECT o.id_orcamento, o.titulo_sugerido AS titulo, o.local_corpo, o.descricao_ideia, o.valor_sessao, o.estimativa_tempo, o.qtd_sessoes, u.nome AS nome_cliente 
                          FROM orcamento o 
@@ -44,7 +43,6 @@ if ($is_artista) {
                          WHERE o.status = 'Aguardando Aceite'
                          ORDER BY o.id_orcamento DESC";
         $propostas_enviadas = $pdo->query($sql_enviadas)->fetchAll();
-        // --- ATÉ AQUI ---
 
         // busca todas as sessões e pega dados do orcamento
         $sql_sessoes = "SELECT s.id_sessao, s.data_hora, s.status, p.titulo, p.id_projeto, p.status AS status_projeto, u.nome AS nome_cliente,
@@ -85,12 +83,12 @@ if ($is_artista) {
                     'valor' => htmlspecialchars($s['valor_sessao'] ?? 'Não definido'),
                     'duracao' => htmlspecialchars($s['estimativa_tempo'] ?? 'Não definida'),
                     'sessoes_estimadas' => htmlspecialchars($s['qtd_sessoes'] ?? '-'),
-                    'sessoes_realizadas' => $s['sessoes_realizadas'], // NOVO
-                    'status_projeto' => $s['status_projeto'] // NOVO
+                    'sessoes_realizadas' => $s['sessoes_realizadas'],
+                    'status_projeto' => $s['status_projeto']
                 ];
             }
         }
-        // 3. BUSCA DO HISTÓRICO GERAL DO ARTISTA
+        // 3. busca do historico geral do artista
         $sql_hist = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.qtd_sessoes, o.referencia_ideia, o.valor_sessao, o.estimativa_tempo, u.nome AS nome_cliente 
                      FROM projeto p 
                      LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
@@ -128,7 +126,7 @@ if ($is_artista) {
                 'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado'] ?? 'Não informado'),
                 'ideia' => htmlspecialchars($row['descricao_ideia'] ?? ''),
                 'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
-                'sessoes_realizadas' => $contador - 1, // <-- ADICIONADO AQUI
+                'sessoes_realizadas' => $contador - 1,
                 'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
                 'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
                 'ref' => htmlspecialchars($row['referencia_ideia'] ?? ''),
@@ -137,7 +135,7 @@ if ($is_artista) {
             ];
         }
 
-        // Orçamentos recusados/cancelados
+        // orçamentos recusados/cancelados
         $sql_rec = "SELECT o.*, u.nome AS nome_cliente FROM orcamento o JOIN usuario u ON o.id_usuario = u.id_usuario WHERE o.status IN ('Recusado', 'Cancelado pelo Cliente')";
         foreach ($pdo->query($sql_rec)->fetchAll() as $row) {
             $motivo_exibicao = !empty($row['motivo_cancelamento_cliente']) ? htmlspecialchars($row['motivo_cancelamento_cliente']) : htmlspecialchars($row['motivo_recusa'] ?? 'Sem detalhes');
@@ -151,7 +149,7 @@ if ($is_artista) {
                 'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado']),
                 'ideia' => htmlspecialchars($row['descricao_ideia']),
                 'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
-                'sessoes_realizadas' => 0, // <-- ADICIONADO AQUI
+                'sessoes_realizadas' => 0,
                 'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
                 'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
                 'ref' => htmlspecialchars($row['referencia_ideia'] ?? ''),
@@ -166,17 +164,17 @@ if ($is_artista) {
     }
 }
 
-// Dias fixos para o calendário
-$dias_folga_semana = [0]; // Domingo
+// dias fixos para o calendário
+$dias_folga_semana = [0]; // domingo
 
-// Busca os bloqueios manuais no banco de dados
+// busca os bloqueios manuais no BD
 $dias_bloqueados_manualmente = [];
 $bloqueios_banco = [];
 
 try {
     $id_para_busca_bloqueio = 0;
 
-    // Busca o ID do artista globalmente para checar os horários da agenda do estúdio
+    // busca o ID do artista para checar os horários da agenda do estúdio
     $stmt_art = $pdo->query("SELECT id_usuario FROM usuario WHERE perfil = 'artista' LIMIT 1");
     $id_para_busca_bloqueio = $stmt_art->fetchColumn();
 
@@ -191,7 +189,6 @@ try {
         }
     }
 } catch (PDOException $e) {
-    // Silencioso
 }
 
 $dias_ocupados_total_cliente = array_merge($dias_com_agendamento, $dias_bloqueados_manualmente);
@@ -273,7 +270,6 @@ endif;
     .accordion-item {
         border-color: #444 !important;
         background-color: #2c2c2c !important;
-        /* NOVO: Fundo cinza das abas */
     }
 
     .accordion-button,
@@ -281,10 +277,8 @@ endif;
         background-color: transparent !important;
     }
 
-    /* PINTA A BOLINHA DE VERDE PROS DIAS CONCLUIDOS */
     .dia-concluido::after {
         background-color: #198754 !important;
-        /* Verde Bootstrap */
     }
 </style>
 
@@ -426,12 +420,10 @@ endif;
                                     if (in_array($dia_da_semana_atual, $dias_folga_semana) || in_array($data_atual_formatada, $dias_bloqueados_manualmente)) {
                                         echo "<a href='#' onclick=\"{$onclick_action}\" class='dia dia-bloqueado'>$dia</a>";
                                     } else {
-                                        // PRIORIDADE 1: Se tem algo pendente, avisa o artista!
+
                                         if (in_array($data_atual_formatada, $dias_com_agendamento)) {
                                             $extra_class = ' dia-agendado';
-                                        }
-                                        // PRIORIDADE 2: Só fica listrado se 100% das sessões estiverem concluídas
-                                        elseif (in_array($data_atual_formatada, $dias_concluidos)) {
+                                        } elseif (in_array($data_atual_formatada, $dias_concluidos)) {
                                             $extra_class = ' dia-concluido';
                                         } else {
                                             $extra_class = ' dia-livre';
@@ -962,11 +954,11 @@ endif;
 <script>
     const isArtista = <?php echo $is_artista ? 'true' : 'false'; ?>;
 
-    // INJEÇÃO DE DADOS DO PHP PARA O JAVASCRIPT
+    // injeção de dados do PHP para o JS
     const sessoesNoBanco = <?php echo json_encode($todas_sessoes_array ?? []); ?>;
     const diasBloqueados = <?php echo json_encode($dias_bloqueados_manualmente); ?>;
 
-    // VARIÁVEIS EXCLUSIVAS DO CLIENTE
+    // variaveis do cliente
     const horariosOcupados = <?php echo json_encode($horarios_ocupados ?? []); ?>;
     const estimativaTempo = "<?php echo $estimativa_tempo_projeto ?? 'Projeto Pequeno (Até 2h)'; ?>";
     const projetoIdCliente = <?php echo $projeto_id ?? 0; ?>;
@@ -978,11 +970,11 @@ endif;
         // --- LÓGICA EXCLUSIVA PARA O ARTISTA ---
         let agendamentosDoDia = '';
 
-        // Verifica se é dia de folga/bloqueado manual
+        // verifica se é dia de folga/bloqueado manual
         if (diasBloqueados.includes(dataSql)) {
             agendamentosDoDia = `<div class="list-group-item text-center text-white-50 bg-dark border-secondary">Dia bloqueado.</div>`;
         }
-        // Procura no JSON gerado pelo banco de dados se existem sessões nesse dia
+        // procura no JSON gerado pelo banco de dados se existem sessões nesse dia
         else if (sessoesNoBanco[dataSql] && sessoesNoBanco[dataSql].length > 0) {
 
             sessoesNoBanco[dataSql].forEach(sessao => {
@@ -992,8 +984,8 @@ endif;
                 let ideia = sessao.ideia ? sessao.ideia : 'Não informada';
                 let refLink = sessao.ref ? `<a href="../imagens/orcamentos/${sessao.ref}" target="_blank" class="text-info text-decoration-none"><i class="bi bi-image me-1"></i>Anexo</a>` : 'Vazio';
                 let valor = sessao.valor;
-                let duracao = sessao.duracao; // Nova variável
-                let sessoesEstimadas = sessao.sessoes_estimadas; // Nova variável
+                let duracao = sessao.duracao;
+                let sessoesEstimadas = sessao.sessoes_estimadas;
 
                 let botoesAcao = '';
                 if (sessao.status === 'Agendado') {
@@ -1062,7 +1054,7 @@ endif;
             behavior: 'smooth'
         });
 
-        // Reconectar os botões gerados pelo JS (Para abrir modais)
+        // reconectar os botões gerados pelo JS (abrir modais)
         document.querySelectorAll('.btn-cancelar-sessao-js').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.getElementById('inputSessaoId').value = this.getAttribute('data-id');
@@ -1083,7 +1075,7 @@ endif;
                 document.getElementById('inputConfirmarLiberarId').value = this.getAttribute('data-idproj');
             });
         });
-        // Reconecta botão de cancelar projeto na aba Propostas Enviadas
+        // reconecta botão de cancelar projeto na aba Propostas Enviadas
         document.querySelectorAll('.btn-cancelar-proposta-js').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.getElementById('inputCancelarPropostaId').value = this.getAttribute('data-id');
@@ -1093,7 +1085,7 @@ endif;
 
     <?php if ($is_artista): ?>
         document.addEventListener('DOMContentLoaded', function() {
-            // Máscara inteligente para o Valor da Sessão (Dinheiro)
+            // máscara inteligente para o Valor da Sessão
             const inputsDinheiro = document.querySelectorAll('.mascara-dinheiro');
             inputsDinheiro.forEach(input => {
                 input.addEventListener('input', function(e) {
@@ -1110,14 +1102,12 @@ endif;
                 });
             });
 
-            // --- LÓGICA DE APROVAR ORÇAMENTO (COM PREENCHIMENTO AUTOMÁTICO E AVISO) ---
+            // --- LÓGICA DE APROVAR ORÇAMENTO ---
             const btnsAprovar = document.querySelectorAll('.btn-aprovar');
             const inputAprovarId = document.getElementById('inputAprovarId');
             const inputTituloProjeto = document.getElementById('titulo_projeto');
             const selectEstimativaTempo = document.getElementById('estimativa_tempo');
             const inputQtdSessoes = document.getElementById('qtd_sessoes');
-
-            // Novos elementos para o destaque
             const avisoRenegociacao = document.getElementById('aviso_renegociacao');
             const inputValorDestaque = document.getElementById('input_valor_destaque');
 
@@ -1138,14 +1128,14 @@ endif;
 
                     inputValorDestaque.value = '';
 
-                    // Se tiver um título antigo, significa que é RENEGOCIAÇÃO!
+                    // se tiver um título antigo, significa que é renegociação
                     if (tituloAntigo !== '') {
-                        avisoRenegociacao.style.display = 'block'; // Mostra o aviso
+                        avisoRenegociacao.style.display = 'block';
                         inputValorDestaque.classList.remove('border-secondary');
-                        inputValorDestaque.classList.add('border-info'); // Borda AZUL
-                        inputValorDestaque.style.boxShadow = '0 0 10px rgba(13, 202, 240, 0.4)'; // Brilho AZUL
+                        inputValorDestaque.classList.add('border-info');
+                        inputValorDestaque.style.boxShadow = '0 0 10px rgba(13, 202, 240, 0.4)';
                     } else {
-                        avisoRenegociacao.style.display = 'none'; // Esconde o aviso
+                        avisoRenegociacao.style.display = 'none';
                         inputValorDestaque.classList.add('border-secondary');
                         inputValorDestaque.classList.remove('border-info');
                         inputValorDestaque.style.boxShadow = 'none';
@@ -1153,7 +1143,7 @@ endif;
                 });
             });
 
-            // Modais de Recusar/Cancelar listagem estática
+            // modais de recusar/cancelar listagem
             document.querySelectorAll('.btn-recusar').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.getElementById('inputRecusarId').value = this.getAttribute('data-id');
@@ -1192,7 +1182,7 @@ endif;
                 }
             }
 
-            // Corrige o comportamento dos accordions dentro das tabs
+            // corrige o comportamento dos accordions dentro das tabs
             const tabs = document.querySelectorAll('#abasAgendaArtista button[data-bs-toggle="tab"]');
             tabs.forEach(function(tab) {
                 tab.addEventListener('show.bs.tab', function(event) {

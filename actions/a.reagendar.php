@@ -6,7 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_POST['sessao_id'])) {
     $id_sessao = $_POST['sessao_id'];
     $perfil = $_SESSION['usuario_perfil'];
 
-    // Adiciona a tag de quem reagendou antes do motivo
+    // adiciona a tag de quem reagendou antes do motivo
     $quem_reagendou = ($perfil === 'artista') ? 'Artista' : 'Cliente';
     $motivo = "Reagendado pelo " . $quem_reagendou . ": " . trim($_POST['motivo']);
 

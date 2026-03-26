@@ -253,7 +253,7 @@ echo '</div>';
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Conecta o botão Reagendar ao Modal
+        // conecta o botão Reagendar ao Modal
         const btnsReagendar = document.querySelectorAll('.btn-reagendar-js');
         const inputReagendarId = document.getElementById('inputReagendarId');
         btnsReagendar.forEach(btn => {
@@ -262,7 +262,7 @@ echo '</div>';
             });
         });
 
-        // Conecta o botão Cancelar ao Modal
+        // conecta o botão Cancelar ao Modal
         const btnsCancelar = document.querySelectorAll('.btn-cancelar-js');
         const inputCancelarProjetoId = document.getElementById('inputCancelarProjetoId');
         btnsCancelar.forEach(btn => {
