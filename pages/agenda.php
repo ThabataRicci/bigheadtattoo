@@ -115,7 +115,7 @@ if ($is_artista) {
                     $contador++;
                 } elseif ($h['status'] == 'Cancelado') {
                     $motivo = htmlspecialchars($h['motivo_cancelamento'] ?? 'Desistência/Imprevisto');
-                    $historico_montado[] = ['desc' => "Sessão Cancelada em " . $d->format('d/m/Y') . " | Motivo: {$motivo}", 'icone' => 'bi-x-circle-fill text-danger'];
+                    $historico_montado[] = ['desc' => "Sessão Cancelada em " . $d->format('d/m/Y') . " | {$motivo}", 'icone' => 'bi-x-circle-fill text-danger'];
                 }
             }
 
@@ -791,7 +791,7 @@ endif;
                     <form action="../actions/a.recusar-orcamento.php" method="POST">
                         <input type="hidden" name="orcamento_id" id="inputRecusarId" value="">
                         <div class="mb-3">
-                            <label for="motivo_recusa" class="form-label text-light">Motivo:</label>
+                            <label for="motivo_recusa" class="form-label text-light"></label>
                             <textarea class="form-control bg-dark text-light border-secondary" id="motivo_recusa" name="motivo_recusa" rows="3" required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
@@ -816,7 +816,7 @@ endif;
                     <form action="../actions/a.cancelar-projeto.php" method="POST">
                         <input type="hidden" name="sessao_id" id="inputSessaoId" value="">
                         <div class="mb-3">
-                            <label for="motivo_cancelamento" class="form-label text-light">Motivo:</label>
+                            <label for="motivo_cancelamento" class="form-label text-light"></label>
                             <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="3" required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
@@ -841,7 +841,7 @@ endif;
                     <form action="../actions/a.reagendar-artista.php" method="POST">
                         <input type="hidden" name="sessao_id" id="inputReagendarIdArtista" value="">
                         <div class="mb-3">
-                            <label class="form-label text-light">Motivo:</label>
+                            <label class="form-label text-light"></label>
                             <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="Ex: Tive um imprevisto, peço que remarque para a próxima semana..." required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
