@@ -18,7 +18,9 @@ $hist_cliente = $_GET['hist-cliente'] ?? '';
 $hist_projeto = $_GET['hist-projeto'] ?? '';
 $hist_ordem = $_GET['hist-ordem'] ?? 'data_desc';
 
-$sql_hist = "SELECT s.data_hora, u.nome AS cliente_nome, p.titulo, s.status, o.valor_sessao, o.estimativa_tempo 
+$sql_hist = "SELECT s.data_hora, u.nome AS cliente_nome, p.titulo, s.status, 
+                    COALESCE(s.valor_sessao, o.valor_sessao) AS valor_sessao, 
+                    COALESCE(s.estimativa_tempo, o.estimativa_tempo) AS estimativa_tempo 
              FROM sessao s 
              JOIN projeto p ON s.id_projeto = p.id_projeto 
              JOIN usuario u ON p.id_usuario = u.id_usuario 
@@ -60,13 +62,13 @@ $stmt_hist->execute($params_hist);
 $historico_dados = $stmt_hist->fetchAll();
 
 // --- LÓGICA DO FILTRO DE CLIENTES ---
-$cli_nome = $_GET['cli-nome'] ?? ''; // Novo campo de busca
+$cli_nome = $_GET['cli-nome'] ?? '';
 $cli_inicio = $_GET['cli-data-inicio'] ?? '';
 $cli_fim = $_GET['cli-data-fim'] ?? '';
-$cli_status = $_GET['cli-status'] ?? ''; // <--- NOVO FILTRO DE STATUS AQUI
+$cli_status = $_GET['cli-status'] ?? '';
 $cli_ordem = $_GET['cli-ordem'] ?? 'data_desc';
 
-// Adicionada a subquery para contar as sessões e busca do ID/Status para bloqueio
+// Adicionada a subquery p contar as sessões e busca do ID/Status para bloqueio
 $sql_cli = "SELECT u.id_usuario, u.nome, u.email, u.telefone, u.data_cadastro, u.status,
                    (SELECT COUNT(*) FROM sessao s JOIN projeto p ON s.id_projeto = p.id_projeto WHERE p.id_usuario = u.id_usuario AND s.status = 'Concluído') as qtd_sessoes
             FROM usuario u 
@@ -85,7 +87,7 @@ if (!empty($cli_fim)) {
     $sql_cli .= " AND DATE(u.data_cadastro) <= ?";
     $params_cli[] = $cli_fim;
 }
-if (!empty($cli_status)) { // <--- APLICA O FILTRO NO BANCO AQUI
+if (!empty($cli_status)) {
     $sql_cli .= " AND u.status = ?";
     $params_cli[] = $cli_status;
 }
@@ -128,7 +130,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
 <main>
     <style>
-        /* Força os botões de filtro a serem quadrados perfeitos */
         .btn-square-filtro {
             width: 36px !important;
             height: 36px !important;
@@ -138,6 +139,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             padding: 0 !important;
         }
     </style>
+
     <div class="container my-5 py-5">
         <h2 class="text-center mb-5">RELATÓRIOS</h2>
 
@@ -224,7 +226,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 <th scope="col">Data</th>
                                 <th scope="col">Cliente</th>
                                 <th scope="col">Projeto</th>
-                                <th scope="col">Duração (Est.)</th>
+                                <th scope="col">Duração</th>
                                 <th scope="col">Valor</th>
                                 <th scope="col">Status</th>
                             </tr>

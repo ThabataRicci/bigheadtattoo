@@ -44,6 +44,15 @@ if ($is_artista) {
                          ORDER BY o.id_orcamento DESC";
         $propostas_enviadas = $pdo->query($sql_enviadas)->fetchAll();
 
+        // busca projetos aguardando o cliente agendar
+        $sql_aguardando = "SELECT p.*, u.nome AS nome_cliente, o.descricao_ideia, o.local_corpo, o.estimativa_tempo, o.qtd_sessoes, o.valor_sessao, o.referencia_ideia
+                           FROM projeto p 
+                           JOIN usuario u ON p.id_usuario = u.id_usuario 
+                           LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
+                           WHERE p.status = 'Agendamento Pendente'
+                           ORDER BY p.id_projeto DESC";
+        $projetos_aguardando = $pdo->query($sql_aguardando)->fetchAll();
+
         // busca todas as sessões e pega dados do orcamento
         $sql_sessoes = "SELECT s.id_sessao, s.data_hora, s.status, p.titulo, p.id_projeto, p.status AS status_projeto, u.nome AS nome_cliente,
                                o.local_corpo, o.descricao_ideia, o.referencia_ideia, o.valor_sessao, o.estimativa_tempo, o.qtd_sessoes,
@@ -80,7 +89,7 @@ if ($is_artista) {
                     'local_corpo' => htmlspecialchars($s['local_corpo'] ?? ''),
                     'ideia' => htmlspecialchars($s['descricao_ideia'] ?? ''),
                     'ref' => htmlspecialchars($s['referencia_ideia'] ?? ''),
-                    'valor' => htmlspecialchars($s['valor_sessao'] ?? 'Não definido'),
+                    'valor' => !empty($s['valor_sessao']) ? number_format($s['valor_sessao'], 2, ',', '.') : 'Não definido',
                     'duracao' => htmlspecialchars($s['estimativa_tempo'] ?? 'Não definida'),
                     'sessoes_estimadas' => htmlspecialchars($s['qtd_sessoes'] ?? '-'),
                     'sessoes_realizadas' => $s['sessoes_realizadas'],
@@ -98,7 +107,7 @@ if ($is_artista) {
         $historico_artista = [];
 
         foreach ($pdo->query($sql_hist)->fetchAll() as $row) {
-            $stmt_hist = $pdo->prepare("SELECT data_hora, status, motivo_cancelamento FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
+            $stmt_hist = $pdo->prepare("SELECT data_hora, status, motivo_cancelamento, valor_sessao FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
             $stmt_hist->execute([$row['id_projeto']]);
 
             $historico_montado = [];
@@ -109,7 +118,8 @@ if ($is_artista) {
                 $d = new DateTime($h['data_hora']);
                 $ultima_data = $h['data_hora'];
                 if ($h['status'] == 'Concluído') {
-                    $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y'), 'icone' => 'bi-check-circle-fill text-success'];
+                    $val = !empty($h['valor_sessao']) ? " | R$ " . number_format($h['valor_sessao'], 2, ',', '.') : "";
+                    $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y') . $val, 'icone' => 'bi-check-circle-fill text-success'];
                     $contador++;
                 } elseif ($h['status'] == 'Cancelado') {
                     $motivo = htmlspecialchars($h['motivo_cancelamento'] ?? 'Desistência/Imprevisto');
@@ -128,7 +138,7 @@ if ($is_artista) {
                 'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
                 'sessoes_realizadas' => $contador - 1,
                 'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
-                'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
+                'valor' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : 'Não definido',
                 'ref' => htmlspecialchars($row['referencia_ideia'] ?? ''),
                 'historico_sessoes' => $historico_montado,
                 'data_sort' => $ultima_data
@@ -151,7 +161,7 @@ if ($is_artista) {
                 'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
                 'sessoes_realizadas' => 0,
                 'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
-                'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
+                'valor' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : 'Não definido',
                 'ref' => htmlspecialchars($row['referencia_ideia'] ?? ''),
                 'detalhe_status' => $motivo_exibicao,
                 'data_sort' => $row['data_envio'] ?? '1970-01-01 00:00:00'
@@ -358,6 +368,10 @@ endif;
                     </li>
 
                     <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="aguardando-tab" data-bs-toggle="tab" data-bs-target="#tab-aguardando" type="button" role="tab" aria-controls="tab-aguardando" aria-selected="false">Aguardando Cliente</button>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
                         <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#tab-historico" type="button" role="tab" aria-controls="tab-historico" aria-selected="false">Histórico</button>
                     </li>
                 </ul>
@@ -489,7 +503,7 @@ endif;
                                                         <hr class="my-3 border-secondary">
                                                         <div class="alert alert-warning p-2 small mb-0">
                                                             <strong>⚠️</strong> O cliente achou o valor alto e pediu uma revisão.
-                                                            <br><strong>Sua oferta anterior:</strong> R$ <?php echo htmlspecialchars($req['valor_sessao'] ?? ''); ?>
+                                                            <br><strong>Sua oferta anterior:</strong> R$ <?php echo !empty($req['valor_sessao']) ? number_format($req['valor_sessao'], 2, ',', '.') : ''; ?>
                                                         </div>
                                                     <?php endif; ?>
 
@@ -511,8 +525,6 @@ endif;
                                 </div>
                             <?php endif; ?>
                         </div>
-
-
 
                         <div class="tab-pane fade" id="tab-enviadas" role="tabpanel" aria-labelledby="enviadas-tab">
                             <?php if (empty($propostas_enviadas)): ?>
@@ -536,10 +548,64 @@ endif;
                                                     <p class="mb-1"><strong>Local:</strong> <?php echo htmlspecialchars($prop['local_corpo']); ?></p>
                                                     <p class="mb-1"><strong>Ideia:</strong> "<?php echo htmlspecialchars($prop['descricao_ideia']); ?>"</p>
                                                     <p class="mb-1"><strong>Duração:</strong> <?php echo htmlspecialchars($prop['estimativa_tempo']); ?> | <strong>Sessões:</strong> <?php echo htmlspecialchars($prop['qtd_sessoes']); ?></p>
-                                                    <p class="mb-3"><strong>Valor:</strong> R$ <?php echo htmlspecialchars($prop['valor_sessao']); ?></p>
+                                                    <p class="mb-3"><strong>Valor:</strong> R$ <?php echo !empty($prop['valor_sessao']) ? number_format($prop['valor_sessao'], 2, ',', '.') : '0,00'; ?></p>
 
                                                     <div class="d-flex justify-content-end align-items-center mt-4 border-top border-secondary pt-3">
+                                                        <button type="button" class="btn btn-sm btn-outline-info me-2 btn-editar-proposta"
+                                                            data-id="<?php echo $prop['id_orcamento']; ?>"
+                                                            data-titulo="<?php echo htmlspecialchars($prop['titulo'] ?? ''); ?>"
+                                                            data-tempo="<?php echo htmlspecialchars($prop['estimativa_tempo'] ?? ''); ?>"
+                                                            data-sessoes="<?php echo htmlspecialchars($prop['qtd_sessoes'] ?? ''); ?>"
+                                                            data-valor="<?php echo !empty($prop['valor_sessao']) ? number_format($prop['valor_sessao'], 2, ',', '.') : ''; ?>"
+                                                            data-bs-toggle="modal" data-bs-target="#modalEditarProposta">
+                                                            Editar Proposta
+                                                        </button>
                                                         <button type="button" class="btn btn-sm btn-outline-danger btn-cancelar-proposta-js" data-id="<?php echo $prop['id_orcamento']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarPendenteArtista">Cancelar Proposta</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="tab-pane fade" id="tab-aguardando" role="tabpanel" aria-labelledby="aguardando-tab">
+                            <?php if (empty($projetos_aguardando)): ?>
+                                <div class="card-resumo text-center text-white-50 mb-0">
+                                    Nenhum projeto aguardando agendamento.
+                                </div>
+                            <?php else: ?>
+                                <div class="accordion" id="acordeaoAguardando">
+                                    <?php foreach ($projetos_aguardando as $i => $proj): ?>
+                                        <div class="accordion-item bg-dark border-secondary mb-2">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed text-light" type="button" data-bs-toggle="collapse" data-bs-target="#aguarda-<?php echo $i; ?>">
+                                                    <div class="w-100 d-flex justify-content-between align-items-center">
+                                                        <span><strong>Projeto:</strong> <?php echo htmlspecialchars($proj['titulo']); ?></span>
+                                                        <span class="me-3 text-white-50 small"><i class="bi bi-clock me-1"></i> Aguardando Cliente</span>
+                                                    </div>
+                                                </button>
+                                            </h2>
+                                            <div id="aguarda-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoAguardando">
+                                                <div class="accordion-body text-white-50">
+                                                    <p class="mb-1"><strong>Cliente:</strong> <?php echo htmlspecialchars($proj['nome_cliente']); ?></p>
+                                                    <p class="mb-1"><strong>Local:</strong> <?php echo htmlspecialchars($proj['local_corpo']); ?></p>
+                                                    <p class="mb-1"><strong>Ideia:</strong> "<?php echo htmlspecialchars($proj['descricao_ideia']); ?>"</p>
+                                                    <p class="mb-3"><strong>Referência:</strong>
+                                                        <?php if (!empty($proj['referencia_ideia'])): ?>
+                                                            <a href="../imagens/orcamentos/<?php echo htmlspecialchars($proj['referencia_ideia']); ?>" target="_blank" class="text-info text-decoration-none"><i class="bi bi-image me-1"></i>Ver Anexo</a>
+                                                        <?php else: ?>
+                                                            Vazio
+                                                        <?php endif; ?>
+                                                    </p>
+                                                    <p class="mb-1"><strong>Duração:</strong> <?php echo htmlspecialchars($proj['estimativa_tempo']); ?></p>
+                                                    <p class="mb-1"><strong>Sessões:</strong> <?php echo htmlspecialchars($proj['qtd_sessoes']); ?></p>
+                                                    <p class="mb-3"><strong>Valor:</strong> R$ <?php echo !empty($proj['valor_sessao']) ? number_format($proj['valor_sessao'], 2, ',', '.') : '0,00'; ?></p>
+
+
+                                                    <div class="d-flex justify-content-end align-items-center mt-4 border-top border-secondary pt-3">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger btn-cancelar-proj-aguardando-js" data-id="<?php echo $proj['id_projeto']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarProjAguardando">Cancelar Projeto</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -579,7 +645,7 @@ endif;
                                                         <p class="mb-1"><strong>Ideia:</strong> "<?php echo htmlspecialchars($sessao['descricao_ideia'] ?? 'Não informada'); ?>"</p>
                                                         <p class="mb-1"><strong>Duração:</strong> <?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? 'A definir'); ?></p>
                                                         <p class="mb-1"><strong>Sessões Estimadas:</strong> <?php echo htmlspecialchars($sessao['qtd_sessoes'] ?? '-'); ?></p>
-                                                        <p class="mb-1"><strong>Valor:</strong> R$ <?php echo htmlspecialchars($sessao['valor_sessao'] ?? 'Não definido'); ?></p>
+                                                        <p class="mb-1"><strong>Valor:</strong> R$ <?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : 'Não definido'; ?></p>
                                                         <p class="mb-1"><strong>Referência:</strong>
                                                             <?php if (!empty($sessao['referencia_ideia'])): ?>
                                                                 <a href="../imagens/orcamentos/<?php echo htmlspecialchars($sessao['referencia_ideia']); ?>" target="_blank" class="text-info text-decoration-none">
@@ -595,7 +661,11 @@ endif;
                                                         <button class="btn btn-sm btn-success btn-concluir-sessao-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalConfirmarConcluir">
                                                             <i class="bi bi-check-lg me-1"></i>Concluído
                                                         </button>
-                                                        <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js" data-idproj="<?php echo $sessao['id_projeto']; ?>" data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
+                                                        <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js"
+                                                            data-idproj="<?php echo $sessao['id_projeto']; ?>"
+                                                            data-valor="<?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : ''; ?>"
+                                                            data-tempo="<?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? ''); ?>"
+                                                            data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
                                                             <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
                                                         </button>
                                                         <button class="btn btn-sm btn-outline-warning" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalReagendarArtista">Reagendar</button>
@@ -676,7 +746,11 @@ endif;
 
                                                             <?php if ($item['status'] === 'Finalizado'): ?>
                                                                 <div class="d-flex justify-content-end mt-3 gap-2 border-top border-secondary pt-3">
-                                                                    <button type="button" class="btn btn-sm btn-outline-info btn-liberar-sessao-js" data-idproj="<?php echo $item['id_projeto']; ?>" data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
+                                                                    <button type="button" class="btn btn-sm btn-outline-info btn-liberar-sessao-js"
+                                                                        data-idproj="<?php echo $item['id_projeto']; ?>"
+                                                                        data-valor="<?php echo htmlspecialchars($item['valor'] ?? ''); ?>"
+                                                                        data-tempo="<?php echo htmlspecialchars($item['duracao'] ?? ''); ?>"
+                                                                        data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
                                                                         <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
                                                                     </button>
                                                                 </div>
@@ -765,6 +839,57 @@ endif;
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
                             <button type="submit" class="btn btn-success">Enviar Proposta</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditarProposta" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-light bg-dark">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title">Editar Proposta</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white-50">
+                    <form action="../actions/a.aprovar-orcamento.php" method="POST">
+                        <input type="hidden" name="orcamento_id" id="inputEditarOrcId" value="">
+                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
+
+                        <div class="mb-3">
+                            <label for="titulo_projeto_edit" class="form-label text-light">Título do Projeto:</label>
+                            <input type="text" class="form-control bg-dark text-light border-secondary" id="titulo_projeto_edit" name="titulo_projeto" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-light">Valor da Sessão:</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-white-50 border-secondary border-end-0">R$</span>
+                                <input type="text" class="form-control bg-dark text-light border-secondary border-start-0 mascara-dinheiro" id="input_valor_edit" name="valor_sessao" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="estimativa_tempo_edit" class="form-label text-light">Estimativa de Tempo (por sessão):</label>
+                            <select class="form-select bg-dark text-light border-secondary" id="estimativa_tempo_edit" name="estimativa_tempo" required>
+                                <option value="" selected disabled></option>
+                                <option value="Projeto Pequeno (Até 2h)">Projeto Pequeno (Até 2h)</option>
+                                <option value="Projeto Médio (2h a 4h)">Projeto Médio (2h a 4h)</option>
+                                <option value="Projeto Grande (5h a 6h)">Projeto Grande (5h a 6h)</option>
+                                <option value="Fechamento (Dia Todo)">Fechamento (dia todo)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="qtd_sessoes_edit" class="form-label text-light">Estimativa de Sessões Necessárias:</label>
+                            <input type="number" class="form-control bg-dark text-light border-secondary" id="qtd_sessoes_edit" name="qtd_sessoes" min="1" max="20" required>
+                        </div>
+
+                        <div class="modal-footer border-top border-secondary p-0 pt-3">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                            <button type="submit" class="btn btn-success">Salvar Alterações</button>
                         </div>
                     </form>
                 </div>
@@ -872,12 +997,63 @@ endif;
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-light bg-dark">
                 <div class="modal-header border-bottom border-secondary">
-                    <h5 class="modal-title text-info">Liberar Nova Sessão</h5> <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title text-info">Liberar Nova Sessão</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-white-50">
-                    <p>Deseja marcar a sessão atual como concluída e pedir para o cliente agendar a próxima?</p>
-                    <form action="../actions/a.liberar-sessao.php" method="POST"> <input type="hidden" name="projeto_id" id="inputConfirmarLiberarId" value="">
-                        <div class="modal-footer border-top border-secondary p-0 pt-3"> <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button> <button type="submit" class="btn btn-info text-white">Liberar</button> </div>
+                    <p>Revise os detalhes para a <strong>próxima sessão</strong> antes de liberar para o cliente.</p>
+
+                    <form action="../actions/a.liberar-sessao.php" method="POST">
+                        <input type="hidden" name="projeto_id" id="inputConfirmarLiberarId" value="">
+
+                        <div class="mb-3">
+                            <label class="form-label text-light">Valor da Próxima Sessão:</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-white-50 border-secondary border-end-0">R$</span>
+                                <input type="text" class="form-control bg-dark text-light border-secondary border-start-0 mascara-dinheiro" id="inputLiberarValor" name="valor_sessao" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="inputLiberarTempo" class="form-label text-light">Duração da Próxima Sessão:</label>
+                            <select class="form-select bg-dark text-light border-secondary" id="inputLiberarTempo" name="estimativa_tempo" required>
+                                <option value="" disabled></option>
+                                <option value="Projeto Pequeno (Até 2h)">Projeto Pequeno (Até 2h)</option>
+                                <option value="Projeto Médio (2h a 4h)">Projeto Médio (2h a 4h)</option>
+                                <option value="Projeto Grande (5h a 6h)">Projeto Grande (5h a 6h)</option>
+                                <option value="Fechamento (Dia Todo)">Fechamento (dia todo)</option>
+                            </select>
+                        </div>
+
+                        <div class="modal-footer border-top border-secondary p-0 pt-3">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                            <button type="submit" class="btn btn-info text-white">Liberar Agendamento</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCancelarProjAguardando" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-light bg-dark border-secondary">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title text-danger">Cancelar Projeto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white-50">
+                    <p>O cliente ainda não escolheu a data. Tem certeza que deseja cancelar o projeto inteiro?</p>
+                    <form action="../actions/a.cancelar-projeto.php" method="POST">
+                        <input type="hidden" name="projeto_id" id="inputCancelarProjAguardandoId" value="">
+                        <div class="mb-3">
+                            <label class="form-label text-light">Motivo do Cancelamento:</label>
+                            <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="Ex: Desistência..." required></textarea>
+                        </div>
+                        <div class="modal-footer border-top border-secondary p-0 pt-3">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                            <button type="submit" class="btn btn-danger">Cancelar Projeto</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -994,7 +1170,7 @@ endif;
                         <button class="btn btn-sm btn-success btn-concluir-sessao-js" data-id="${sessao.id}" data-bs-toggle="modal" data-bs-target="#modalConfirmarConcluir">
                             <i class="bi bi-check-lg me-1"></i>Concluído
                         </button>
-                        <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js" data-idproj="${sessao.id_projeto}" data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
+                       <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js" data-idproj="${sessao.id_projeto}" data-valor="${valor}" data-tempo="${duracao}" data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
                             <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
                         </button>
                         <button class="btn btn-sm btn-outline-warning btn-reagendar-sessao-js" data-id="${sessao.id}" data-bs-toggle="modal" data-bs-target="#modalReagendarArtista">
@@ -1007,7 +1183,7 @@ endif;
                 } else if (sessao.status === 'Concluído') {
                     botoesAcao = `
                     <div class="d-flex justify-content-end mt-3 gap-2 border-top border-secondary pt-3">
-                        <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js" data-idproj="${sessao.id_projeto}" data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
+                        <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js" data-idproj="${sessao.id_projeto}" data-valor="${valor}" data-tempo="${duracao}" data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
                             <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
                         </button>
                     </div>`;
@@ -1073,12 +1249,20 @@ endif;
         document.querySelectorAll('.btn-liberar-sessao-js').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.getElementById('inputConfirmarLiberarId').value = this.getAttribute('data-idproj');
+                document.getElementById('inputLiberarValor').value = this.getAttribute('data-valor');
+                const tempo = this.getAttribute('data-tempo');
+                if (tempo) document.getElementById('inputLiberarTempo').value = tempo;
             });
         });
         // reconecta botão de cancelar projeto na aba Propostas Enviadas
         document.querySelectorAll('.btn-cancelar-proposta-js').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.getElementById('inputCancelarPropostaId').value = this.getAttribute('data-id');
+            });
+        });
+        document.querySelectorAll('.btn-cancelar-proj-aguardando-js').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('inputCancelarProjAguardandoId').value = this.getAttribute('data-id');
             });
         });
     }
@@ -1126,9 +1310,15 @@ endif;
                         selectEstimativaTempo.value = '';
                     }
 
-                    inputValorDestaque.value = '';
+                    // Preenche o valor (se for renegociação)
+                    const valorAnterior = this.getAttribute('data-valor');
+                    if (valorAnterior && valorAnterior !== '') {
+                        inputValorDestaque.value = valorAnterior;
+                    } else {
+                        inputValorDestaque.value = '';
+                    }
 
-                    // se tiver um título antigo, significa que é renegociação
+                    // se tiver um título antigo, significa que é renegociação 
                     if (tituloAntigo !== '') {
                         avisoRenegociacao.style.display = 'block';
                         inputValorDestaque.classList.remove('border-secondary');
@@ -1143,6 +1333,30 @@ endif;
                 });
             });
 
+            // --- LÓGICA DE EDITAR PROPOSTA ENVIADA ---
+            const btnsEditarProp = document.querySelectorAll('.btn-editar-proposta');
+            const inputEditarOrcId = document.getElementById('inputEditarOrcId');
+            const inputTituloEdit = document.getElementById('titulo_projeto_edit');
+            const selectTempoEdit = document.getElementById('estimativa_tempo_edit');
+            const inputSessoesEdit = document.getElementById('qtd_sessoes_edit');
+            const inputValorEdit = document.getElementById('input_valor_edit');
+
+            btnsEditarProp.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    inputEditarOrcId.value = this.getAttribute('data-id');
+                    inputTituloEdit.value = this.getAttribute('data-titulo');
+                    inputSessoesEdit.value = this.getAttribute('data-sessoes');
+
+                    const tempoValue = this.getAttribute('data-tempo');
+                    if (tempoValue) {
+                        selectTempoEdit.value = tempoValue;
+                    } else {
+                        selectTempoEdit.value = '';
+                    }
+                    inputValorEdit.value = this.getAttribute('data-valor');
+                });
+            });
+
             // modais de recusar/cancelar listagem
             document.querySelectorAll('.btn-recusar').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -1152,6 +1366,16 @@ endif;
             document.querySelectorAll('.btn-cancelar-sessao').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.getElementById('inputSessaoId').value = this.getAttribute('data-id');
+                });
+            });
+
+            // Lógica para preencher o modal de Liberar Nova Sessão (abas estáticas)
+            document.querySelectorAll('.btn-liberar-sessao-js').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('inputConfirmarLiberarId').value = this.getAttribute('data-idproj');
+                    document.getElementById('inputLiberarValor').value = this.getAttribute('data-valor');
+                    const tempo = this.getAttribute('data-tempo');
+                    if (tempo) document.getElementById('inputLiberarTempo').value = tempo;
                 });
             });
 

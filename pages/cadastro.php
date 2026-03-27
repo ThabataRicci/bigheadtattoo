@@ -23,6 +23,8 @@ include '../includes/header.php';
                         echo '<div class="alert alert-danger text-center">E-mail ou telefone já em uso.</div>';
                     } elseif ($_GET['erro'] == 'senha_fraca') {
                         echo '<div class="alert alert-danger text-center">A senha deve ter no mínimo 8 caracteres, pelo menos uma letra maiúscula e um número.</div>';
+                    } elseif ($_GET['erro'] == 'email_invalido') {
+                        echo '<div class="alert alert-danger text-center">O domínio do e-mail informado não parece ser válido. Verifique se digitou corretamente.</div>';
                     }
                 }
                 ?>

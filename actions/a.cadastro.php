@@ -6,9 +6,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nome = $_POST['nome'];
     $telefone_formatado = $_POST['telefone'];
     $telefone_limpo = preg_replace('/[^0-9]/', '', $telefone_formatado);
-    $email = $_POST['email'];
+    $email = trim($_POST['email']);
     $senha = $_POST['senha'];
     $confirmar = $_POST['confirmar-senha'];
+    $redirect = $_POST['redirect'] ?? '';
+
+    // --- NOVA VALIDAÇÃO DE E-MAIL (DNS) ---
+    $dominio = substr(strrchr($email, "@"), 1);
+    // Verifica se o domínio existe e tem registros MX (Mail Exchange)
+    if (!checkdnsrr($dominio, "MX")) {
+        header("Location: ../pages/cadastro.php?erro=email_invalido&redirect=" . urlencode($redirect));
+        exit();
+    }
+    // --------------------------------------
     $redirect = $_POST['redirect'] ?? '';
 
     // verificar se as senhas coincidem

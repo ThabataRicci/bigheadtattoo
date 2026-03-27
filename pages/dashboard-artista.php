@@ -21,7 +21,7 @@ try {
                             FROM orcamento o 
                             JOIN usuario u ON o.id_usuario = u.id_usuario 
                             WHERE o.status = 'Pendente' OR o.status IS NULL OR o.status = 'Negociacao'
-                            ORDER BY o.data_envio ASC";
+                            ORDER BY o.data_envio ASC LIMIT 5";
     $solicitacoes_pendentes = $pdo->query($sql_pendentes_lista)->fetchAll();
 } catch (PDOException $e) {
     $qtd_pendentes = 0;
@@ -42,8 +42,10 @@ try {
     $stmt_clientes = $pdo->query("SELECT COUNT(*) FROM usuario WHERE perfil = 'cliente' AND MONTH(data_cadastro) = MONTH(NOW()) AND YEAR(data_cadastro) = YEAR(NOW())");
     $qtd_novos_clientes = $stmt_clientes->fetchColumn();
 
-    $sql_sessoes_lista = "SELECT s.id_sessao, s.data_hora, p.titulo, u.nome AS nome_cliente, 
-                                 o.descricao_ideia, o.local_corpo, o.referencia_ideia
+    $sql_sessoes_lista = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto, u.nome AS nome_cliente, 
+                                 o.descricao_ideia, o.local_corpo, o.referencia_ideia, o.qtd_sessoes,
+                                 COALESCE(s.valor_sessao, o.valor_sessao) AS valor_sessao, 
+                                 COALESCE(s.estimativa_tempo, o.estimativa_tempo) AS estimativa_tempo
                           FROM sessao s 
                           JOIN projeto p ON s.id_projeto = p.id_projeto 
                           JOIN usuario u ON p.id_usuario = u.id_usuario 
@@ -154,7 +156,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 </a>
             </div>
             <div class="col-lg-3 col-md-6 mb-4">
-                <a href="relatorios-artista.php" class="card-resumo card-hover text-decoration-none text-light d-block h-100">
+                <a href="relatorios-artista.php?aba=clientes" class="card-resumo card-hover text-decoration-none text-light d-block h-100">
                     <h3><?php echo $qtd_novos_clientes; ?></h3>
                     <p class="text-white-50 mb-0">Novos Clientes no Mês</p>
                 </a>
@@ -219,6 +221,9 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+                <div class="text-center mt-3">
+                    <a href="agenda.php?aba=solicitacoes" class="btn btn-outline-secondary px-4 py-2" style="text-transform: uppercase;"> Ver Todas as Solicitações</a>
+                </div>
             </div>
 
             <div class="col-lg-6 mb-4">
@@ -257,11 +262,23 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                             <?php endif; ?>
                                         </p>
 
-                                        <hr class="my-3 border-secondary">
+                                        <p class="mb-1 mt-3"><strong>Duração Estimada:</strong> <?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? 'A definir'); ?></p>
+                                        <p class="mb-1"><strong>Sessões Estimadas:</strong> <?php echo htmlspecialchars($sessao['qtd_sessoes'] ?? '-'); ?></p>
+                                        <p class="mb-3"><strong>Valor da Sessão:</strong> R$ <?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : 'Não definido'; ?></p>
 
-                                        <div class="text-end mt-2">
-                                            <button class="btn btn-sm btn-outline-warning btn-reagendar-sessao me-2" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalReagendarArtista">Reagendar</button>
-                                            <button class="btn btn-sm btn-outline-danger btn-cancelar-sessao" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarSessao">Cancelar Sessão</button>
+                                        <div class="d-flex justify-content-end mt-3 gap-2 border-top border-secondary pt-3 flex-wrap">
+                                            <button class="btn btn-sm btn-success btn-concluir-sessao-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalConfirmarConcluir">
+                                                <i class="bi bi-check-lg me-1"></i>Concluído
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js"
+                                                data-idproj="<?php echo $sessao['id_projeto']; ?>"
+                                                data-valor="<?php echo htmlspecialchars($sessao['valor_sessao'] ?? ''); ?>"
+                                                data-tempo="<?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? ''); ?>"
+                                                data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
+                                                <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning btn-reagendar-sessao" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalReagendarArtista">Reagendar</button>
+                                            <button class="btn btn-sm btn-outline-danger btn-cancelar-sessao" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarSessao">Cancelar</button>
                                         </div>
                                     </div>
                                 </div>
@@ -269,6 +286,9 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+                <div class="text-center mt-3">
+                    <a href="agenda.php?aba=sessoes" class="btn btn-outline-secondary px-4 py-2" style="text-transform: uppercase;"> Ver Todas as Sessões</a>
+                </div>
             </div>
         </div>
     </div>
@@ -406,6 +426,66 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     </div>
 </div>
 
+<div class="modal fade" id="modalConfirmarConcluir" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-success">Concluir Projeto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-white-50">
+                <p>Tem certeza que deseja <strong>finalizar</strong> este projeto?</p>
+                <p class="small">A sessão será dada como concluída e o projeto irá direto para o seu histórico.</p>
+                <form action="../actions/a.concluir-sessao.php" method="POST">
+                    <input type="hidden" name="sessao_id" id="inputConfirmarConcluirId" value="">
+                    <div class="modal-footer border-top border-secondary p-0 pt-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-success">Concluir</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfirmarLiberar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-info">Liberar Nova Sessão</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-white-50">
+                <p>Revise os detalhes para a <strong>próxima sessão</strong> antes de liberar para o cliente.</p>
+                <form action="../actions/a.liberar-sessao.php" method="POST">
+                    <input type="hidden" name="projeto_id" id="inputConfirmarLiberarId" value="">
+                    <div class="mb-3">
+                        <label class="form-label text-light">Valor da Próxima Sessão:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-white-50 border-secondary border-end-0">R$</span>
+                            <input type="text" class="form-control bg-dark text-light border-secondary border-start-0 mascara-dinheiro" id="inputLiberarValor" name="valor_sessao" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="inputLiberarTempo" class="form-label text-light">Duração da Próxima Sessão:</label>
+                        <select class="form-select bg-dark text-light border-secondary" id="inputLiberarTempo" name="estimativa_tempo" required>
+                            <option value="" disabled></option>
+                            <option value="Projeto Pequeno (Até 2h)">Projeto Pequeno (Até 2h)</option>
+                            <option value="Projeto Médio (2h a 4h)">Projeto Médio (2h a 4h)</option>
+                            <option value="Projeto Grande (5h a 6h)">Projeto Grande (5h a 6h)</option>
+                            <option value="Fechamento (Dia Todo)">Fechamento (dia todo)</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer border-top border-secondary p-0 pt-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                        <button type="submit" class="btn btn-info text-white">Liberar Agendamento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // máscara inteligente para o Valor da Sessão
@@ -492,6 +572,28 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         btnsCancelarSessao.forEach(btn => {
             btn.addEventListener('click', function() {
                 inputSessaoIdArtista.value = this.getAttribute('data-id');
+            });
+        });
+
+        // modais de concluir / liberar sessao
+        const btnsConcluirSessao = document.querySelectorAll('.btn-concluir-sessao-js');
+        const inputConfirmarConcluirId = document.getElementById('inputConfirmarConcluirId');
+        btnsConcluirSessao.forEach(btn => {
+            btn.addEventListener('click', function() {
+                inputConfirmarConcluirId.value = this.getAttribute('data-id');
+            });
+        });
+
+        const btnsLiberarSessao = document.querySelectorAll('.btn-liberar-sessao-js');
+        const inputConfirmarLiberarId = document.getElementById('inputConfirmarLiberarId');
+        const inputLiberarValor = document.getElementById('inputLiberarValor');
+        const inputLiberarTempo = document.getElementById('inputLiberarTempo');
+        btnsLiberarSessao.forEach(btn => {
+            btn.addEventListener('click', function() {
+                inputConfirmarLiberarId.value = this.getAttribute('data-idproj');
+                inputLiberarValor.value = this.getAttribute('data-valor');
+                const tempo = this.getAttribute('data-tempo');
+                if (tempo) inputLiberarTempo.value = tempo;
             });
         });
 

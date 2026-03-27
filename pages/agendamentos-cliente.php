@@ -36,8 +36,8 @@ try {
             'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado']),
             'ideia' => '"' . $ideia_completa . '"',
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
-            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
-            'valor_anterior' => htmlspecialchars($row['valor_sessao_anterior'] ?? ''),
+            'valor' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : 'Não definido',
+            'valor_anterior' => !empty($row['valor_sessao_anterior']) ? number_format($row['valor_sessao_anterior'], 2, ',', '.') : '',
             'detalhe_status' => 'Sua ideia está com o artista. Aguarde o retorno com a proposta de valor.'
         ];
     }
@@ -57,7 +57,7 @@ try {
     foreach ($stmt->fetchAll() as $row) {
         $data_obj = new DateTime($row['data_hora']);
 
-        $stmt_hist = $pdo->prepare("SELECT id_sessao, data_hora, status, motivo_cancelamento FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
+        $stmt_hist = $pdo->prepare("SELECT id_sessao, data_hora, status, motivo_cancelamento, valor_sessao FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
         $stmt_hist->execute([$row['id_projeto']]);
 
         $historico_montado = [];
@@ -65,7 +65,8 @@ try {
         foreach ($stmt_hist->fetchAll() as $h) {
             $d = new DateTime($h['data_hora']);
             if ($h['status'] == 'Concluído') {
-                $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y'), 'icone' => 'bi-check-circle-fill text-success', 'pode_cancelar' => false];
+                $val = !empty($h['valor_sessao']) ? " | R$ " . number_format($h['valor_sessao'], 2, ',', '.') : "";
+                $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y') . $val, 'icone' => 'bi-check-circle-fill text-success', 'pode_cancelar' => false];
                 $contador++;
             } elseif ($h['status'] == 'Cancelado') {
                 $motivo = htmlspecialchars($h['motivo_cancelamento'] ?? 'Reagendado/Imprevisto');
@@ -87,7 +88,7 @@ try {
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
-            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
+            'valor' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : 'Não definido',
             'historico_sessoes' => $historico_montado
         ];
     }
@@ -108,8 +109,8 @@ try {
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo']),
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes']),
-            'valor_sessao' => htmlspecialchars($row['valor_sessao']),
-            'valor_anterior' => htmlspecialchars($row['valor_sessao_anterior'] ?? ''),
+            'valor_sessao' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : '',
+            'valor_anterior' => !empty($row['valor_sessao_anterior']) ? number_format($row['valor_sessao_anterior'], 2, ',', '.') : '',
             'tentativas' => $row['tentativas_negociacao'],
             'motivo_reagendamento' => null,
             'tipo_acao' => 'avaliar_orcamento'
@@ -124,7 +125,7 @@ try {
     $stmt = $pdo->prepare($sql_reagendar);
     $stmt->execute([$id_usuario]);
     foreach ($stmt->fetchAll() as $row) {
-        $stmt_hist = $pdo->prepare("SELECT id_sessao, data_hora, status, motivo_cancelamento FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
+        $stmt_hist = $pdo->prepare("SELECT id_sessao, data_hora, status, motivo_cancelamento, valor_sessao FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
         $stmt_hist->execute([$row['id_projeto']]);
 
         $historico_montado = [];
@@ -132,7 +133,8 @@ try {
         foreach ($stmt_hist->fetchAll() as $h) {
             $d = new DateTime($h['data_hora']);
             if ($h['status'] == 'Concluído') {
-                $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y'), 'icone' => 'bi-check-circle-fill text-success'];
+                $val = !empty($h['valor_sessao']) ? " | R$ " . number_format($h['valor_sessao'], 2, ',', '.') : "";
+                $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y') . $val, 'icone' => 'bi-check-circle-fill text-success'];
                 $contador++;
             } elseif ($h['status'] == 'Cancelado') {
                 $motivo = htmlspecialchars($h['motivo_cancelamento'] ?? 'Reagendado/Imprevisto');
@@ -153,7 +155,7 @@ try {
             'ref' => 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
-            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
+            'valor' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : 'Não definido',
             'motivo_reagendamento' => $row['motivo_reagendamento'],
             'historico_sessoes' => $historico_montado,
             'tipo_acao' => 'agendar_sessao'
@@ -183,7 +185,7 @@ try {
             'ideia' => '"' . $ideia_completa . '"',
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
             'sessoes_realizadas' => 0,
-            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
+            'valor' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : 'Não definido',
             'detalhe_status' => $motivo_exibicao,
             'data_sort' => $row['data_envio'] ?? '1970-01-01 00:00:00'
         ];
@@ -198,7 +200,7 @@ try {
     $stmt = $pdo->prepare($sql_hist_proj);
     $stmt->execute([$id_usuario]);
     foreach ($stmt->fetchAll() as $row) {
-        $stmt_hist = $pdo->prepare("SELECT data_hora, status, motivo_cancelamento FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
+        $stmt_hist = $pdo->prepare("SELECT data_hora, status, motivo_cancelamento, valor_sessao FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
         $stmt_hist->execute([$row['id_projeto']]);
 
         $historico_montado = [];
@@ -210,7 +212,8 @@ try {
             $ultima_data = $h['data_hora'];
 
             if ($h['status'] == 'Concluído') {
-                $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y'), 'icone' => 'bi-check-circle-fill text-success'];
+                $val = !empty($h['valor_sessao']) ? " | R$ " . number_format($h['valor_sessao'], 2, ',', '.') : "";
+                $historico_montado[] = ['desc' => "{$contador}ª Sessão: Concluída em " . $d->format('d/m/Y') . $val, 'icone' => 'bi-check-circle-fill text-success'];
                 $contador++;
             } elseif ($h['status'] == 'Cancelado') {
                 $motivo = htmlspecialchars($h['motivo_cancelamento'] ?? 'Desistência/Imprevisto');
@@ -229,7 +232,7 @@ try {
             'ref' => 'Sem referência',
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
             'sessoes_realizadas' => $contador - 1,
-            'valor' => htmlspecialchars($row['valor_sessao'] ?? 'Não definido'),
+            'valor' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : 'Não definido',
             'historico_sessoes' => $historico_montado,
             'data_sort' => $ultima_data
         ];

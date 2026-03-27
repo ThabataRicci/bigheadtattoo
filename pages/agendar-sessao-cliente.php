@@ -242,11 +242,11 @@ include '../includes/header.php';
                         $dia_da_semana_atual = date('w', strtotime($data_atual_formatada));
                         $onclick_action = "mostrarHorarios(event, '{$data_atual_formatada}', '{$data_formatada_br}')";
 
-                        // Verifica se é passado, domingo(0) ou bloqueado manual
+                        // verifica se é passado, domingo ou bloqueado manual
                         $is_passado = ($data_atual_formatada < $data_hoje_formatada);
                         $is_bloqueado = ($dia_da_semana_atual == 0 || in_array($data_atual_formatada, $dias_bloqueados_manualmente));
 
-                        // Se estiver inativo, usa uma <div> vazia 
+                        // se estiver inativo, usa uma <div> vazia 
                         if ($is_passado || $is_bloqueado) {
                             echo "<div class='dia dia-inativo'>$dia</div>";
                         } else {
@@ -256,7 +256,7 @@ include '../includes/header.php';
                             if (in_array($data_atual_formatada, $dias_minhas_sessoes)) {
                                 $extra_class .= ' dia-minha-sessao';
                             }
-                            // 2. Senão, põe a bolinha azul se for ocupado por terceiros
+                            // 2. coloca a bolinha azul se for ocupado por terceiros
                             elseif (in_array($data_atual_formatada, $dias_com_agendamento)) {
                                 $extra_class .= ' dia-agendado';
                             } else {
@@ -267,7 +267,7 @@ include '../includes/header.php';
                                 $extra_class .= ' dia-hoje';
                             }
 
-                            // 3. Simula rapidamente se o dia comporta o tamanho da sessão (Gera a barrinha cinza)
+                            // 3. Simula se o dia comporta o tamanho da sessão
                             $tem_vaga = false;
                             $slots_teste = ($duracao_necessaria <= 2) ? [9, 11, 14, 16] : (($duracao_necessaria <= 4) ? [9, 14] : [10]);
 
@@ -328,7 +328,7 @@ include '../includes/header.php';
                 <h3 class="text-light mb-4" id="displayDataHora">--</h3>
                 <p class="small text-white-50">Após confirmar, o artista será notificado da data escolhida.</p>
 
-                <form action="../actions/a.agendar-sessao.php" method="POST">
+                <form action="../actions/a.agendar-sessao.php" method="POST" onsubmit="let btnSubmit = this.querySelector('button[type=submit]'); btnSubmit.disabled = true; btnSubmit.innerHTML = '<span class=\'spinner-border spinner-border-sm me-2\'></span>Agendando...';">
                     <input type="hidden" name="projeto_id" value="<?php echo $projeto_id; ?>">
                     <input type="hidden" name="data_sessao" id="inputDataSessao" value="">
                     <input type="hidden" name="hora_sessao" id="inputHoraSessao" value="">
@@ -376,22 +376,42 @@ include '../includes/header.php';
 
         let slots = [];
         if (duracaoNecessaria <= 2) {
-            slots = ["09:00", "11:00", "14:00", "16:00"];
+            // projetos de até 2h: evita o almoço (12h-13h) e não passa das 18h.
+            slots = ["09:00", "10:00", "13:00", "14:00", "15:00", "16:00"];
         } else if (duracaoNecessaria <= 4) {
-            slots = ["09:00", "14:00"];
+            // projetos de 4h: de manhã invadiria o almoço (9h as 13h). então só podem ocorrer a tarde, não passando das 18h
+            slots = ["13:00", "14:00"];
         } else {
-            slots = ["10:00"];
+            // projetos de 6h ou 8h (Fechamento): ocupam praticamente o dia todo.
+            slots = ["09:00"];
         }
 
         let slotsFiltrados = slots.filter(slot => {
             let slotHora = parseInt(slot.split(':')[0]);
             let slotFim = slotHora + duracaoNecessaria;
 
+            const horaAlmoco = 12;
+            const horaFimExpediente = 18;
+
+            // aplica as regras de bloqueio apenas para sessões curtas e médias
+            if (duracaoNecessaria <= 4) {
+                // 1. não pode passar das 18h
+                if (slotFim > horaFimExpediente) return false;
+
+                // 2. não pode invadir o almoço (começar antes das 12h e terminar depois)
+                if (slotHora < horaAlmoco && slotFim > horaAlmoco) return false;
+
+                // 3. não pode começar exatamente dentro da hora de almoço
+                if (slotHora === horaAlmoco) return false;
+            }
+
+            // CONFLITO COM OUTROS AGENDAMENTOS 
             let conflito = false;
             if (horariosOcupados[dataSql]) {
                 horariosOcupados[dataSql].forEach(ocup => {
                     let oHora = parseInt(ocup.hora.split(':')[0]);
                     let oFim = oHora + ocup.duracao;
+
                     if ((slotHora < oFim) && (slotFim > oHora)) {
                         conflito = true;
                     }

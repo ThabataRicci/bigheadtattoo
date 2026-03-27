@@ -13,7 +13,10 @@ $titulo_pagina = "Meu Painel";
 
 // consulta SQL pra localizar os 3 agendamentos mais proximos
 try {
-    $sql = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.referencia_ideia, o.qtd_sessoes, o.valor_sessao 
+    $sql = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, 
+                   COALESCE(s.estimativa_tempo, o.estimativa_tempo) AS estimativa_tempo, 
+                   o.referencia_ideia, o.qtd_sessoes, 
+                   COALESCE(s.valor_sessao, o.valor_sessao) AS valor_sessao 
             FROM sessao s
             JOIN projeto p ON s.id_projeto = p.id_projeto
             LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
@@ -21,7 +24,7 @@ try {
             AND s.data_hora >= NOW() 
             AND s.status = 'Agendado'
             ORDER BY s.data_hora ASC 
-            LIMIT 3";
+            LIMIT 5";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$id_usuario]);
@@ -30,7 +33,6 @@ try {
     $proximos_agendamentos = [];
 }
 
-// --- ADICIONAR DAQUI ---
 try {
     $stmt_analise = $pdo->prepare("SELECT COUNT(*) FROM orcamento WHERE id_usuario = ? AND (status IN ('Pendente', 'Negociacao') OR status IS NULL)");
     $stmt_analise->execute([$id_usuario]);
