@@ -130,6 +130,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
 <main>
     <style>
+        /* Mantendo seu estilo de botão e adicionando os dos cards */
         .btn-square-filtro {
             width: 36px !important;
             height: 36px !important;
@@ -137,6 +138,47 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             align-items: center;
             justify-content: center;
             padding: 0 !important;
+        }
+
+        /* Novos estilos para os cards */
+        .custom-card {
+            background: #1e1e1e;
+            border: none;
+            border-radius: 12px;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        .custom-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .border-accent-blue {
+            border-left: 5px solid #0d6efd !important;
+        }
+
+        .border-accent-green {
+            border-left: 5px solid #198754 !important;
+        }
+
+        .border-accent-info {
+            border-left: 5px solid #0dcaf0 !important;
+        }
+
+        .card-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: #888;
+            display: block;
+        }
+
+        .card-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-top: 4px;
         }
     </style>
 
@@ -216,6 +258,9 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <a href="relatorios-artista.php?aba=historico" class="btn btn-sm btn-outline-secondary btn-square-filtro" title="Limpar Filtros">
                             <i class="bi bi-x-lg"></i>
                         </a>
+                        <button type="button" onclick="exportarParaExcel('tab-historico', 'relatorio_sessoes')" class="btn btn-sm btn-outline-success btn-square-filtro" title="Exportar Excel">
+                            <i class="bi bi-file-earmark-excel"></i>
+                        </button>
                     </div>
                 </form>
 
@@ -256,12 +301,36 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         </tbody>
                     </table>
                 </div>
+
+                <?php
+                $total_faturado = 0;
+                foreach ($historico_dados as $d) {
+                    if ($d['status'] == 'Concluído') {
+                        $total_faturado += $d['valor_sessao'];
+                    }
+                }
+                ?>
+                <div class="row g-4 mt-3 justify-content-center">
+                    <div class="col-md-3">
+                        <div class="card custom-card border-accent-blue p-3">
+                            <span class="card-label">Total de Sessões</span>
+                            <h4 class="card-value text-light mb-0"><?php echo count($historico_dados); ?></h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card custom-card border-accent-green p-3">
+                            <span class="card-label">Faturamento Concluído</span>
+                            <h4 class="card-value text-success mb-0">R$ <?php echo number_format($total_faturado, 2, ',', '.'); ?></h4>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="tab-pane fade" id="tab-clientes" role="tabpanel" aria-labelledby="clientes-tab">
 
                 <form class="filtro-container mb-4 d-flex flex-wrap gap-2 align-items-end" method="GET">
                     <input type="hidden" name="aba" value="clientes">
+
                     <script>
                         document.addEventListener("DOMContentLoaded", function() {
                             if (window.location.search.includes('aba=clientes')) {
@@ -313,6 +382,9 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <a href="relatorios-artista.php?aba=clientes" class="btn btn-sm btn-outline-secondary btn-square-filtro" title="Limpar Filtros">
                             <i class="bi bi-x-lg"></i>
                         </a>
+                        <button type="button" onclick="exportarParaExcel('tab-clientes', 'lista_clientes')" class="btn btn-sm btn-outline-success btn-square-filtro" title="Exportar Lista">
+                            <i class="bi bi-file-earmark-excel"></i>
+                        </button>
                     </div>
                 </form>
 
@@ -372,9 +444,32 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         </tbody>
                     </table>
                 </div>
-            </div>
+                <?php
+                $total_clientes = count($clientes_dados);
+                $clientes_ativos = 0;
+                foreach ($clientes_dados as $c) {
+                    if (($c['status'] ?? '') !== 'Bloqueado') $clientes_ativos++;
+                }
+                ?>
 
+                <div class="row g-4 mt-3 justify-content-center">
+                    <div class="col-md-3">
+                        <div class="card custom-card border-accent-blue p-3">
+                            <span class="card-label">Total de Clientes</span>
+                            <h4 class="card-value text-light mb-0"><?php echo $total_clientes; ?></h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card custom-card border-accent-info p-3">
+                            <span class="card-label">Clientes Ativos</span>
+                            <h4 class="card-value text-info mb-0"><?php echo $clientes_ativos; ?></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+    </div>
     </div>
     <div class="modal fade" id="modalBloquearCliente" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -440,5 +535,32 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             });
         });
     });
+</script>
+<script>
+    // Função para exportar a tabela para Excel (formato .xls)
+    function exportarParaExcel(idTabPane, nomeArquivo) {
+        // Buscamos a tabela que está dentro da aba ativa
+        const abaAtiva = document.getElementById(idTabPane);
+        const tabela = abaAtiva.querySelector('table');
+
+        if (!tabela) {
+            alert('Não há dados para exportar.');
+            return;
+        }
+
+        // Criamos o conteúdo do arquivo
+        const html = tabela.outerHTML;
+        const blob = new Blob(['\ufeff' + html], {
+            type: 'application/vnd.ms-excel'
+        });
+
+        // Criamos um link temporário para download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nomeArquivo + '.xls';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
 </script>
 <?php include '../includes/footer.php'; ?>
