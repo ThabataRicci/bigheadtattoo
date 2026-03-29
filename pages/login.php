@@ -21,12 +21,24 @@ include '../includes/header.php';
                     }
                 }
 
-                // exibe mensagem de sucesso (Exclusão de conta)
-                if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'conta_excluida') {
-                    echo '<div class="alert alert-warning text-center alert-dismissible fade show" role="alert">
-                            <i class="bi bi-info-circle me-2"></i> Sua conta e seus dados foram excluídos com sucesso.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                          </div>';
+                // exibe mensagens de SUCESSO dinâmicas
+                if (isset($_GET['sucesso'])) {
+                    if ($_GET['sucesso'] == 'conta_excluida') {
+                        echo '<div class="alert alert-warning text-center alert-dismissible fade show" role="alert">
+                                <i class="bi bi-info-circle me-2"></i> Sua conta e seus dados foram excluídos com sucesso.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                              </div>';
+                    } elseif ($_GET['sucesso'] == 'recuperacao_enviada') {
+                        echo '<div class="alert alert-success text-center alert-dismissible fade show" role="alert">
+                                <i class="bi bi-envelope-check me-2"></i> E-mail de recuperação enviado! Verifique sua caixa de entrada (e a pasta de SPAM).
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                              </div>';
+                    } elseif ($_GET['sucesso'] == 'senha_redefinida') {
+                        echo '<div class="alert alert-success text-center alert-dismissible fade show" role="alert">
+                                <i class="bi bi-check-circle me-2"></i> Sua senha foi redefinida com sucesso! Faça login abaixo com a nova senha.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                              </div>';
+                    }
                 }
                 ?>
 

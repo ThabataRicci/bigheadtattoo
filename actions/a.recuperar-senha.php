@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <p>Você solicitou a recuperação de senha no sistema Big Head Tattoo.</p>
                     <p>Clique no botão abaixo para criar uma nova senha:</p>
                     <br>
-                    <a href='{$link}' style='padding: 12px 24px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;'>CRIAR NOVA SENHA</a>
+                    <a href='{$link}' style='padding: 12px 24px; background-color: #00bbff; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;'>CRIAR NOVA SENHA</a>
                     <br><br><br>
                     <p style='font-size: 12px; color: #777;'>Este link é válido por 1 hora. Se você não solicitou isso, ignore este e-mail.</p>
                 </div>
