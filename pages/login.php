@@ -35,7 +35,7 @@ include '../includes/header.php';
                               </div>';
                     } elseif ($_GET['sucesso'] == 'senha_redefinida') {
                         echo '<div class="alert alert-success text-center alert-dismissible fade show" role="alert">
-                                <i class="bi bi-check-circle me-2"></i> Sua senha foi redefinida com sucesso! Faça login abaixo com a nova senha.
+                                <i class="bi bi-check-circle me-2"></i> Sua senha foi redefinida com sucesso! Faça login com a nova senha.
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                               </div>';
                     }
