@@ -319,33 +319,31 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     <div class="modal-dialog modal-dialog-centered">
         <form action="../actions/a.editar-portfolio.php" method="POST" enctype="multipart/form-data" class="modal-content bg-dark text-light border-secondary">
 
-            <div class="modal-header border-bottom border-secondary py-2">
+            <div class="modal-header border-bottom border-secondary py-2 px-3">
                 <h5 class="modal-title fs-6">Editar Trabalho</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <div class="modal-body py-2">
+            <div class="modal-body py-2 px-3">
                 <input type="hidden" name="id_portfolio" id="edit_id">
 
                 <div class="row g-2">
-                    <div class="col-12 text-center mb-2">
-                        <small class="text-white-50 d-block mb-1">Imagem Atual:</small>
-                        <img src="" id="edit_preview" class="img-thumbnail bg-dark border-secondary" style="max-height: 100px;">
+                    <div class="col-12 d-flex align-items-center gap-3 mb-2 p-2 rounded" style="background-color: rgba(255,255,255,0.05);">
+                        <img src="" id="edit_preview" class="img-thumbnail bg-dark border-secondary" style="max-height: 60px; width: 60px; object-fit: cover;">
+                        <div>
+                            <label class="form-label small mb-0" style="color: #aaa;">Alterar Imagem:</label>
+                            <input type="file" name="imagem" class="form-control form-control-sm bg-dark text-light border-secondary" accept="image/*">
+                        </div>
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label small mb-1">Alterar Imagem:</label>
-                        <input type="file" name="imagem" class="form-control form-control-sm bg-dark text-light border-secondary" accept="image/*">
+                        <label class="form-label mb-0" style="font-size: 0.8rem; color: #aaa;">Título:</label>
+                        <input type="text" name="titulo" id="edit_titulo" class="form-control bg-dark text-light border-secondary" required>
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label small mb-1">Título:</label>
-                        <input type="text" name="titulo" id="edit_titulo" class="form-control form-control-sm bg-dark text-light border-secondary" required>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label small mb-1">Estilo:</label>
-                        <select name="id_estilo" id="edit_estilo" class="form-select form-select-sm bg-dark text-light border-secondary" required>
+                        <label class="form-label mb-0" style="font-size: 0.8rem; color: #aaa;">Estilo:</label>
+                        <select name="id_estilo" id="edit_estilo" class="form-select bg-dark text-light border-secondary" required>
                             <?php foreach ($lista_estilos as $est): ?>
                                 <option value="<?= $est['id_estilo'] ?>"><?= $est['nome'] ?></option>
                             <?php endforeach; ?>
@@ -353,29 +351,29 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     </div>
 
                     <div class="col-6">
-                        <label class="form-label small mb-1">Tempo:</label>
-                        <input type="number" name="tempo_execucao" id="edit_tempo" class="form-control form-control-sm bg-dark text-light border-secondary">
+                        <label class="form-label mb-0" style="font-size: 0.8rem; color: #aaa;">Tempo (h):</label>
+                        <input type="number" name="tempo_execucao" id="edit_tempo" class="form-control bg-dark text-light border-secondary">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small mb-1">Sessões:</label>
-                        <input type="number" name="qtd_sessoes" id="edit_sessoes" class="form-control form-control-sm bg-dark text-light border-secondary">
+                        <label class="form-label mb-0" style="font-size: 0.8rem; color: #aaa;">Sessões:</label>
+                        <input type="number" name="qtd_sessoes" id="edit_sessoes" class="form-control bg-dark text-light border-secondary">
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label small mb-1">Local do Corpo:</label>
-                        <input type="text" name="local_corpo" id="edit_local" class="form-control form-control-sm bg-dark text-light border-secondary">
+                        <label class="form-label mb-0" style="font-size: 0.8rem; color: #aaa;">Local do Corpo:</label>
+                        <input type="text" name="local_corpo" id="edit_local" class="form-control bg-dark text-light border-secondary">
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label small mb-1">Descrição:</label>
-                        <textarea name="descricao" id="edit_descricao" class="form-control form-control-sm bg-dark text-light border-secondary" rows="2"></textarea>
+                        <label class="form-label mb-0" style="font-size: 0.8rem; color: #aaa;">Descrição:</label>
+                        <textarea name="descricao" id="edit_descricao" class="form-control bg-dark text-light border-secondary" rows="2" style="resize: none;"></textarea>
                     </div>
                 </div>
             </div>
 
-            <div class="modal-footer border-top border-secondary py-2">
+            <div class="modal-footer border-top border-secondary py-2 px-3">
                 <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-sm btn-outline-light">Salvar Alterações</button>
+                <button type="submit" class="btn btn-sm btn-outline-light px-4">Salvar Alterações</button>
             </div>
         </form>
     </div>
