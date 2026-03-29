@@ -681,7 +681,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <div class="row g-4 mt-3 justify-content-center">
                     <div class="col-md-6">
                         <div class="card custom-card border-accent-blue p-3 text-center">
-                            <span class="card-label">Total de Clientes</span>
+                            <span class="card-label">Total de Cadastros</span>
                             <h4 class="card-value text-light mb-0"><?php echo $total_clientes; ?></h4>
                         </div>
                     </div>
