@@ -12,16 +12,18 @@ include '../includes/header.php';
                 <h2 class="text-center mb-4">RECUPERAR SENHA</h2>
                 <p class="text-center text-white-50 mb-4">Digite seu e-mail abaixo e enviaremos um link para você criar uma nova senha.</p>
 
+                <?php if (isset($_GET['erro']) && $_GET['erro'] == 'email_nao_encontrado'): ?>
+                    <div class="alert alert-danger text-center">E-mail não encontrado no sistema.</div>
+                <?php endif; ?>
+
                 <form class="formulario-container" action="../actions/a.recuperar-senha.php" method="POST">
-                    <div class="mb-3">
-                        <label for="email" class="form-label">E-mail:</label>
+                    <div class="mb-4">
+                        <label for="email" class="form-label">E-mail cadastrado:</label>
                         <input type="email" class="form-control" id="email" name="email" required>
                     </div>
-                </form>
-
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-outline-light">ENVIAR LINK DE RECUPERAÇÃO</button>
-                </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-outline-light">ENVIAR LINK DE RECUPERAÇÃO</button>
+                    </div>
                 </form>
 
             </div>
@@ -29,6 +31,4 @@ include '../includes/header.php';
     </div>
 </main>
 
-<?php
-include '../includes/footer.php';
-?>
+<?php include '../includes/footer.php'; ?>

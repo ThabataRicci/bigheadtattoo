@@ -130,8 +130,9 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
             .card-hover:hover {
                 transform: translateY(-5px);
-                box-shadow: 0 4px 15px rgba(7, 94, 255, 0.2);
-                border-color: #0dcaf0 !important;
+                box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+                border-color: #ffffff !important;
+                /* Borda agora fica branca no hover */
                 cursor: pointer;
             }
         </style>
@@ -337,7 +338,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                     <div class="mb-4">
                         <label for="qtd_sessoes" class="form-label text-light">Estimativa de Sessões Necessárias:</label>
-                        <input type="number" class="form-control bg-dark text-light border-secondary" id="qtd_sessoes" name="qtd_sessoes" min="1" max="20" placeholder="Ex: 1" required>
+                        <input type="number" class="form-control bg-dark text-light border-secondary" id="qtd_sessoes" name="qtd_sessoes" min="1" max="20" placeholder="" required>
                         <div class="form-text text-white-50">O cliente receberá a proposta e decidirá se aceita o valor para agendar.</div>
                     </div>
 
@@ -364,7 +365,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
                     <div class="mb-3">
                         <label for="motivo_recusa" class="form-label text-light">Motivo:</label>
-                        <textarea class="form-control bg-dark text-light border-secondary" id="motivo_recusa" name="motivo_recusa" rows="3" placeholder="Ex: No momento não estou trabalhando com esse estilo..." required></textarea>
+                        <textarea class="form-control bg-dark text-light border-secondary" id="motivo_recusa" name="motivo_recusa" rows="3" placeholder="" required></textarea>
                     </div>
                     <div class="modal-footer border-top border-secondary p-0 pt-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
@@ -414,7 +415,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
                     <div class="mb-3">
                         <label class="form-label text-light">Motivo:</label>
-                        <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="Ex: Tive um imprevisto, peço que remarque para a próxima semana..." required></textarea>
+                        <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="" required></textarea>
                     </div>
                     <div class="modal-footer border-top border-secondary p-0 pt-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
@@ -546,8 +547,8 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 if (tituloAntigo !== '') {
                     avisoRenegociacao.style.display = 'block';
                     inputValorDestaque.classList.remove('border-secondary');
-                    inputValorDestaque.classList.add('border-info');
-                    inputValorDestaque.style.boxShadow = '0 0 10px rgba(13, 202, 240, 0.4)';
+                    inputValorDestaque.style.borderColor = '#ffffff'; // Borda branca
+                    inputValorDestaque.style.boxShadow = '0 0 10px rgba(255, 255, 255, 0.2)'; // Sombra branca suave
                 } else {
                     avisoRenegociacao.style.display = 'none';
                     inputValorDestaque.classList.add('border-secondary');

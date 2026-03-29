@@ -70,7 +70,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 <div class="col-md-6 mb-3">
                                     <label for="tamanho_aproximado" class="form-label d-flex justify-content-between align-items-center">
                                         Tamanho Aproximado:
-                                        <a href="#" data-bs-toggle="modal" data-bs-target="#modalTamanhos" class="text-info small text-decoration-none">
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#modalTamanhos" class="text-white small text-decoration-none" style="opacity: 0.7;">
                                             <i class="bi bi-info-circle"></i>
                                         </a>
                                     </label>

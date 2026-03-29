@@ -53,6 +53,8 @@ if (isset($_SESSION['usuario_id'])) {
                         elseif ($_GET['erro'] == 'senha_fraca') echo "Erro: A nova senha deve ter 8+ caracteres, maiúscula e número.";
                         elseif ($_GET['erro'] == 'senha_igual') echo "Erro: A nova senha não pode ser igual à senha atual.";
                         elseif ($_GET['erro'] == 'email_duplicado') echo "Erro: Este e-mail já está em uso.";
+                        elseif ($_GET['erro'] == 'senha_excluir') echo "Erro: Senha incorreta. A conta não foi excluída.";
+                        elseif ($_GET['erro'] == 'excluir') echo "Erro técnico ao tentar excluir a conta. Contate o suporte.";
                         else echo "Erro ao processar as alterações.";
                         ?>
                     </div>
@@ -122,6 +124,11 @@ if (isset($_SESSION['usuario_id'])) {
                     </div>
                 </form>
 
+                <div class="mt-5 pt-4 border-top border-secondary text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalExcluirConta">
+                        EXCLUIR MINHA CONTA
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -155,5 +162,30 @@ if (isset($_SESSION['usuario_id'])) {
         confirmarAviso.style.display = (confirmarSenha.value.length > 0 && confirmarSenha.value !== novaSenha.value) ? 'block' : 'none';
     });
 </script>
+
+<div class="modal fade" id="modalExcluirConta" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-danger">Atenção! Ação Irreversível</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-white-50">
+                <p>Você tem certeza que deseja excluir sua conta? Todos os seus dados, histórico de sessões e projetos serão <strong>apagados permanentemente</strong>.</p>
+                <p class="small">Para confirmar, digite sua <strong>senha atual</strong> abaixo:</p>
+
+                <form action="../actions/a.excluir-conta.php" method="POST">
+                    <div class="mb-3">
+                        <input type="password" class="form-control bg-dark text-light border-secondary" name="senha_confirmacao" required placeholder="Sua senha">
+                    </div>
+                    <div class="modal-footer border-top border-secondary p-0 pt-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php include '../includes/footer.php'; ?>

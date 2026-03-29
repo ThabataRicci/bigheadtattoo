@@ -29,17 +29,44 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 ?>
 
 <style>
-    /* Remove o contorno azul e a cor de fundo padrão do Bootstrap ao focar na paginação */
+    /* --- ESTILOS DA PAGINAÇÃO TRANSPARENTE --- */
+    /* 1. Borda dos botões NÃO CLICADOS (padrão) */
+    .pagination .page-link {
+        background-color: transparent !important;
+        border: 1px solid #2c2c2c !important;
+        color: #aaa !important;
+        margin: 0 4px;
+        border-radius: 6px !important;
+        transition: all 0.3s ease;
+    }
+
+    /* Efeito ao passar o mouse */
+    .pagination .page-link:hover {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: #ffffff !important;
+        border-color: #777 !important;
+    }
+
+    /* Botão da página ATUAL (Ativa) */
+    .pagination .page-item.active .page-link {
+        background-color: transparent !important;
+        color: #ffffff !important;
+        border-color: #ffffff !important;
+        font-weight: bold;
+    }
+
+    /* Botões desativados (ex: "Anterior" na página 1) */
+    .pagination .page-item.disabled .page-link {
+        background-color: transparent !important;
+        color: #777 !important;
+        border-color: #2c2c2c !important;
+        cursor: not-allowed;
+    }
+
+    /* Remove o contorno azul do Bootstrap ao focar/clicar */
     .pagination .page-link:focus {
         box-shadow: none !important;
         background-color: transparent !important;
-        color: #fff !important;
-        /* Mantém a cor do texto branca */
-    }
-
-    /* Garante que o hover também não aplique fundo azul estranho, se houver */
-    .pagination .page-link:hover {
-        background-color: rgba(255, 255, 255, 0.1) !important;
         color: #fff !important;
     }
 </style>
@@ -86,7 +113,11 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             <?php endif; ?>
         </div>
 
-        <?php if (isset($total_paginas) && $total_paginas >= 1): ?>
+        <?php
+        $pagina_atual = $pagina_atual ?? 1;
+
+        if (isset($total_paginas) && $total_paginas >= 1):
+        ?>
             <nav class="mt-5">
                 <ul class="pagination justify-content-center">
 

@@ -25,6 +25,7 @@ $solicitacoes_pendentes = [];
 $proximas_sessoes = [];
 $dias_com_agendamento = [];
 $todas_sessoes_array = [];
+$dias_concluidos = [];
 
 if ($is_artista) {
     try {
@@ -551,7 +552,8 @@ endif;
                                                     <p class="mb-3"><strong>Valor:</strong> R$ <?php echo !empty($prop['valor_sessao']) ? number_format($prop['valor_sessao'], 2, ',', '.') : '0,00'; ?></p>
 
                                                     <div class="d-flex justify-content-end align-items-center mt-4 border-top border-secondary pt-3">
-                                                        <button type="button" class="btn btn-sm btn-outline-info me-2 btn-editar-proposta"
+                                                        <button type="button" class="btn btn-sm btn-outline-light me-2 btn-editar-proposta"
+                                                            style="opacity: 0.8; border-color: #bbb; color: #bbb;"
                                                             data-id="<?php echo $prop['id_orcamento']; ?>"
                                                             data-titulo="<?php echo htmlspecialchars($prop['titulo'] ?? ''); ?>"
                                                             data-tempo="<?php echo htmlspecialchars($prop['estimativa_tempo'] ?? ''); ?>"
@@ -805,7 +807,7 @@ endif;
 
                         <div class="mb-3">
                             <label for="titulo_projeto" class="form-label text-light">Título do Projeto:</label>
-                            <input type="text" class="form-control bg-dark text-light border-secondary" id="titulo_projeto" name="titulo_projeto" placeholder="Ex: Fechamento Samurai" required>
+                            <input type="text" class="form-control bg-dark text-light border-secondary" id="titulo_projeto" name="titulo_projeto" placeholder="" required>
                         </div>
 
                         <div class="mb-3">
@@ -889,7 +891,7 @@ endif;
 
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                            <button type="submit" class="btn btn-success">Salvar Alterações</button>
+                            <button type="submit" class="btn btn-success">Salvar</button>
                         </div>
                     </form>
                 </div>
@@ -959,7 +961,7 @@ endif;
                         <input type="hidden" name="sessao_id" id="inputReagendarIdArtista" value="">
                         <div class="mb-3">
                             <label class="form-label text-light"></label>
-                            <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="Ex: Tive um imprevisto, peço que remarque para a próxima semana..." required></textarea>
+                            <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="" required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
@@ -1048,7 +1050,7 @@ endif;
                         <input type="hidden" name="projeto_id" id="inputCancelarProjAguardandoId" value="">
                         <div class="mb-3">
                             <label class="form-label text-light">Motivo do Cancelamento:</label>
-                            <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="Ex: Desistência..." required></textarea>
+                            <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="" required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
@@ -1075,7 +1077,7 @@ endif;
 
                         <div class="mb-3">
                             <label class="form-label text-light">Motivo do Cancelamento:</label>
-                            <textarea class="form-control bg-dark text-light border-secondary" name="motivo_recusa" rows="2" placeholder="Ex: Perda de contato, projeto inviável..." required></textarea>
+                            <textarea class="form-control bg-dark text-light border-secondary" name="motivo_recusa" rows="2" placeholder="" required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>

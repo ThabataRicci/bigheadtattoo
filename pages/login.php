@@ -20,6 +20,14 @@ include '../includes/header.php';
                         echo '<div class="alert alert-danger text-center">E-mail ou senha incorretos. Tente novamente.</div>';
                     }
                 }
+
+                // exibe mensagem de sucesso (Exclusão de conta)
+                if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'conta_excluida') {
+                    echo '<div class="alert alert-warning text-center alert-dismissible fade show" role="alert">
+                            <i class="bi bi-info-circle me-2"></i> Sua conta e seus dados foram excluídos com sucesso.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>';
+                }
                 ?>
 
                 <form class="formulario-container" action="../actions/a.login.php" method="POST">

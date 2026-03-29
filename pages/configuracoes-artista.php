@@ -38,6 +38,28 @@ if (isset($_SESSION['usuario_id'])) {
 }
 ?>
 
+<style>
+    .form-check-input:checked {
+        background-color: #666 !important;
+        border-color: #888 !important;
+    }
+
+    .form-check-input:focus {
+        border-color: #555 !important;
+        box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .form-check-input {
+        background-color: #262626;
+        border-color: #2f2f2f;
+        cursor: pointer;
+    }
+
+    .form-check-input:checked[type=checkbox] {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+    }
+</style>
+
 <main>
     <div class="container my-5 py-5">
         <div class="row justify-content-center">
@@ -68,6 +90,10 @@ if (isset($_SESSION['usuario_id'])) {
                             echo "Erro: A nova senha não cumpre os requisitos (8+ caracteres, maiúscula e número).";
                         } elseif ($_GET['erro'] == 'senha_igual') {
                             echo "Erro: A nova senha não pode ser igual à senha atual.";
+                        } elseif ($_GET['erro'] == 'senha_excluir') {
+                            echo "Erro: Senha incorreta. A conta não foi excluída.";
+                        } elseif ($_GET['erro'] == 'excluir') {
+                            echo "Erro técnico ao tentar excluir a conta. Contate o suporte.";
                         } else {
                             echo "Erro ao processar as alterações. Tente novamente.";
                         }
@@ -93,7 +119,7 @@ if (isset($_SESSION['usuario_id'])) {
 
                             <div class="mb-3 text-center">
                                 <img src="../imagens/perfil/<?php echo $user['foto_perfil'] ?: 'default-avatar.png'; ?>"
-                                    class="rounded-circle mb-3 border border-primary" style="width: 100px; height: 100px; object-fit: cover;">
+                                    class="rounded-circle mb-3 border border-secondary" style="width: 100px; height: 100px; object-fit: cover; border-color: #444 !important;">
                                 <input type="file" class="form-control" name="foto_perfil" id="foto-perfil">
                             </div>
 
@@ -162,6 +188,12 @@ if (isset($_SESSION['usuario_id'])) {
                         <button type="submit" class="btn btn-primary">SALVAR ALTERAÇÕES</button>
                     </div>
                 </form>
+
+                <div class="mt-5 pt-4 border-top border-secondary text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalExcluirConta">
+                        EXCLUIR MINHA CONTA
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -202,5 +234,30 @@ if (isset($_SESSION['usuario_id'])) {
         }
     });
 </script>
+
+<div class="modal fade" id="modalExcluirConta" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-danger">Atenção! Ação Irreversível</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-white-50">
+                <p>Você tem certeza que deseja excluir sua conta? Todos os seus dados, histórico de sessões e projetos serão <strong>apagados permanentemente</strong>.</p>
+                <p class="small">Para confirmar, digite sua <strong>senha atual</strong> abaixo:</p>
+
+                <form action="../actions/a.excluir-conta.php" method="POST">
+                    <div class="mb-3">
+                        <input type="password" class="form-control bg-dark text-light border-secondary" name="senha_confirmacao" required placeholder="Sua senha">
+                    </div>
+                    <div class="modal-footer border-top border-secondary p-0 pt-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php include '../includes/footer.php'; ?>

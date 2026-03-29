@@ -143,14 +143,19 @@ include '../includes/header.php';
 </div>
 
 <style>
-    .dia-agendado::after {
-        background-color: #0dcaf0 !important;
+    .dia-minha-sessao {
+        color: #a0a0a0 !important;
+        position: relative;
+        background-color: #2C2C2C !important;
+        border: 1px solid #444;
+        transition: all 0.3s ease;
     }
 
-    .dia-minha-sessao {
-        color: #0dcaf0 !important;
-        font-weight: bold;
-        position: relative;
+    .dia-minha-sessao:hover {
+        background-color: #3a3a3a !important;
+        border-color: #959595;
+        color: #ffffff !important;
+        cursor: pointer;
     }
 
     .dia-minha-sessao::before {
@@ -158,18 +163,13 @@ include '../includes/header.php';
         position: absolute;
         top: 6px;
         right: 6px;
-        width: 5px;
-        height: 5px;
-        background-color: #0dcaf0;
+        width: 10px;
+        height: 10px;
+        background-color: #ffffff;
         border-radius: 50%;
     }
 
-    .dia-com-vaga {
-        border-bottom: 4px solid #6c757d !important;
-    }
-
     .calendario-wrapper {
-
         margin: 0 auto;
         background-color: #1C1C1C;
         border: 1px solid #444;
@@ -256,10 +256,8 @@ include '../includes/header.php';
                             if (in_array($data_atual_formatada, $dias_minhas_sessoes)) {
                                 $extra_class .= ' dia-minha-sessao';
                             }
-                            // 2. coloca a bolinha azul se for ocupado por terceiros
-                            elseif (in_array($data_atual_formatada, $dias_com_agendamento)) {
-                                $extra_class .= ' dia-agendado';
-                            } else {
+                            // 2. Apenas define como dia livre (sem marcação para terceiros)
+                            else {
                                 $extra_class .= ' dia-livre';
                             }
 
@@ -291,10 +289,12 @@ include '../includes/header.php';
                             }
 
                             if ($tem_vaga) {
-                                $extra_class .= ' dia-com-vaga';
+                                // Se tem vaga, exibe o dia clicável normalmente
+                                echo "<a href='#' onclick=\"{$onclick_action}\" class='dia{$extra_class}'>$dia</a>";
+                            } else {
+                                // Se NÃO tem vaga, trata como dia inativo (não clicável)
+                                echo "<div class='dia dia-inativo'>$dia</div>";
                             }
-
-                            echo "<a href='#' onclick=\"{$onclick_action}\" class='dia{$extra_class}'>$dia</a>";
                         }
                     }
 
@@ -360,10 +360,11 @@ include '../includes/header.php';
             const sessoesDia = minhasSessoesDetalhes[dataSql];
             sessoesDia.forEach(sessao => {
                 avisosSessoes += `
-                    <div class="alert bg-dark border border-info text-start text-light mb-4 shadow-sm" style="border-radius: 8px;">
+                    <div class="alert bg-dark border border-light text-start text-light mb-4 shadow-sm" style="border-radius: 8px;">
                         <h6 class="mb-2"><i class="bi bi-calendar-check me-2"></i>Você já tem um agendamento nessa data:</h6>
                         <p class="mb-1 small"><strong>Projeto:</strong> ${sessao.titulo}</p>
                         <p class="mb-0 small"><strong>Horário:</strong> ${sessao.hora}</p>
+                        <p class="small text-white-50 mb-2 fs-7"><i class="bi bi-info-circle me-1 fs-7"></i>Isso não impede que você agende uma nova sessão</p>
                     </div>
                 `;
             });

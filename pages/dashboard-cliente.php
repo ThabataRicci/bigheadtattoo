@@ -110,8 +110,9 @@ echo '</div>';
 
             .card-hover:hover {
                 transform: translateY(-5px);
-                box-shadow: 0 4px 15px rgba(13, 202, 240, 0.2);
-                border-color: #0dcaf0 !important;
+                box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+                border-color: #ffffff !important;
+                /* Borda branca no hover */
                 cursor: pointer;
             }
         </style>
