@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = $stmt->fetch();
 
     if ($usuario) {
-        // 2. Gerar um token seguro e a data de expiração (1 hora a partir de agora)
+        // 2. Gerar um token e a data de expiração (1 hora a partir de agora)
         $token = bin2hex(random_bytes(32)); // Gera um código de 64 caracteres
         $expiracao = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
@@ -19,9 +19,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_token = $pdo->prepare("UPDATE usuario SET token_recuperacao = ?, expiracao_token = ? WHERE id_usuario = ?");
         $stmt_token->execute([$token, $expiracao, $usuario['id_usuario']]);
 
-        // 4. Montar o link de recuperação (Pega o endereço dinamicamente)
+        // 4. Montar o link de recuperação 
         $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-        // Remonta o caminho até a pasta pages
+
         $caminho_base = $protocolo . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI'], 2);
         $link = $caminho_base . "/pages/redefinir-senha.php?token=" . $token;
 
@@ -33,9 +33,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $mensagem .= "Este link é válido por 1 hora.\n";
         $mensagem .= "Se você não solicitou isso, ignore este e-mail.";
 
-        $headers = "From: nao-responda@bigheadtattoo.com\r\n";
+        $dominio = $_SERVER['HTTP_HOST'];
+        $headers = "From: sistema@" . $dominio . "\r\n";
+        $headers .= "Reply-To: sistema@" . $dominio . "\r\n";
+        $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 
-        // Tenta enviar (Lembrando: no localhost isso pode retornar false, mas fará o papel no servidor real)
         mail($email, $assunto, $mensagem, $headers);
 
         header("Location: ../pages/login.php?sucesso=recuperacao_enviada");

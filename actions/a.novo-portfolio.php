@@ -13,12 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // --- LOGICA DE UPLOAD DA IMAGEM ---
     $arquivo = $_FILES['imagem'];
-    $nome_arquivo = time() . "_" . $arquivo['name']; // Gera nome único com timestamp
+    $nome_arquivo = time() . "_" . $arquivo['name'];
     $caminho_destino = "../imagens/portfolio/" . $nome_arquivo;
 
     if (move_uploaded_file($arquivo['tmp_name'], $caminho_destino)) {
         try {
-            $sql = "INSERT INTO portfolio (id_usuario, id_estilo, titulo, imagem, tempo_execucao, qtd_sessoes, local_corpo, descricao, data_publicacao) 
+            $sql = "INSERT INTO portfolio (id_artista, id_estilo, titulo, imagem, tempo_execucao, qtd_sessoes, local_corpo, descricao, data_publicacao) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$id_artista, $id_estilo, $titulo, $nome_arquivo, $tempo, $sessoes, $local, $descricao]);

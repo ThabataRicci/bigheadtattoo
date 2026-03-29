@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     try {
-        // 2. Checa de quem é este token e se ainda vale
+        // 2. verifica de quem é o token e se ainda vale
         $stmt = $pdo->prepare("SELECT id_usuario FROM usuario WHERE token_recuperacao = ? AND expiracao_token > NOW()");
         $stmt->execute([$token]);
         $usuario = $stmt->fetch();

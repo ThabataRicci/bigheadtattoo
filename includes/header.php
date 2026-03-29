@@ -12,7 +12,6 @@ if (session_status() === PHP_SESSION_NONE) {
     <title><?php echo $titulo_pagina; ?> | BIG HEAD TATTOO</title>
 
     <?php
-
     $base_path = (strpos($_SERVER['REQUEST_URI'], '/pages/') === false) ? '' : '../';
     ?>
 
@@ -54,11 +53,11 @@ if (session_status() === PHP_SESSION_NONE) {
                         <?php
 
                         if ($_SESSION['usuario_perfil'] == 'cliente') {
-                            $dashboard_url = '/bigheadtattoo/pages/dashboard-cliente.php';
-                            $config_url = '/bigheadtattoo/pages/configuracoes-cliente.php';
+                            $dashboard_url = $pages_prefix . 'dashboard-cliente.php';
+                            $config_url = $pages_prefix . 'configuracoes-cliente.php';
                         } elseif ($_SESSION['usuario_perfil'] == 'artista') {
-                            $dashboard_url = '/bigheadtattoo/pages/dashboard-artista.php';
-                            $config_url = '/bigheadtattoo/pages/configuracoes-artista.php';
+                            $dashboard_url = $pages_prefix . 'dashboard-artista.php';
+                            $config_url = $pages_prefix . 'configuracoes-artista.php';
                         }
                         ?>
                         <li class="nav-item">
@@ -72,11 +71,11 @@ if (session_status() === PHP_SESSION_NONE) {
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/bigheadtattoo/pages/logout.php">Sair</a>
+                            <a class="nav-link" href="<?php echo $pages_prefix; ?>logout.php">Sair</a>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="/bigheadtattoo/pages/login.php">Login</a>
+                            <a class="nav-link" href="<?php echo $pages_prefix; ?>login.php">Login</a>
                         </li>
                     <?php endif; ?>
                 </ul>
