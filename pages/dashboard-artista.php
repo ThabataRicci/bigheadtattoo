@@ -110,7 +110,17 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 </div>
             <?php elseif ($_GET['sucesso'] == 'recusado'): ?>
                 <div class="alert alert-warning text-center mb-4 alert-dismissible fade show" role="alert">
-                    <i class="bi bi-x-circle me-2"></i> O orçamento foi recusado e o cliente notificado.
+                    <i class="bi bi-x-circle me-2"></i> O orçamento foi recusado.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php elseif ($_GET['sucesso'] == 'reagendado'): ?>
+                <div class="alert alert-info text-center mb-4 alert-dismissible fade show" role="alert">
+                    <i class="bi bi-calendar-event me-2"></i> Reagendamento solicitado com sucesso! O cliente foi notificado.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php elseif ($_GET['sucesso'] == 'cancelado'): ?>
+                <div class="alert alert-success text-center mb-4 alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i> Projeto cancelado com sucesso.
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <?php endif; ?>
@@ -122,7 +132,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
-
         <style>
             .card-hover {
                 transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -132,7 +141,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 transform: translateY(-5px);
                 box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
                 border-color: #ffffff !important;
-                /* Borda agora fica branca no hover */
                 cursor: pointer;
             }
         </style>
@@ -381,15 +389,16 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-light bg-dark">
             <div class="modal-header border-bottom border-secondary">
-                <h5 class="modal-title">Cancelar Sessão Agendada</h5>
+                <h5 class="modal-title">Cancelar Projeto</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-white-50">
-                <form action="../actions/a.cancelar-sessao.php" method="POST">
+                <form action="../actions/a.cancelar-projeto.php" method="POST">
                     <input type="hidden" name="sessao_id" id="inputSessaoIdArtista" value="">
+                    <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
                     <div class="mb-3">
                         <label for="motivo_cancelamento" class="form-label text-light">Motivo:</label>
-                        <textarea class="form-control bg-dark text-light border-secondary" id="motivo_cancelamento" name="motivo_cancelamento" rows="3" required></textarea>
+                        <textarea class="form-control bg-dark text-light border-secondary" id="motivo_cancelamento" name="motivo" rows="3" required></textarea>
                     </div>
                     <div class="modal-footer border-top border-secondary p-0 pt-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>

@@ -331,7 +331,12 @@ endif;
                     </div>
                 <?php elseif ($_GET['sucesso'] == 'recusado'): ?>
                     <div class="alert alert-warning text-center mb-4 alert-dismissible fade show" role="alert">
-                        <i class="bi bi-x-circle me-2"></i> O orçamento foi recusado e removido das pendências.
+                        <i class="bi bi-x-circle me-2"></i> Operação concluída. O projeto/orçamento foi cancelado com sucesso.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php elseif ($_GET['sucesso'] == 'cancelado'): ?>
+                    <div class="alert alert-success text-center mb-4 alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle me-2"></i> O projeto foi cancelado definitivamente com sucesso.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
@@ -605,7 +610,6 @@ endif;
                                                     <p class="mb-1"><strong>Sessões:</strong> <?php echo htmlspecialchars($proj['qtd_sessoes']); ?></p>
                                                     <p class="mb-3"><strong>Valor:</strong> R$ <?php echo !empty($proj['valor_sessao']) ? number_format($proj['valor_sessao'], 2, ',', '.') : '0,00'; ?></p>
 
-
                                                     <div class="d-flex justify-content-end align-items-center mt-4 border-top border-secondary pt-3">
                                                         <button type="button" class="btn btn-sm btn-outline-danger btn-cancelar-proj-aguardando-js" data-id="<?php echo $proj['id_projeto']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarProjAguardando">Cancelar Projeto</button>
                                                     </div>
@@ -670,8 +674,8 @@ endif;
                                                             data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
                                                             <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
                                                         </button>
-                                                        <button class="btn btn-sm btn-outline-warning" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalReagendarArtista">Reagendar</button>
-                                                        <button class="btn btn-sm btn-outline-danger btn-cancelar-sessao" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar Projeto</button>
+                                                        <button class="btn btn-sm btn-outline-warning btn-reagendar-sessao-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalReagendarArtista">Reagendar</button>
+                                                        <button class="btn btn-sm btn-outline-danger btn-cancelar-sessao-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarSessao">Cancelar</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -686,7 +690,11 @@ endif;
                                 <?php if (empty($historico_artista)): ?>
                                     <div class="card-resumo text-center text-white-50 mb-0">O histórico está vazio.</div>
                                 <?php else: ?>
-                                    <div class="d-flex justify-content-end mb-3">
+                                    <div class="d-flex justify-content-end mb-3 gap-2">
+                                        <select id="ordenarHistoricoArt" class="form-select form-select-sm bg-dark text-light border-secondary w-auto shadow-none">
+                                            <option value="recentes">Mais Recentes</option>
+                                            <option value="antigos">Mais Antigos</option>
+                                        </select>
                                         <select id="filtroStatusHistoricoArt" class="form-select form-select-sm bg-dark text-light border-secondary w-auto shadow-none">
                                             <option value="todos">Ver Tudo</option>
                                             <option value="Finalizado">Finalizados</option>
@@ -696,7 +704,7 @@ endif;
                                     </div>
                                     <div class="accordion" id="acordeaoHistoricoArt">
                                         <?php foreach ($historico_artista as $i => $item): ?>
-                                            <div class="accordion-item mb-2 historico-item-art-js" data-status="<?php echo strpos($item['status'], 'Cancelado') !== false ? 'Cancelado' : $item['status']; ?>">
+                                            <div class="accordion-item mb-2 historico-item-art-js" data-status="<?php echo strpos($item['status'], 'Cancelado') !== false ? 'Cancelado' : $item['status']; ?>" data-sort="<?php echo strtotime($item['data_sort']); ?>">
                                                 <h2 class="accordion-header">
                                                     <button class="accordion-button collapsed text-light" type="button" data-bs-toggle="collapse" data-bs-target="#hist-art-<?php echo $i; ?>">
                                                         <div class="w-100 d-flex justify-content-between align-items-center">
@@ -803,7 +811,7 @@ endif;
                 <div class="modal-body text-white-50">
                     <form action="../actions/a.aprovar-orcamento.php" method="POST">
                         <input type="hidden" name="orcamento_id" id="inputAprovarId" value="">
-                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
+                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>?aba=solicitacoes">
 
                         <div class="mb-3">
                             <label for="titulo_projeto" class="form-label text-light">Título do Projeto:</label>
@@ -836,8 +844,10 @@ endif;
 
                         <div class="mb-4">
                             <label for="qtd_sessoes" class="form-label text-light">Estimativa de Sessões Necessárias:</label>
-                            <input type="number" class="form-control bg-dark text-light border-secondary" id="qtd_sessoes" name="qtd_sessoes" min="1" max="20" required>
+                            <input type="number" class="form-control bg-dark text-light border-secondary" id="qtd_sessoes" name="qtd_sessoes" min="1" max="20" placeholder="" required>
+                            <div class="form-text text-white-50">O cliente receberá a proposta e decidirá se aceita o valor para agendar.</div>
                         </div>
+
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
                             <button type="submit" class="btn btn-success">Enviar Proposta</button>
@@ -858,7 +868,7 @@ endif;
                 <div class="modal-body text-white-50">
                     <form action="../actions/a.aprovar-orcamento.php" method="POST">
                         <input type="hidden" name="orcamento_id" id="inputEditarOrcId" value="">
-                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
+                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>?aba=enviadas">
 
                         <div class="mb-3">
                             <label for="titulo_projeto_edit" class="form-label text-light">Título do Projeto:</label>
@@ -909,9 +919,10 @@ endif;
                 <div class="modal-body text-white-50">
                     <form action="../actions/a.recusar-orcamento.php" method="POST">
                         <input type="hidden" name="orcamento_id" id="inputRecusarId" value="">
+                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>?aba=solicitacoes">
                         <div class="mb-3">
-                            <label for="motivo_recusa" class="form-label text-light"></label>
-                            <textarea class="form-control bg-dark text-light border-secondary" id="motivo_recusa" name="motivo_recusa" rows="3" required></textarea>
+                            <label for="motivo_recusa" class="form-label text-light">Motivo:</label>
+                            <textarea class="form-control bg-dark text-light border-secondary" id="motivo_recusa" name="motivo_recusa" rows="3" placeholder="" required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
@@ -923,7 +934,7 @@ endif;
         </div>
     </div>
 
-    <div class="modal fade" id="modalCancelar" tabindex="-1">
+    <div class="modal fade" id="modalCancelarSessao" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-light bg-dark">
                 <div class="modal-header border-bottom border-secondary">
@@ -933,14 +944,15 @@ endif;
                 <div class="modal-body text-white-50">
                     <p>Atenção: O projeto inteiro será cancelado e não poderá ser reagendado.</p>
                     <form action="../actions/a.cancelar-projeto.php" method="POST">
-                        <input type="hidden" name="sessao_id" id="inputSessaoId" value="">
+                        <input type="hidden" name="sessao_id" id="inputSessaoIdArtista" value="">
+                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>?aba=sessoes">
                         <div class="mb-3">
-                            <label for="motivo_cancelamento" class="form-label text-light"></label>
-                            <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="3" required></textarea>
+                            <label for="motivo_cancelamento" class="form-label text-light">Motivo:</label>
+                            <textarea class="form-control bg-dark text-light border-secondary" id="motivo_cancelamento" name="motivo" rows="3" required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                            <button type="submit" class="btn btn-danger">Cancelar</button>
+                            <button type="submit" class="btn btn-danger">Confirmar Cancelamento</button>
                         </div>
                     </form>
                 </div>
@@ -959,8 +971,9 @@ endif;
                     <p>Solicitar que o cliente agende uma nova data/horário.</p>
                     <form action="../actions/a.reagendar-artista.php" method="POST">
                         <input type="hidden" name="sessao_id" id="inputReagendarIdArtista" value="">
+                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>?aba=sessoes">
                         <div class="mb-3">
-                            <label class="form-label text-light"></label>
+                            <label class="form-label text-light">Motivo:</label>
                             <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="" required></textarea>
                         </div>
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
@@ -975,7 +988,7 @@ endif;
 
     <div class="modal fade" id="modalConfirmarConcluir" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-light bg-dark">
+            <div class="modal-content text-light bg-dark border-secondary">
                 <div class="modal-header border-bottom border-secondary">
                     <h5 class="modal-title text-success">Concluir Projeto</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -997,7 +1010,7 @@ endif;
 
     <div class="modal fade" id="modalConfirmarLiberar" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-light bg-dark">
+            <div class="modal-content text-light bg-dark border-secondary">
                 <div class="modal-header border-bottom border-secondary">
                     <h5 class="modal-title text-info">Liberar Nova Sessão</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -1048,6 +1061,7 @@ endif;
                     <p>O cliente ainda não escolheu a data. Tem certeza que deseja cancelar o projeto inteiro?</p>
                     <form action="../actions/a.cancelar-projeto.php" method="POST">
                         <input type="hidden" name="projeto_id" id="inputCancelarProjAguardandoId" value="">
+                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>?aba=aguardando">
                         <div class="mb-3">
                             <label class="form-label text-light">Motivo do Cancelamento:</label>
                             <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" placeholder="" required></textarea>
@@ -1071,9 +1085,10 @@ endif;
                 </div>
                 <div class="modal-body text-white-50">
                     <p>O cliente ainda não aceitou a proposta. Deseja cancelar e encerrar a solicitação?</p>
+                    <p>Essa ação cancelará o projeto.</p>
                     <form action="../actions/a.recusar-orcamento.php" method="POST">
                         <input type="hidden" name="orcamento_id" id="inputCancelarPropostaId" value="">
-                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
+                        <input type="hidden" name="origem" value="<?php echo basename($_SERVER['PHP_SELF']); ?>?aba=enviadas">
 
                         <div class="mb-3">
                             <label class="form-label text-light">Motivo do Cancelamento:</label>
@@ -1178,7 +1193,7 @@ endif;
                         <button class="btn btn-sm btn-outline-warning btn-reagendar-sessao-js" data-id="${sessao.id}" data-bs-toggle="modal" data-bs-target="#modalReagendarArtista">
                             Reagendar
                         </button>
-                        <button class="btn btn-sm btn-outline-danger btn-cancelar-sessao-js" data-id="${sessao.id}" data-bs-toggle="modal" data-bs-target="#modalCancelar">
+                        <button class="btn btn-sm btn-outline-danger btn-cancelar-sessao-js" data-id="${sessao.id}" data-bs-toggle="modal" data-bs-target="#modalCancelarSessao">
                             Cancelar Projeto
                         </button>
                     </div>`;
@@ -1235,7 +1250,7 @@ endif;
         // reconectar os botões gerados pelo JS (abrir modais)
         document.querySelectorAll('.btn-cancelar-sessao-js').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.getElementById('inputSessaoId').value = this.getAttribute('data-id');
+                document.getElementById('inputSessaoIdArtista').value = this.getAttribute('data-id');
             });
         });
         document.querySelectorAll('.btn-reagendar-sessao-js').forEach(btn => {
@@ -1254,17 +1269,6 @@ endif;
                 document.getElementById('inputLiberarValor').value = this.getAttribute('data-valor');
                 const tempo = this.getAttribute('data-tempo');
                 if (tempo) document.getElementById('inputLiberarTempo').value = tempo;
-            });
-        });
-        // reconecta botão de cancelar projeto na aba Propostas Enviadas
-        document.querySelectorAll('.btn-cancelar-proposta-js').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.getElementById('inputCancelarPropostaId').value = this.getAttribute('data-id');
-            });
-        });
-        document.querySelectorAll('.btn-cancelar-proj-aguardando-js').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.getElementById('inputCancelarProjAguardandoId').value = this.getAttribute('data-id');
             });
         });
     }
@@ -1365,9 +1369,21 @@ endif;
                     document.getElementById('inputRecusarId').value = this.getAttribute('data-id');
                 });
             });
-            document.querySelectorAll('.btn-cancelar-sessao').forEach(btn => {
+            document.querySelectorAll('.btn-cancelar-sessao-js').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    document.getElementById('inputSessaoId').value = this.getAttribute('data-id');
+                    document.getElementById('inputSessaoIdArtista').value = this.getAttribute('data-id');
+                });
+            });
+
+            // reconecta botão de cancelar projeto na aba Propostas Enviadas e Aguardando
+            document.querySelectorAll('.btn-cancelar-proposta-js').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('inputCancelarPropostaId').value = this.getAttribute('data-id');
+                });
+            });
+            document.querySelectorAll('.btn-cancelar-proj-aguardando-js').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('inputCancelarProjAguardandoId').value = this.getAttribute('data-id');
                 });
             });
 
@@ -1378,6 +1394,13 @@ endif;
                     document.getElementById('inputLiberarValor').value = this.getAttribute('data-valor');
                     const tempo = this.getAttribute('data-tempo');
                     if (tempo) document.getElementById('inputLiberarTempo').value = tempo;
+                });
+            });
+
+            // Lógica para reagendar sessão (abas estáticas)
+            document.querySelectorAll('.btn-reagendar-sessao-js').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('inputReagendarIdArtista').value = this.getAttribute('data-id');
                 });
             });
 
@@ -1394,6 +1417,23 @@ endif;
                             item.style.display = 'none';
                         }
                     });
+                });
+            }
+
+            const ordenarHistoricoArt = document.getElementById('ordenarHistoricoArt');
+            if (ordenarHistoricoArt) {
+                ordenarHistoricoArt.addEventListener('change', function() {
+                    const ordem = this.value;
+                    const container = document.getElementById('acordeaoHistoricoArt');
+                    const itens = Array.from(container.querySelectorAll('.historico-item-art-js'));
+
+                    itens.sort((a, b) => {
+                        const dataA = parseInt(a.getAttribute('data-sort'));
+                        const dataB = parseInt(b.getAttribute('data-sort'));
+                        return ordem === 'recentes' ? dataB - dataA : dataA - dataB;
+                    });
+
+                    itens.forEach(item => container.appendChild(item));
                 });
             }
 

@@ -65,6 +65,25 @@ $stmt_hist = $pdo->prepare($sql_hist);
 $stmt_hist->execute($params_hist);
 $historico_dados = $stmt_hist->fetchAll();
 
+// --- CALCULAR O NÚMERO DA SESSÃO ---
+// Para preencher o "1/3", precisamos saber o número de cada sessão
+$sessoes_por_projeto = [];
+foreach ($historico_dados as $k => $h) {
+    $id_proj = $h['id_projeto'];
+    // Busca todas as sessões desse projeto ordenadas por data
+    if (!isset($sessoes_por_projeto[$id_proj])) {
+        $stmt_sessoes_proj = $pdo->prepare("SELECT id_sessao FROM sessao WHERE id_projeto = ? ORDER BY data_hora ASC");
+        $stmt_sessoes_proj->execute([$id_proj]);
+        $sessoes_por_projeto[$id_proj] = $stmt_sessoes_proj->fetchAll(PDO::FETCH_COLUMN);
+    }
+    // Acha a posição dessa sessão na lista geral de sessões do projeto
+    $posicao = array_search($h['id_sessao'], $sessoes_por_projeto[$id_proj]) + 1;
+    // O total é a estimativa original gravada no orçamento (qtd_sessoes)
+    $estimativa = (!empty($h['qtd_sessoes']) && is_numeric($h['qtd_sessoes'])) ? "/" . $h['qtd_sessoes'] : "";
+    $historico_dados[$k]['num_sessao_formatado'] = $posicao . $estimativa;
+}
+
+
 // --- LÓGICA DO FILTRO DE CLIENTES ---
 $cli_nome = $_GET['cli-nome'] ?? '';
 $cli_inicio = $_GET['cli-data-inicio'] ?? '';
@@ -72,7 +91,6 @@ $cli_fim = $_GET['cli-data-fim'] ?? '';
 $cli_status = $_GET['cli-status'] ?? '';
 $cli_ordem = $_GET['cli-ordem'] ?? 'data_desc';
 
-// Adicionada a subquery p contar as sessões e busca do ID/Status para bloqueio
 $sql_cli = "SELECT u.id_usuario, u.nome, u.email, u.telefone, u.data_cadastro, u.status,
                    (SELECT COUNT(*) FROM sessao s JOIN projeto p ON s.id_projeto = p.id_projeto WHERE p.id_usuario = u.id_usuario AND s.status = 'Concluído') as qtd_sessoes
             FROM usuario u 
@@ -94,7 +112,6 @@ if (!empty($cli_fim)) {
 if (!empty($cli_status)) {
     $sql_cli .= " AND u.status = ?";
     $params_cli[] = $cli_status;
-} else {
 }
 
 if ($cli_ordem == 'data_asc') {
@@ -215,26 +232,22 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             transform: scale(1.2);
         }
 
-        /* 4. Personalização da barra de rolagem dos projetos no modal */
         #mdlCliProjetos::-webkit-scrollbar {
             width: 6px;
         }
 
         #mdlCliProjetos::-webkit-scrollbar-track {
             background: #1e1e1e;
-            /* Cor do fundo da trilha */
             border-radius: 4px;
         }
 
         #mdlCliProjetos::-webkit-scrollbar-thumb {
             background: #555;
-            /* Cor da barrinha */
             border-radius: 4px;
         }
 
         #mdlCliProjetos::-webkit-scrollbar-thumb:hover {
             background: #0dcaf0;
-            /* Fica azulzinho claro ao passar o mouse */
         }
 
         .tabela-fixa {
@@ -260,7 +273,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             background: #777;
         }
 
-        /* 1. Borda dos botões NÃO CLICADOS (padrão) */
         .pagination .page-link {
             background-color: transparent !important;
             border: 1px solid #2c2c2c !important;
@@ -270,14 +282,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             transition: all 0.3s ease;
         }
 
-        /* Efeito ao passar o mouse */
         .pagination .page-link:hover {
             background-color: rgba(255, 255, 255, 0.05) !important;
             color: #ffffff !important;
             border-color: #777 !important;
         }
 
-        /* Botão da página ATUAL */
         .pagination .page-item.active .page-link {
             background-color: transparent !important;
             color: #ffffff !important;
@@ -285,7 +295,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             font-weight: bold;
         }
 
-        /* 2. Borda dos botões INATIVOS */
         .pagination .page-item.disabled .page-link {
             background-color: transparent !important;
             color: #777 !important;
@@ -293,24 +302,19 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             cursor: not-allowed;
         }
 
-        /* Novas classes para o status dinâmico sem fundo no modal de clientes */
         .status-modal-ativo {
             color: #28a745 !important;
-            /* Verde Bootstrap padrão (contrasta bem) */
             background: transparent !important;
             font-weight: bold;
             padding: 0 !important;
-            /* Tira o preenchimento de 'caixinha' */
             border: none;
         }
 
         .status-modal-bloqueado {
             color: #dc3545 !important;
-            /* Vermelho Bootstrap padrão (contrasta bem) */
             background: transparent !important;
             font-weight: bold;
             padding: 0 !important;
-            /* Tira o preenchimento de 'caixinha' */
             border: none;
         }
     </style>
@@ -387,12 +391,10 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                             <ul class="dropdown-menu dropdown-menu-dark">
                                 <li><button type="submit" name="hist-ordem" value="data_desc" class="dropdown-item <?php if ($hist_ordem == 'data_desc') echo 'active'; ?>">Mais recentes</button></li>
                                 <li><button type="submit" name="hist-ordem" value="data_asc" class="dropdown-item <?php if ($hist_ordem == 'data_asc') echo 'active'; ?>">Mais antigas</button></li>
-                                <li><button type="submit" name="hist-ordem" value="status" class="dropdown-item <?php if ($hist_ordem == 'status') echo 'active'; ?>">Por Status</option>
-                                </li>
+                                <li><button type="submit" name="hist-ordem" value="status" class="dropdown-item <?php if ($hist_ordem == 'status') echo 'active'; ?>">Por Status</button></li>
                             </ul>
                         </div>
-
-                        <button type="button" onclick="exportarParaExcel('tab-historico', 'relatorio_sessoes')" class="btn btn-sm btn-outline-success btn-square-filtro" title="Exportar Excel">
+                        <button type="button" onclick="exportarParaExcel('tab-historico', 'relatorio_sessoes')" class="btn btn-sm btn-outline-success btn-square-filtro" title="Exportar Tabela Inteira (com filtros)">
                             <i class="bi bi-file-earmark-excel"></i>
                         </button>
                     </div>
@@ -406,6 +408,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 <th scope="col">Cliente</th>
                                 <th scope="col">Projeto</th>
                                 <th scope="col">Duração</th>
+                                <th scope="col" class="text-center">Sessão</th>
                                 <th scope="col">Valor</th>
                                 <th scope="col">Status</th>
                             </tr>
@@ -413,7 +416,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <tbody>
                             <?php if (empty($historico_paginado)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-white-50 py-4">Nenhuma sessão encontrada.</td>
+                                    <td colspan="7" class="text-center text-white-50 py-4">Nenhuma sessão encontrada.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($historico_paginado as $hist):
@@ -458,6 +461,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                             </a>
                                         </td>
                                         <td class="text-white-50 small"><?php echo htmlspecialchars($hist['estimativa_tempo'] ?? '-'); ?></td>
+                                        <td class="text-center fw-bold text-white-50 small"><?php echo $hist['num_sessao_formatado']; ?></td>
                                         <td>R$ <?php echo !empty($hist['valor_sessao']) ? number_format($hist['valor_sessao'], 2, ',', '.') : '-'; ?></td>
                                         <td><span class="badge <?php echo $badge_class; ?>"><?php echo htmlspecialchars($hist['status']); ?></span></td>
                                     </tr>
@@ -467,9 +471,51 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     </table>
                 </div>
 
+                <table class="d-none" id="sombra-tab-historico">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Hora</th>
+                            <th>Cliente</th>
+                            <th>Telefone Cliente</th>
+                            <th>Email Cliente</th>
+                            <th>Projeto Titulo</th>
+                            <th>Local do Corpo</th>
+                            <th>Ideia do Cliente</th>
+                            <th>Duracao da Sessao</th>
+                            <th>Sessoes Estimadas Totais</th>
+                            <th>Sessao Num</th>
+                            <th>Status Sessao</th>
+                            <th>Valor da Sessao</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($historico_dados as $hist):
+                            $data_sessao = new DateTime($hist['data_hora']);
+                        ?>
+                            <tr>
+                                <td><?php echo $data_sessao->format('d/m/Y'); ?></td>
+                                <td><?php echo $data_sessao->format('H:i'); ?></td>
+                                <td><?php echo htmlspecialchars($hist['cliente_nome']); ?></td>
+                                <td><?php echo htmlspecialchars($hist['telefone']); ?></td>
+                                <td><?php echo htmlspecialchars($hist['email']); ?></td>
+                                <td><?php echo htmlspecialchars($hist['titulo']); ?></td>
+                                <td><?php echo htmlspecialchars($hist['local_corpo'] ?? 'Não informado'); ?></td>
+                                <td><?php echo htmlspecialchars($hist['descricao_ideia'] ?? 'Não informada'); ?></td>
+                                <td><?php echo htmlspecialchars($hist['estimativa_tempo'] ?? '-'); ?></td>
+                                <td><?php echo htmlspecialchars($hist['qtd_sessoes'] ?? '-'); ?></td>
+                                <td data-t="s"><?php echo htmlspecialchars($hist['num_sessao_formatado']); ?></td>
+                                <td><?php echo htmlspecialchars($hist['status']); ?></td>
+                                <td><?php echo !empty($hist['valor_sessao']) ? "R$ " . number_format($hist['valor_sessao'], 2, ',', '.') : '-'; ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+
                 <?php if ($total_paginas_hist > 0):
                     $qs_hist = $_GET;
                     unset($qs_hist['pg_hist']);
+                    $qs_hist['aba'] = 'historico'; // FORÇAR ABA
                     $url_base_hist = '?' . http_build_query($qs_hist) . (!empty($qs_hist) ? '&' : '') . 'pg_hist=';
                 ?>
                     <nav class="mt-4 mb-3">
@@ -489,17 +535,17 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     </nav>
                 <?php endif; ?>
 
-                <hr class="border-secondary my-4"> <?php
-                                                    $total_faturado = 0;
-                                                    $sessoes_concluidas = 0;
-
-                                                    foreach ($historico_dados as $d) {
-                                                        if ($d['status'] == 'Concluído') {
-                                                            $total_faturado += $d['valor_sessao'];
-                                                            $sessoes_concluidas++;
-                                                        }
-                                                    }
-                                                    ?>
+                <hr class="border-secondary my-4">
+                <?php
+                $total_faturado = 0;
+                $sessoes_concluidas = 0;
+                foreach ($historico_dados as $d) {
+                    if ($d['status'] == 'Concluído') {
+                        $total_faturado += $d['valor_sessao'];
+                        $sessoes_concluidas++;
+                    }
+                }
+                ?>
                 <div class="row g-4 mt-3 justify-content-center">
                     <div class="col-md-6">
                         <div class="card custom-card border-accent-blue p-3 text-center">
@@ -525,7 +571,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <label class="form-label small mb-1">Nome do Cliente:</label>
                         <input type="text" class="form-control form-control-sm" name="cli-nome" value="<?php echo htmlspecialchars($cli_nome); ?>">
                     </div>
-
                     <div class="filtro-item flex-grow-1">
                         <label class="form-label small mb-1">Status Cliente:</label>
                         <select class="form-select form-select-sm bg-dark text-light border-secondary" name="cli-status" style="background-color: #2c2c2c !important;">
@@ -535,7 +580,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                             <option value="Excluido" <?php if ($cli_status == 'Excluido') echo 'selected'; ?>>Contas Excluídas</option>
                         </select>
                     </div>
-
                     <div class="filtro-item flex-grow-1">
                         <label class="form-label small mb-1">Cadastrados de:</label>
                         <input type="date" class="form-control form-control-sm" name="cli-data-inicio" value="<?php echo htmlspecialchars($cli_inicio); ?>">
@@ -545,16 +589,14 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <input type="date" class="form-control form-control-sm" name="cli-data-fim" value="<?php echo htmlspecialchars($cli_fim); ?>">
                     </div>
 
+                    <button type="submit" class="btn btn-sm btn-primary btn-square-filtro" title="Aplicar Filtros">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                    <a href="relatorios-artista.php?aba=clientes" class="btn btn-sm btn-outline-secondary btn-square-filtro" title="Limpar Filtros">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+
                     <div class="d-flex gap-2 align-items-end ms-auto">
-
-
-                        <button type="submit" class="btn btn-sm btn-primary btn-square-filtro" title="Aplicar Filtros">
-                            <i class="bi bi-check-lg"></i>
-                        </button>
-                        <a href="relatorios-artista.php?aba=clientes" class="btn btn-sm btn-outline-secondary btn-square-filtro" title="Limpar Filtros">
-                            <i class="bi bi-x-lg"></i>
-                        </a>
-
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-light btn-square-filtro" type="button" data-bs-toggle="dropdown" title="Ordenar">
                                 <i class="bi bi-sort-down"></i>
@@ -567,8 +609,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 <li><button type="submit" name="cli-ordem" value="alfa" class="dropdown-item <?php if ($cli_ordem == 'alfa') echo 'active'; ?>">Alfabético</button></li>
                             </ul>
                         </div>
-
-                        <button type="button" onclick="exportarParaExcel('tab-clientes', 'lista_clientes')" class="btn btn-sm btn-outline-success btn-square-filtro" title="Exportar Lista">
+                        <button type="button" onclick="exportarParaExcel('tab-clientes', 'lista_clientes')" class="btn btn-sm btn-outline-success btn-square-filtro" title="Exportar Tabela Inteira (com filtros)">
                             <i class="bi bi-file-earmark-excel"></i>
                         </button>
                     </div>
@@ -599,10 +640,8 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         $telefone_limpo = '55' . $telefone_limpo;
                                     }
                                     $wpp_link = "https://api.whatsapp.com/send?phone=" . $telefone_limpo;
-
                                     $is_bloqueado = (isset($cli['status']) && $cli['status'] === 'Bloqueado');
                                     $is_excluido = (isset($cli['status']) && $cli['status'] === 'Excluido');
-
                                     $opacidade = ($is_bloqueado || $is_excluido) ? 'opacity-25' : '';
                                 ?>
                                     <tr>
@@ -625,7 +664,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         </td>
                                         <td class="text-center fw-bold <?php echo $opacidade; ?>"><?php echo $cli['qtd_sessoes']; ?></td>
                                         <td class="<?php echo $opacidade; ?>"><?php echo $data_cad->format('d/m/Y'); ?></td>
-
                                         <td class="text-end">
                                             <?php if ($cli['status'] === 'Excluido'): ?>
                                                 <span class="btn btn-sm btn-outline-secondary disabled" style="opacity: 3;">
@@ -644,9 +682,37 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     </table>
                 </div>
 
+                <table class="d-none" id="sombra-tab-clientes">
+                    <thead>
+                        <tr>
+                            <th>Data de Cadastro</th>
+                            <th>Nome do Cliente</th>
+                            <th>Status da Conta</th>
+                            <th>E-mail</th>
+                            <th>Telefone</th>
+                            <th>Sessoes Concluidas (Historico)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($clientes_dados as $cli):
+                            $data_cad = new DateTime($cli['data_cadastro']);
+                        ?>
+                            <tr>
+                                <td><?php echo $data_cad->format('d/m/Y'); ?></td>
+                                <td><?php echo htmlspecialchars($cli['nome']); ?></td>
+                                <td><?php echo htmlspecialchars($cli['status'] ?? 'Ativo'); ?></td>
+                                <td><?php echo htmlspecialchars($cli['email']); ?></td>
+                                <td><?php echo htmlspecialchars($cli['telefone']); ?></td>
+                                <td><?php echo htmlspecialchars($cli['qtd_sessoes']); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+
                 <?php if ($total_paginas_cli > 0):
                     $qs_cli = $_GET;
                     unset($qs_cli['pg_cli']);
+                    $qs_cli['aba'] = 'clientes'; // FORÇAR ABA
                     $url_base_cli = '?' . http_build_query($qs_cli) . (!empty($qs_cli) ? '&' : '') . 'pg_cli=';
                 ?>
                     <nav class="mt-4 mb-3">
@@ -665,19 +731,18 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         </ul>
                     </nav>
                 <?php endif; ?>
+
                 <hr class="border-secondary my-4">
 
                 <?php
                 $total_clientes = count($clientes_dados);
                 $clientes_ativos = 0;
                 foreach ($clientes_dados as $c) {
-                    // Só conta como ativo se NÃO for Bloqueado e NÃO for Excluido
                     if (!in_array(($c['status'] ?? ''), ['Bloqueado', 'Excluido'])) {
                         $clientes_ativos++;
                     }
                 }
                 ?>
-
                 <div class="row g-4 mt-3 justify-content-center">
                     <div class="col-md-6">
                         <div class="card custom-card border-accent-blue p-3 text-center">
@@ -694,11 +759,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 </div>
             </div>
         </div>
-
-    </div>
-    </div>
-
-    </div>
     </div>
 
     <div class="modal fade" id="modalDetalhesProjeto" tabindex="-1">
@@ -831,11 +891,15 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         </div>
     </div>
 </main>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // --- 1. LÓGICA DE TROCA DE ABAS ---
         if (window.location.search.includes('aba=clientes')) {
             const tabEl = document.querySelector('#clientes-tab');
+            if (tabEl) new bootstrap.Tab(tabEl).show();
+        } else if (window.location.search.includes('aba=historico')) {
+            const tabEl = document.querySelector('#historico-tab');
             if (tabEl) new bootstrap.Tab(tabEl).show();
         }
 
@@ -873,14 +937,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             badgeStatus.innerText = status;
             badgeStatus.className = (status === 'Ativo') ? 'status-modal-ativo' : 'status-modal-bloqueado';
 
-            // Botão de ação dinâmico dentro do modal
             const areaBotao = document.getElementById('mdlCliAreaBotao');
             if (status === 'Excluido') {
                 areaBotao.innerHTML = `<span class="text-white-50 small me-3"><i class="bi bi-person-x me-1"></i> Esta conta foi excluída</span>`;
             } else if (status === 'Ativo') {
                 areaBotao.innerHTML = `<button type="button" class="btn btn-sm btn-outline-danger btn-bloquear-js" data-id="${idCli}" data-bs-toggle="modal" data-bs-target="#modalBloquearCliente"><i class="bi bi-slash-circle me-1"></i>Bloquear Cliente</button>`;
             } else {
-                // Status Bloqueado: Exibe a mensagem E o botão de desbloquear
                 areaBotao.innerHTML = `
                     <span class="text-warning small me-3"><i class="bi bi-exclamation-triangle me-1"></i> Esta conta foi bloqueada</span>
                     <button type="button" class="btn btn-sm btn-outline-info btn-desbloquear-js" data-id="${idCli}" data-bs-toggle="modal" data-bs-target="#modalDesbloquearCliente"><i class="bi bi-unlock me-1"></i>Desbloquear</button>
@@ -925,7 +987,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 });
         };
 
-        // --- 5. DELEGAÇÃO DE EVENTOS (Resolve o problema de não abrir) ---
+        // --- 5. DELEGAÇÃO DE EVENTOS ---
         document.addEventListener('click', function(e) {
             const target = e.target.closest('.btn-detalhes-cliente, .btn-detalhes-projeto, .btn-detalhes-projeto-interno');
             if (!target) return;
@@ -944,31 +1006,53 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             alert('E-mail copiado: ' + emailText);
         });
     }
+</script>
 
-    function exportarParaExcel(idTabPane, nomeArquivo) {
-        const abaAtiva = document.getElementById(idTabPane);
-        const tabelaOriginal = abaAtiva.querySelector('table');
-        if (!tabelaOriginal) return;
-        const tabelaClone = tabelaOriginal.cloneNode(true);
-        tabelaClone.querySelectorAll('a').forEach(link => {
-            link.outerHTML = link.innerText;
-        });
-        if (idTabPane === 'tab-clientes') {
-            tabelaClone.querySelectorAll('tbody tr').forEach(linha => {
-                let tdAcao = linha.querySelector('td:last-child');
-                if (tdAcao) {
-                    if (tdAcao.querySelector('.btn-bloquear-js')) tdAcao.innerText = 'Ativo';
-                    else if (tdAcao.innerText.includes('Encerrada')) tdAcao.innerText = 'Excluído';
-                    else tdAcao.innerText = 'Bloqueado';
-                }
-            });
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script>
+    // --- NOVA LÓGICA PARA EXPORTAR .XLSX BONITO (SEM AVISOS) ---
+    function exportarParaExcel(idTabPane, nomeArquivoBase) {
+        const idSombra = 'sombra-' + idTabPane;
+        const tabela = document.getElementById(idSombra);
+        if (!tabela) {
+            alert("Tabela de dados não encontrada.");
+            return;
         }
-        const html = tabelaClone.outerHTML.replace(/ /g, '%20');
-        const dataUri = 'data:application/vnd.ms-excel;charset=utf-8,' + html;
-        const a = document.createElement("a");
-        a.href = dataUri;
-        a.download = nomeArquivo + '.xls';
-        a.click();
+
+        // O SheetJS converte a tabela HTML direta em uma planilha Excel real (.xlsx)
+        const workbook = XLSX.utils.table_to_book(tabela, {
+            sheet: "Relatorio"
+        });
+
+        // Isso ajusta a largura das colunas automaticamente para ficar "bonitinho"
+        const worksheet = workbook.Sheets["Relatorio"];
+        const colunas = [];
+        const range = XLSX.utils.decode_range(worksheet['!ref']);
+
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            let max_width = 10;
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                let cell = worksheet[XLSX.utils.encode_cell({
+                    c: C,
+                    r: R
+                })];
+                if (!cell || !cell.v) continue;
+                let len = cell.v.toString().length;
+                if (len > max_width) max_width = len;
+            }
+            colunas[C] = {
+                wch: max_width + 2
+            };
+        }
+        worksheet['!cols'] = colunas;
+
+        // Pega a data atual para o nome do arquivo ficar profissional
+        let hj = new Date();
+        let strData = hj.getDate().toString().padStart(2, '0') + "_" + (hj.getMonth() + 1).toString().padStart(2, '0') + "_" + hj.getFullYear();
+
+        // Baixa o arquivo em formato .xlsx nativo sem mensagens de erro
+        XLSX.writeFile(workbook, nomeArquivoBase + '_' + strData + '.xlsx');
     }
 </script>
 <?php include '../includes/footer.php'; ?>

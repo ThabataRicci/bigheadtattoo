@@ -25,11 +25,49 @@
             </div>
 
         </div>
-        <p class="mt-4 mb-0 small text-white-50">&copy; 2026 Studio Big Head Tattoo</p>
+        <p class="mt-4 mb-0 small text-white-50">© 2026 Studio Big Head Tattoo</p>
     </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const forms = document.querySelectorAll('form');
+
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+
+                if (this.checkValidity()) {
+
+
+                    const submitButtons = this.querySelectorAll('button[type="submit"], input[type="submit"]');
+
+                    submitButtons.forEach(btn => {
+
+                        if (!btn.disabled) {
+                            // Desativa o botão para impedir novos cliques
+                            btn.disabled = true;
+
+                            if (btn.tagName.toLowerCase() === 'button') {
+
+                                const width = btn.offsetWidth;
+                                btn.style.width = width + 'px';
+
+                                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Aguarde...';
+                            } else {
+
+                                btn.value = 'Aguarde...';
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+
 </body>
 
 </html>

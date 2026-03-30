@@ -85,7 +85,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                             </div>
 
                             <div class="mb-3">
-                                <label for="descricao_ideia" class="form-label">Detalhes da Ideia/Desenho:</label>
+                                <label for="descricao_ideia" class="form-label">Detalhes da Ideia:</label>
                                 <textarea class="form-control" id="descricao_ideia" name="descricao_ideia" rows="4" required></textarea>
                             </div>
                             <div class="mb-3">

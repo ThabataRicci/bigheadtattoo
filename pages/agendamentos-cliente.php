@@ -94,7 +94,7 @@ try {
     }
 
     // 3. AÇÃO REQUERIDA: Avaliar Proposta do Artista (Aguardando Aceite)
-    $sql_aprovados = "SELECT * FROM orcamento WHERE id_usuario = ? AND status = 'Aguardando Aceite'";
+    $sql_aprovados = "SELECT * FROM orcamento WHERE id_usuario = ? AND status = 'Aguardando Aceite' ORDER BY id_orcamento ASC";
     $stmt = $pdo->prepare($sql_aprovados);
     $stmt->execute([$id_usuario]);
     foreach ($stmt->fetchAll() as $row) {
@@ -121,7 +121,7 @@ try {
     $sql_reagendar = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.qtd_sessoes, o.valor_sessao 
                       FROM projeto p 
                       LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento 
-                      WHERE p.id_usuario = ? AND p.status = 'Agendamento Pendente'";
+                      WHERE p.id_usuario = ? AND p.status = 'Agendamento Pendente' ORDER BY p.id_projeto ASC";
     $stmt = $pdo->prepare($sql_reagendar);
     $stmt->execute([$id_usuario]);
     foreach ($stmt->fetchAll() as $row) {
@@ -589,7 +589,11 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         Seu histórico está vazio.
                     </div>
                 <?php else: ?>
-                    <div class="d-flex justify-content-end mb-3">
+                    <div class="d-flex justify-content-end mb-3 gap-2">
+                        <select id="ordenarHistorico" class="form-select form-select-sm bg-dark text-light border-secondary w-auto shadow-none">
+                            <option value="recentes">Mais Recentes</option>
+                            <option value="antigos">Mais Antigos</option>
+                        </select>
                         <select id="filtroStatusHistorico" class="form-select form-select-sm bg-dark text-light border-secondary w-auto shadow-none">
                             <option value="todos">Ver Tudo</option>
                             <option value="Finalizado">Finalizados</option>
@@ -600,7 +604,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                     <div class="accordion" id="acordeaoHistorico">
                         <?php foreach ($historico as $i => $item): ?>
-                            <div class="accordion-item mb-3 historico-item-js" data-status="<?php echo strpos($item['status'], 'Cancelado') !== false ? 'Cancelado' : $item['status']; ?>">
+                            <div class="accordion-item mb-3 historico-item-js" data-status="<?php echo strpos($item['status'], 'Cancelado') !== false ? 'Cancelado' : $item['status']; ?>" data-sort="<?php echo strtotime($item['data_sort']); ?>">
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-hist-<?php echo $i; ?>">
                                         <div class="w-100 d-flex justify-content-between align-items-center">
@@ -804,7 +808,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         <input class="form-check-input mt-0 me-2" type="radio" name="tipo_recusa" id="radioRecusarPreco" value="preco" checked>
                         <label class="form-check-label text-light mb-0" for="radioRecusarPreco">
                             Achei o valor alto
-                            <i class="bi bi-info-circle text-info ms-2" style="cursor: help;" data-bs-toggle="tooltip" data-bs-placement="top" title="O orçamento voltará ao artista para ele decidir se quer dar um novo valor ou manter o mesmo. Isso só pode ser feito 1 vez."></i>
+                            <i class="bi bi-info-circle ms-2" style="cursor: help;" data-bs-toggle="tooltip" data-bs-placement="top" title="O orçamento voltará ao artista para ele decidir se quer dar um novo valor ou manter o mesmo. Isso só pode ser feito 1 vez."></i>
                         </label>
                     </div>
                     <div id="avisoTentativas" class="small text-danger mb-3" style="display:none; margin-left: 24px;">
@@ -813,7 +817,14 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="radio" name="tipo_recusa" id="radioRecusarOutro" value="outro">
-                        <label class="form-check-label text-light" for="radioRecusarOutro">Outro motivo</label>
+                        <label class="form-check-label text-light" for="radioRecusarOutro">
+                            Outro motivo
+                            <i class="bi bi-info-circle ms-2 icone-info"
+                                style="cursor: help;"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="Essa ação encerrará o orçamento desse projeto"></i>
+                        </label>
                     </div>
 
                     <div id="divMotivoOutro" class="mb-3" style="display:none;">
@@ -876,6 +887,23 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                         item.style.display = 'none';
                     }
                 });
+            });
+        }
+
+        const ordenarHistorico = document.getElementById('ordenarHistorico');
+        if (ordenarHistorico) {
+            ordenarHistorico.addEventListener('change', function() {
+                const ordem = this.value;
+                const container = document.getElementById('acordeaoHistorico');
+                const itens = Array.from(container.querySelectorAll('.historico-item-js'));
+
+                itens.sort((a, b) => {
+                    const dataA = parseInt(a.getAttribute('data-sort'));
+                    const dataB = parseInt(b.getAttribute('data-sort'));
+                    return ordem === 'recentes' ? dataB - dataA : dataA - dataB;
+                });
+
+                itens.forEach(item => container.appendChild(item));
             });
         }
 

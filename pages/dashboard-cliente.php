@@ -81,8 +81,28 @@ echo '</div>';
 
 <main>
     <div class="container my-5 py-5">
-        <h2 class="text-center mb-5">BEM-VINDO, <?php echo strtoupper($_SESSION['usuario_nome']); ?></h2>
+        <h2 class="text-center mb-4">BEM-VINDO, <?php echo strtoupper($_SESSION['usuario_nome']); ?></h2>
 
+        <?php if (isset($_GET['sucesso'])): ?>
+            <?php if ($_GET['sucesso'] == 'cancelado'): ?>
+                <div class="alert alert-success alert-dismissible fade show text-center mb-5" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> Projeto cancelado.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php elseif ($_GET['sucesso'] == 'reagendado'): ?>
+                <div class="alert alert-warning alert-dismissible fade show text-center mb-5" role="alert">
+                    <i class="bi bi-calendar-x me-2"></i> Sessão cancelada. Seu projeto foi movido para a fila de reagendamento!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['erro']) && $_GET['erro'] == 'bd'): ?>
+            <div class="alert alert-danger alert-dismissible fade show text-center mb-5" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> Ocorreu um erro ao processar sua solicitação no banco de dados. Tente novamente.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
         <style>
             .accordion-button:not(.collapsed) {
                 background-color: transparent !important;
@@ -112,15 +132,13 @@ echo '</div>';
                 transform: translateY(-5px);
                 box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
                 border-color: #ffffff !important;
-                /* Borda branca no hover */
                 cursor: pointer;
             }
         </style>
 
         <div class="row text-center mb-5">
             <div class="col-md-4 mb-4">
-                <a href="agendamentos-cliente.php#acordeaoAcaoRequerida"
-                    class="card-resumo card-hover text-decoration-none text-light d-block">
+                <a href="agendamentos-cliente.php#acordeaoAcaoRequerida" class="card-resumo card-hover text-decoration-none text-light d-block">
                     <h3><?php echo $qtd_acoes_requeridas; ?></h3>
                     <p class="text-white-50 mb-0">Ações Requeridas</p>
                 </a>
@@ -180,7 +198,8 @@ echo '</div>';
                                         </div>
                                         <div class="text-end border-top border-secondary pt-3">
                                             <button class="btn btn-sm btn-outline-warning btn-reagendar-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalReagendar">Reagendar</button>
-                                            <button class="btn btn-sm btn-outline-danger btn-cancelar-js ms-2" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarProjeto">Cancelar Projeto</button>
+
+                                            <button class="btn btn-sm btn-outline-danger btn-cancelar-js ms-2" data-id="<?php echo $sessao['id_sessao']; ?>" data-projeto-id="<?php echo $sessao['id_projeto']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarProjeto">Cancelar Projeto</button>
                                         </div>
                                     </div>
                                 </div>
@@ -215,6 +234,7 @@ echo '</div>';
                 <p>A data atual será desmarcada e você será levado para o calendário para escolher um novo dia.</p>
                 <form action="../actions/a.reagendar.php" method="POST">
                     <input type="hidden" name="sessao_id" id="inputReagendarId" value="">
+                    <input type="hidden" name="origem" value="dashboard-cliente.php">
                     <div class="mb-3">
                         <label class="form-label text-light">Motivo do reagendamento:</label>
                         <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" required></textarea>
@@ -239,7 +259,9 @@ echo '</div>';
             <div class="modal-body text-white-50">
                 <p>Atenção: Isso cancelará não apenas esta sessão, mas o <strong>projeto inteiro</strong>.</p>
                 <form action="../actions/a.cancelar-projeto.php" method="POST">
-                    <input type="hidden" name="sessao_id" id="inputCancelarProjetoId" value="">
+                    <input type="hidden" name="sessao_id" id="inputCancelarProjetoSessaoId" value="">
+                    <input type="hidden" name="projeto_id" id="inputCancelarProjetoId" value="">
+                    <input type="hidden" name="origem" value="dashboard-cliente.php">
                     <div class="mb-3">
                         <label class="form-label text-light">Motivo:</label>
                         <textarea class="form-control bg-dark text-light border-secondary" name="motivo" rows="2" required></textarea>
@@ -265,12 +287,14 @@ echo '</div>';
             });
         });
 
-        // conecta o botão Cancelar ao Modal
+        // conecta o botão Cancelar aos DOIS inputs do Modal
         const btnsCancelar = document.querySelectorAll('.btn-cancelar-js');
+        const inputCancelarProjetoSessaoId = document.getElementById('inputCancelarProjetoSessaoId');
         const inputCancelarProjetoId = document.getElementById('inputCancelarProjetoId');
         btnsCancelar.forEach(btn => {
             btn.addEventListener('click', function() {
-                inputCancelarProjetoId.value = this.getAttribute('data-id');
+                inputCancelarProjetoSessaoId.value = this.getAttribute('data-id');
+                inputCancelarProjetoId.value = this.getAttribute('data-projeto-id');
             });
         });
     });

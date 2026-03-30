@@ -9,11 +9,15 @@ if (session_status() === PHP_SESSION_NONE) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $titulo_pagina; ?> | BIG HEAD TATTOO</title>
 
     <?php
+    // 1. Primeiro definimos o caminho base
     $base_path = (strpos($_SERVER['REQUEST_URI'], '/pages/') === false) ? '' : '../';
     ?>
+
+    <title><?php echo $titulo_pagina; ?> | BIG HEAD TATTOO</title>
+
+    <link rel="icon" type="image/png" href="<?php echo $base_path; ?>imagens/logo.png">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -51,6 +55,9 @@ if (session_status() === PHP_SESSION_NONE) {
                 <ul class="navbar-nav d-flex flex-row align-items-center position-absolute end-0 me-3">
                     <?php if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true): ?>
                         <?php
+
+                        $dashboard_url = '#';
+                        $config_url = '#';
 
                         if ($_SESSION['usuario_perfil'] == 'cliente') {
                             $dashboard_url = $pages_prefix . 'dashboard-cliente.php';
