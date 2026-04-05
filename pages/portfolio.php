@@ -2,28 +2,24 @@
 session_start();
 $titulo_pagina = "Portfólio";
 include '../includes/header.php';
-// Certifique-se que o a.portfolio.php faz o require_once do conexao.php
+// A action abaixo carrega as variáveis: $trabalhos, $lista_estilos, $estilo_selecionado, $total_paginas e $pagina_atual
 include '../actions/a.portfolio.php';
 ?>
 
 <?php
-if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
+// Menu de navegação interna (Exibe apenas se estiver logado)
+if (isset($_SESSION['usuario_id'])) {
     $pagina_ativa = basename($_SERVER['PHP_SELF']);
-    $link_prefix = '';
-
     echo '<div class="submenu-painel">';
-
     if ($_SESSION['usuario_perfil'] == 'artista') {
-        echo '<a href="' . $link_prefix . 'dashboard-artista.php" class="' . ($pagina_ativa == 'dashboard-artista.php' ? 'active' : '') . '">Início</a>';
-        echo '<a href="' . $link_prefix . 'agenda.php" class="' . ($pagina_ativa == 'agenda.php' ? 'active' : '') . '">Agenda</a>';
-        echo '<a href="' . $link_prefix . 'portfolio-artista.php" class="' . ($pagina_ativa == 'portfolio-artista.php' ? 'active' : '') . '">Portfólio</a>';
-        echo '<a href="' . $link_prefix . 'relatorios-artista.php" class="' . ($pagina_ativa == 'relatorios-artista.php' ? 'active' : '') . '">Relatórios</a>';
-        echo '<a href="' . $link_prefix . 'configuracoes-artista.php" class="' . ($pagina_ativa == 'configuracoes-artista.php' ? 'active' : '') . '">Configurações</a>';
+        echo '<a href="dashboard-artista.php">Início</a>';
+        echo '<a href="agenda.php">Agenda</a>';
+        echo '<a href="portfolio-artista.php" class="active">Portfólio</a>';
+        echo '<a href="relatorios-artista.php">Relatórios</a>';
     } else {
-        echo '<a href="' . $link_prefix . 'dashboard-cliente.php" class="' . ($pagina_ativa == 'dashboard-cliente.php' ? 'active' : '') . '">Início</a>';
-        echo '<a href="' . $link_prefix . 'agendamentos-cliente.php" class="' . ($pagina_ativa == 'agendamentos-cliente.php' ? 'active' : '') . '">Meus Agendamentos</a>';
-        echo '<a href="' . $link_prefix . 'solicitar-orcamento.php" class="' . ($pagina_ativa == 'solicitar-orcamento.php' ? 'active' : '') . '">Orçamento</a>';
-        echo '<a href="' . $link_prefix . 'configuracoes-cliente.php" class="' . ($pagina_ativa == 'configuracoes-cliente.php' ? 'active' : '') . '">Configurações</a>';
+        echo '<a href="dashboard-cliente.php">Início</a>';
+        echo '<a href="agendamentos-cliente.php">Meus Agendamentos</a>';
+        echo '<a href="solicitar-orcamento.php">Orçamento</a>';
     }
     echo '</div>';
 }
@@ -31,117 +27,42 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
 <main>
     <div class="container text-center my-5 py-5">
-
         <h2 class="mb-5">GALERIA DE TRABALHOS</h2>
+
+        <?php if (isset($_GET['msg']) && $_GET['msg'] === 'excluido'): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                Trabalho removido com sucesso!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
 
         <div class="filtros-portfolio mb-5">
             <div class="dropdown">
-                <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                    Filtrar por Estilo
+                <button class="btn btn-outline-light dropdown-toggle" type="button" id="botaoFiltro" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-filter me-2"></i>
+                    <?= ($estilo_selecionado === 'todos') ? 'FILTRAR POR ESTILO' : 'ESTILO: ' . strtoupper(htmlspecialchars($estilo_selecionado)) ?>
                 </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <li><a class="dropdown-item" href="?estilo=todos">Todos</a></li>
-                    <?php if (isset($lista_estilos)): ?>
+                <ul class="dropdown-menu dropdown-menu-dark shadow" aria-labelledby="botaoFiltro">
+                    <li><a class="dropdown-item" href="?estilo=todos">Todos os Estilos</a></li>
+                    <li><hr class="dropdown-divider border-secondary"></li>
+                    
+                    <?php if (!empty($lista_estilos)): ?>
                         <?php foreach($lista_estilos as $est): ?>
-                           <li><a class="dropdown-item" href="?estilo=<?= $est['id_estilo'] ?>"><?= $est['nome'] ?></a></li>
+                            <li>
+                                <a class="dropdown-item" href="?estilo=<?= urlencode($est['nome']) ?>">
+                                    <?= htmlspecialchars($est['nome']) ?>
+                                </a>
+                            </li>
                         <?php endforeach; ?>
+                    <?php else: ?>
+                        <li><span class="dropdown-item disabled">Nenhum estilo cadastrado</span></li>
                     <?php endif; ?>
                 </ul>
             </div>
         </div>
 
         <div class="row">
-            <?php if(isset($trabalhos) && count($trabalhos) > 0): ?>
-                <?php foreach($trabalhos as $item): ?>
-                   <div class="col-lg-3 col-md-4 col-6 mb-4">
-                     <div class="portfolio-item">
-                          <img src="../imagens/portfolio/<?= $item['imagem'] ?>" alt="<?= htmlspecialchars($item['titulo']) ?>" class="img-fluid">
-                          <div class="portfolio-detalhes-overlay">
-                              <h5 class="detalhes-titulo"><?= htmlspecialchars($item['titulo']) ?></h5>
-                              <p class="detalhes-info">Estilo: <?= $item['estilo_nome'] ?></p>
-                              <p class="detalhes-info">Tempo: <?= $item['tempo_execucao'] ?></p>
-                              <p class="detalhes-info">Sessões: <?= $item['qtd_sessoes'] ?></p>
-                              <p class="detalhes-info">Local: <?= $item['local_corpo'] ?></p>
-                          </div>
-                     </div>
-                   </div>
-                <?php endforeach; ?>
-             <?php else: ?>
-                  <p class="text-white col-12">Nenhum trabalho encontrado.</p>
-             <?php endif; ?>
-        </div>
-
-        <?php if(isset($total_paginas) && $total_paginas > 1): ?>
-        <nav class="mt-5">
-            <ul class="pagination justify-content-center">
-                <li class="page-item <?= ($pagina_atual <= 1) ? 'disabled' : '' ?>">
-                  <a class="page-link" href="?pagina=<?= $pagina_atual - 1 ?>&estilo=<?= $estilo_selecionado ?>">Anterior</a>
-                </li>
-        
-                <?php for($i = 1; $i <= $total_paginas; $i++): ?>
-                    <li class="page-item <?= ($pagina_atual == $i) ? 'active' : '' ?>">
-                        <a class="page-link" href="?pagina=<?= $i ?>&estilo=<?= $estilo_selecionado ?>"><?= $i ?></a>
-                    </li>
-                <?php endfor; ?>
-
-                <li class="page-item <?= ($pagina_atual >= $total_paginas) ? 'disabled' : '' ?>">
-                  <a class="page-link" href="?pagina=<?= $pagina_atual + 1 ?>&estilo=<?= $estilo_selecionado ?>">Próximo</a>
-                </li>
-            </ul>
-        </nav>
-        <?php endif; ?>
-
-    </div>
-</main>
-
-<?php include '../includes/footer.php'; ?><?php
-session_start();
-$titulo_pagina = "Portfólio";
-include '../includes/header.php';
-include '../actions/a.portfolio.php';
-?>
-
-<?php
-// Menu para usuários logados
-if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
-    $pagina_ativa = basename($_SERVER['PHP_SELF']);
-    echo '<div class="submenu-painel">';
-    if ($_SESSION['usuario_perfil'] == 'artista') {
-        echo '<a href="dashboard-artista.php" class="' . ($pagina_ativa == 'dashboard-artista.php' ? 'active' : '') . '">Início</a>';
-        echo '<a href="agenda.php" class="' . ($pagina_ativa == 'agenda.php' ? 'active' : '') . '">Agenda</a>';
-        echo '<a href="portfolio-artista.php" class="' . ($pagina_ativa == 'portfolio-artista.php' ? 'active' : '') . '">Portfólio</a>';
-        echo '<a href="relatorios-artista.php" class="' . ($pagina_ativa == 'relatorios-artista.php' ? 'active' : '') . '">Relatórios</a>';
-        echo '<a href="configuracoes-artista.php" class="' . ($pagina_ativa == 'configuracoes-artista.php' ? 'active' : '') . '">Configurações</a>';
-    } else {
-        echo '<a href="dashboard-cliente.php" class="' . ($pagina_ativa == 'dashboard-cliente.php' ? 'active' : '') . '">Início</a>';
-        echo '<a href="agendamentos-cliente.php" class="' . ($pagina_ativa == 'agendamentos-cliente.php' ? 'active' : '') . '">Meus Agendamentos</a>';
-        echo '<a href="solicitar-orcamento.php" class="' . ($pagina_ativa == 'solicitar-orcamento.php' ? 'active' : '') . '">Orçamento</a>';
-        echo '<a href="configuracoes-cliente.php" class="' . ($pagina_ativa == 'configuracoes-cliente.php' ? 'active' : '') . '">Configurações</a>';
-    }
-    echo '</div>';
-}
-?>
-
-<main>
-    <div class="container text-center my-5 py-5">
-        <h2 class="mb-5">GALERIA DE TRABALHOS</h2>
-
-        <div class="filtros-portfolio mb-5">
-            <div class="dropdown">
-                <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                    Filtrar por Estilo
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <li><a class="dropdown-item" href="?estilo=todos">Todos</a></li>
-                    <?php foreach($lista_estilos as $est): ?>
-                        <li><a class="dropdown-item" href="?estilo=<?= urlencode($est['nome']) ?>"><?= $est['nome'] ?></a></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        </div>
-
-        <div class="row">
-            <?php if(count($trabalhos) > 0): ?>
+            <?php if(!empty($trabalhos)): ?>
                 <?php foreach($trabalhos as $item): ?>
                     <div class="col-lg-3 col-md-4 col-6 mb-4">
                         <div class="portfolio-item">
@@ -149,15 +70,24 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                             <div class="portfolio-detalhes-overlay">
                                 <h5 class="detalhes-titulo"><?= htmlspecialchars($item['titulo']) ?></h5>
                                 <p class="detalhes-info">Estilo: <?= $item['estilo_nome'] ?></p>
-                                <p class="detalhes-info">Tempo: <?= $item['tempo_execucao'] ?></p>
-                                <p class="detalhes-info">Sessões: <?= $item['qtd_sessoes'] ?></p>
                                 <p class="detalhes-info">Local: <?= $item['local_corpo'] ?></p>
+                                
+                                <?php if (isset($_SESSION['usuario_perfil']) && $_SESSION['usuario_perfil'] === 'artista'): ?>
+                                    <hr class="border-light w-75">
+                                    <a href="../actions/a.excluir-portfolio.php?id=<?= $item['id_portfolio'] ?>" 
+                                       class="btn btn-danger btn-sm w-100" 
+                                       onclick="return confirm('Deseja excluir este trabalho?')">
+                                       <i class="bi bi-trash me-1"></i> Excluir
+                                    </a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <div class="col-12"><p class="text-white">Nenhum trabalho encontrado para este estilo.</p></div>
+                <div class="col-12 py-5">
+                    <p class="text-white-50">Nenhum trabalho encontrado para este estilo no momento.</p>
+                </div>
             <?php endif; ?>
         </div>
 
@@ -165,15 +95,15 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         <nav class="mt-5">
             <ul class="pagination justify-content-center">
                 <li class="page-item <?= ($pagina_atual <= 1) ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?pagina=<?= $pagina_atual - 1 ?>&estilo=<?= $estilo_selecionado ?>">Anterior</a>
+                    <a class="page-link" href="?pagina=<?= $pagina_atual - 1 ?>&estilo=<?= urlencode($estilo_selecionado) ?>">Anterior</a>
                 </li>
                 <?php for($i = 1; $i <= $total_paginas; $i++): ?>
                     <li class="page-item <?= ($pagina_atual == $i) ? 'active' : '' ?>">
-                        <a class="page-link" href="?pagina=<?= $i ?>&estilo=<?= $estilo_selecionado ?>"><?= $i ?></a>
+                        <a class="page-link" href="?pagina=<?= $i ?>&estilo=<?= urlencode($estilo_selecionado) ?>"><?= $i ?></a>
                     </li>
                 <?php endfor; ?>
                 <li class="page-item <?= ($pagina_atual >= $total_paginas) ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?pagina=<?= $pagina_atual + 1 ?>&estilo=<?= $estilo_selecionado ?>">Próximo</a>
+                    <a class="page-link" href="?pagina=<?= $pagina_atual + 1 ?>&estilo=<?= urlencode($estilo_selecionado) ?>">Próximo</a>
                 </li>
             </ul>
         </nav>
