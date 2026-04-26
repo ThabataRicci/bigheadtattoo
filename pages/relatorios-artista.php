@@ -506,19 +506,20 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 <table class="d-none" id="sombra-tab-historico">
                     <thead>
                         <tr>
+                            <th>ID do Projeto</th>
                             <th>Data</th>
                             <th>Hora</th>
                             <th>Cliente</th>
                             <th>Telefone Cliente</th>
                             <th>Email Cliente</th>
-                            <th>Projeto Titulo</th>
+                            <th>Título do Projeto</th>
                             <th>Local do Corpo</th>
                             <th>Ideia do Cliente</th>
-                            <th>Duracao da Sessao</th>
-                            <th>Sessoes Estimadas Totais</th>
-                            <th>Sessao Num</th>
-                            <th>Status Sessao</th>
-                            <th>Valor da Sessao</th>
+                            <th>Duração (Estimada)</th>
+                            <th>Total Sessões (Estimado)</th>
+                            <th>Sessão Atual / Total</th>
+                            <th>Status Sessão</th>
+                            <th>Valor da Sessão (R$)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -526,6 +527,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                             $data_sessao = new DateTime($hist['data_hora']);
                         ?>
                             <tr>
+                                <td data-t="n"><?php echo $hist['id_projeto']; ?></td>
                                 <td><?php echo $data_sessao->format('d/m/Y'); ?></td>
                                 <td><?php echo $data_sessao->format('H:i'); ?></td>
                                 <td><?php echo htmlspecialchars($hist['cliente_nome']); ?></td>
@@ -535,10 +537,10 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 <td><?php echo htmlspecialchars($hist['local_corpo'] ?? 'Não informado'); ?></td>
                                 <td><?php echo htmlspecialchars($hist['descricao_ideia'] ?? 'Não informada'); ?></td>
                                 <td><?php echo htmlspecialchars($hist['estimativa_tempo'] ?? '-'); ?></td>
-                                <td><?php echo htmlspecialchars($hist['qtd_sessoes'] ?? '-'); ?></td>
+                                <td data-t="n"><?php echo htmlspecialchars($hist['qtd_sessoes'] ?? '0'); ?></td>
                                 <td data-t="s"><?php echo htmlspecialchars($hist['num_sessao_formatado']); ?></td>
                                 <td><?php echo htmlspecialchars($hist['status']); ?></td>
-                                <td><?php echo !empty($hist['valor_sessao']) ? "R$ " . number_format($hist['valor_sessao'], 2, ',', '.') : '-'; ?></td>
+                                <td data-t="n"><?php echo !empty($hist['valor_sessao']) ? number_format($hist['valor_sessao'], 2, '.', '') : '0.00'; ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -1039,7 +1041,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 });
         };
 
-        // --- 5. DELEGAÇÃO DE EVENTOS ---
         document.addEventListener('click', function(e) {
             const target = e.target.closest('.btn-detalhes-cliente, .btn-detalhes-projeto, .btn-detalhes-projeto-interno');
             if (!target) return;
@@ -1063,7 +1064,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <script>
-    // --- NOVA LÓGICA PARA EXPORTAR .XLSX BONITO (SEM AVISOS) ---
     function exportarParaExcel(idTabPane, nomeArquivoBase) {
         const idSombra = 'sombra-' + idTabPane;
         const tabela = document.getElementById(idSombra);
@@ -1072,18 +1072,16 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             return;
         }
 
-        // O SheetJS converte a tabela HTML direta em uma planilha Excel real (.xlsx)
         const workbook = XLSX.utils.table_to_book(tabela, {
-            sheet: "Relatorio"
+            sheet: "Relatorio",
+            raw: true
         });
 
-        // Isso ajusta a largura das colunas automaticamente para ficar "bonitinho"
         const worksheet = workbook.Sheets["Relatorio"];
         const colunas = [];
         const range = XLSX.utils.decode_range(worksheet['!ref']);
-
         for (let C = range.s.c; C <= range.e.c; ++C) {
-            let max_width = 10;
+            let max_width = 12;
             for (let R = range.s.r; R <= range.e.r; ++R) {
                 let cell = worksheet[XLSX.utils.encode_cell({
                     c: C,
@@ -1098,12 +1096,14 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             };
         }
         worksheet['!cols'] = colunas;
+        worksheet['!autofilter'] = {
+            ref: worksheet['!ref']
+        };
 
-        // Pega a data atual para o nome do arquivo ficar profissional
+        // Nome do arquivo com data
         let hj = new Date();
         let strData = hj.getDate().toString().padStart(2, '0') + "_" + (hj.getMonth() + 1).toString().padStart(2, '0') + "_" + hj.getFullYear();
 
-        // Baixa o arquivo em formato .xlsx nativo sem mensagens de erro
         XLSX.writeFile(workbook, nomeArquivoBase + '_' + strData + '.xlsx');
     }
 </script>

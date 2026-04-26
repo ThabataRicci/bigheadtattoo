@@ -13,7 +13,7 @@
             <div class="col-md-4 mb-3 mb-md-0">
                 <a href="https://wa.me/5519992206697" target="_blank" class="text-decoration-none text-light">
                     <i class="bi bi-whatsapp text-success me-2"></i>
-                    (19) 99220-6697
+                    (19) 99220-6690
                 </a>
             </div>
 
@@ -25,7 +25,7 @@
             </div>
 
         </div>
-        <p class="mt-4 mb-0 small text-white-50">© 2026 Studio Big Head Tattoo</p>
+        <p class="mt-4 mb-0 small text-white-50">© 2026 | Big Head Tattoo</p>
     </div>
 </footer>
 
@@ -47,7 +47,7 @@
                     submitButtons.forEach(btn => {
 
                         if (!btn.disabled) {
-                            // Desativa o botão para impedir novos cliques
+
                             btn.disabled = true;
 
                             if (btn.tagName.toLowerCase() === 'button') {
