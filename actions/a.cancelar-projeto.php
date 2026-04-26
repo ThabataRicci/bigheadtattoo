@@ -44,7 +44,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $sql_projeto = "UPDATE projeto SET status = 'Cancelado', motivo_reagendamento = NULL WHERE id_projeto = ?";
             $pdo->prepare($sql_projeto)->execute([$id_projeto]);
 
-            // ================= NOTIFICAÇÃO DUPLA (COMPROVANTE + AVISO) =================
             // Puxando todos os detalhes do projeto e orçamento (sem a data da sessão)
             $stmt_cli = $pdo->prepare("
                 SELECT u.nome, u.email, p.titulo, o.local_corpo, o.tamanho_aproximado, o.qtd_sessoes, o.estimativa_tempo, o.valor_sessao 

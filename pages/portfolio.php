@@ -70,7 +70,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         color: #fff !important;
     }
 
-    /* --- ESTILOS ADICIONAIS PORTFÓLIO --- */
     .filtro-item {
         text-align: left;
     }
