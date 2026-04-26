@@ -27,6 +27,10 @@ include '../includes/header.php';
                         echo '<div class="alert alert-danger text-center">O domínio do e-mail informado não parece ser válido. Verifique se digitou corretamente.</div>';
                     }
                 }
+
+                // Resgata os dados salvos caso tenha ocorrido um erro e limpa a sessão
+                $backup = $_SESSION['form_backup'] ?? [];
+                unset($_SESSION['form_backup']);
                 ?>
 
                 <form class="formulario-container" action="../actions/a.cadastro.php" method="POST">
@@ -35,17 +39,23 @@ include '../includes/header.php';
 
                     <div class="mb-3">
                         <label for="nome" class="form-label">Nome Completo:</label>
-                        <input type="text" class="form-control" id="nome" name="nome" required>
+                        <input type="text" class="form-control" id="nome" name="nome" value="<?php echo htmlspecialchars($backup['nome'] ?? ''); ?>" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="telefone" class="form-label">Telefone:</label>
-                        <input type="tel" class="form-control" id="telefone" name="telefone" required>
+                        <input type="tel" class="form-control" id="telefone" name="telefone" value="<?php echo htmlspecialchars($backup['telefone'] ?? ''); ?>" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="data_nascimento" class="form-label text-light">Data de Nascimento</label>
+                        <input type="date" class="form-control bg-dark text-light border-secondary"
+                            id="data_nascimento" name="data_nascimento" value="<?php echo htmlspecialchars($backup['data_nascimento'] ?? ''); ?>" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="email" class="form-label">E-mail:</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($backup['email'] ?? ''); ?>" required>
                     </div>
 
                     <div class="mb-3">

@@ -10,7 +10,7 @@ if (!isset($_SESSION['usuario_id'])) {
 $id = $_SESSION['usuario_id'];
 
 // busca os dados do cliente no BD
-$stmt = $pdo->prepare("SELECT nome, email, telefone FROM usuario WHERE id_usuario = ?");
+$stmt = $pdo->prepare("SELECT nome, email, telefone, data_nascimento FROM usuario WHERE id_usuario = ?");
 $stmt->execute([$id]);
 $user = $stmt->fetch();
 
@@ -86,9 +86,14 @@ if (isset($_SESSION['usuario_id'])) {
                                 <input type="email" class="form-control" name="email" value="<?php echo $user['email']; ?>" required>
                             </div>
 
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label for="telefone" class="form-label">Telefone:</label>
                                 <input type="tel" class="form-control" id="telefone" name="telefone" value="<?php echo $user['telefone']; ?>" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
+                                <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" value="<?php echo $user['data_nascimento']; ?>" required>
                             </div>
                         </div>
 

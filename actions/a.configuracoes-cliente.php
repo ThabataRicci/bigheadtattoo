@@ -7,6 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['usuario_id'])) {
     $nome = $_POST['nome'];
     $email = $_POST['email'];
     $tel_limpo = preg_replace('/\D/', '', $_POST['telefone']);
+    $data_nascimento = $_POST['data_nascimento'];
 
     $senha_atual = $_POST['senha_atual'] ?? '';
     $nova_senha = $_POST['nova_senha'] ?? '';
@@ -23,9 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['usuario_id'])) {
             exit();
         }
 
-        // atualizacao de nome, email e telefone
-        $sql = "UPDATE usuario SET nome = ?, email = ?, telefone = ? WHERE id_usuario = ?";
-        $pdo->prepare($sql)->execute([$nome, $email, $tel_limpo, $id]);
+        // atualizacao de nome, email, telefone e data de nascimento
+        $sql = "UPDATE usuario SET nome = ?, email = ?, telefone = ?, data_nascimento = ? WHERE id_usuario = ?";
+        $pdo->prepare($sql)->execute([$nome, $email, $tel_limpo, $data_nascimento, $id]);
 
         // logica da senha (se a nova senha for preenchida)
         if (!empty($nova_senha)) {

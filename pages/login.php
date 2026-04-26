@@ -21,6 +21,17 @@ include '../includes/header.php';
                     }
                 }
 
+                // EXIBE AVISO PARA MENOR DE IDADE
+                if (isset($_GET['aviso']) && $_GET['aviso'] == 'menor_idade') {
+                    echo '<div class="alert alert-warning text-center alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>
+                            <strong>Cadastro salvo, mas bloqueado temporariamente!</strong><br>
+                            O Studio Big Head Tattoo não realiza procedimentos em menores de 18 anos. 
+                            Sua conta ficará suspensa até você completar a maioridade.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>';
+                }
+
                 // exibe mensagens de SUCESSO dinâmicas
                 if (isset($_GET['sucesso'])) {
                     if ($_GET['sucesso'] == 'conta_excluida') {

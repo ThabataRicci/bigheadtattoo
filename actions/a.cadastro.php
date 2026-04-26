@@ -1,16 +1,25 @@
 <?php
 session_start();
 require_once '../includes/conexao.php'; // conexao banco de dados
-require_once '../includes/enviar_email.php'; // Adicionamos o motor de e-mail
+require_once '../includes/enviar_email.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nome = $_POST['nome'];
     $telefone_formatado = $_POST['telefone'];
     $telefone_limpo = preg_replace('/[^0-9]/', '', $telefone_formatado);
     $email = trim($_POST['email']);
+    $data_nascimento = $_POST['data_nascimento'];
     $senha = $_POST['senha'];
     $confirmar = $_POST['confirmar-senha'];
     $redirect = $_POST['redirect'] ?? '';
+
+    // SALVA OS DADOS TEMPORARIAMENTE CASO DÊ ALGUM ERRO (Exceto senhas)
+    $_SESSION['form_backup'] = [
+        'nome' => $nome,
+        'telefone' => $telefone_formatado,
+        'data_nascimento' => $data_nascimento,
+        'email' => $email
+    ];
 
     // --- NOVA VALIDAÇÃO DE E-MAIL (DNS) ---
     $dominio = substr(strrchr($email, "@"), 1);
@@ -41,23 +50,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
     try {
-        $sql = "INSERT INTO usuario (nome, telefone, email, senha, perfil) VALUES (?, ?, ?, ?, 'cliente')";
+        // --- CALCULAR IDADE E DEFINIR STATUS ---
+        $dataNascObjeto = new DateTime($data_nascimento);
+        $hoje = new DateTime('today');
+        $idade = $dataNascObjeto->diff($hoje)->y;
+
+        $status_inicial = ($idade < 18) ? 'Bloqueado' : 'Ativo';
+
+        // --- INSERIR NO BANCO ---
+        $sql = "INSERT INTO usuario (nome, telefone, email, senha, perfil, data_nascimento, status, data_cadastro) VALUES (?, ?, ?, ?, 'cliente', ?, ?, NOW())";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$nome, $telefone_limpo, $email, $senha_hash]);
+        $stmt->execute([$nome, $telefone_limpo, $email, $senha_hash, $data_nascimento, $status_inicial]);
 
         $id_novo_usuario = $pdo->lastInsertId();
-        $_SESSION['usuario_id'] = $id_novo_usuario;
-        $_SESSION['usuario_nome'] = $nome;
-        $_SESSION['usuario_perfil'] = 'cliente';
-        $_SESSION['loggedin'] = true;
 
-        // ================= E-MAIL DE BOAS-VINDAS =================
-        $link = "https://" . $_SERVER['HTTP_HOST'] . "/pages/login.php";
+        unset($_SESSION['form_backup']);
 
-        // Pega só o primeiro nome da pessoa para ficar mais amigável
-        $primeiro_nome = explode(" ", $nome)[0];
+        // --- LÓGICA DE DIRECIONAMENTO COM BASE NA IDADE ---
+        if ($idade < 18) {
+            // Menor de idade: NÃO loga, NÃO manda e-mail, manda pro login com aviso de bloqueio
+            header("Location: ../pages/login.php?aviso=menor_idade");
+            exit();
+        } else {
+            // Maior de idade: Loga normalmente e manda e-mail
+            $_SESSION['usuario_id'] = $id_novo_usuario;
+            $_SESSION['usuario_nome'] = $nome;
+            $_SESSION['usuario_perfil'] = 'cliente';
+            $_SESSION['loggedin'] = true;
 
-        $msg = "
+            // ================= E-MAIL DE BOAS-VINDAS =================
+            $link = "https://" . $_SERVER['HTTP_HOST'] . "/pages/login.php";
+            $primeiro_nome = explode(" ", $nome)[0];
+
+            $msg = "
 <div style='font-family: Arial, sans-serif; background-color: #000000; color: #f8f9fa; padding: 40px 20px; border-radius: 10px; max-width: 600px; margin: 0 auto; border: 1px solid #333;'>
     <div style='text-align: center; margin-bottom: 30px;'><h1 style='color: #ffffff; margin: 0; letter-spacing: 2px;'>BIG HEAD TATTOO</h1></div>
     <div style='background-color: #212529; padding: 30px; border-radius: 8px; border-top: 4px solid #ffffff;'>
@@ -84,15 +109,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 </div>";
-        dispararEmail($email, $nome, "Bem-vindo(a) ao Big Head Tattoo!", $msg);
-        // =========================================================
+            dispararEmail($email, $nome, "Bem-vindo(a) ao Big Head Tattoo!", $msg);
+            // =========================================================
 
-        if ($redirect === 'solicitar-orcamento.php') {
-            header("Location: ../pages/solicitar-orcamento.php");
-        } else {
-            header("Location: ../pages/dashboard-cliente.php");
+            if ($redirect === 'solicitar-orcamento.php') {
+                header("Location: ../pages/solicitar-orcamento.php");
+            } else {
+                header("Location: ../pages/dashboard-cliente.php");
+            }
+            exit();
         }
-        exit();
     } catch (PDOException $e) {
         if ($e->getCode() == 23000) {
             header("Location: ../pages/cadastro.php?erro=email&redirect=" . urlencode($redirect));

@@ -69,6 +69,20 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         background-color: transparent !important;
         color: #fff !important;
     }
+
+    /* --- ESTILOS ADICIONAIS PORTFÓLIO --- */
+    .filtro-item {
+        text-align: left;
+    }
+
+    .btn-square-filtro {
+        width: 36px !important;
+        height: 36px !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0 !important;
+    }
 </style>
 
 <main>
@@ -76,21 +90,68 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
         <h2 class="mb-5">GALERIA DE TRABALHOS</h2>
 
-        <div class="filtros-portfolio mb-5">
-            <div class="dropdown">
-                <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                    Filtrar por Estilo
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <li><a class="dropdown-item" href="?estilo=todos">Todos</a></li>
+        <form class="filtro-container mb-5 d-flex flex-wrap gap-2 align-items-end" method="GET">
+
+            <div class="filtro-item flex-grow-1">
+                <label class="form-label small mb-1">Título:</label>
+                <input type="text" class="form-control form-control-sm" name="titulo" value="<?php echo htmlspecialchars($titulo_filtro ?? ''); ?>">
+            </div>
+
+            <div class="filtro-item flex-grow-1">
+                <label class="form-label small mb-1">Estilo:</label>
+                <select name="estilo" class="form-select form-select-sm bg-dark text-light border-secondary" style="background-color: #2c2c2c !important;">
+                    <option value="todos">Todos</option>
                     <?php if (isset($lista_estilos)): ?>
                         <?php foreach ($lista_estilos as $est): ?>
-                            <li><a class="dropdown-item" href="?estilo=<?= urlencode($est['nome']) ?>"><?= htmlspecialchars($est['nome']) ?></a></li>
+                            <option value="<?= htmlspecialchars($est['nome']) ?>" <?= (isset($estilo_filtro) && $estilo_filtro == $est['nome']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($est['nome']) ?>
+                            </option>
                         <?php endforeach; ?>
                     <?php endif; ?>
-                </ul>
+                </select>
             </div>
-        </div>
+
+            <div class="filtro-item flex-grow-1">
+                <label class="form-label small mb-1">Local do Corpo:</label>
+                <input type="text" class="form-control form-control-sm" name="local_corpo" value="<?php echo htmlspecialchars($local_filtro ?? ''); ?>">
+            </div>
+
+            <div class="filtro-item" style="width: 70px;">
+                <label class="form-label small mb-1">Sessões:</label>
+                <input type="number" class="form-control form-control-sm" name="qtd_sessoes" min="1" value="<?php echo htmlspecialchars($sessoes_filtro ?? ''); ?>">
+            </div>
+
+            <div class="filtro-item">
+                <label class="form-label small mb-1">Data Publicação:</label>
+                <input type="date" class="form-control form-control-sm" name="data_inicio" value="<?php echo htmlspecialchars($data_inicio ?? ''); ?>">
+            </div>
+
+            <div class="filtro-item">
+                <label class="form-label small mb-1"> </label>
+                <input type="date" class="form-control form-control-sm" name="data_fim" value="<?php echo htmlspecialchars($data_fim ?? ''); ?>">
+            </div>
+
+            <button type="submit" class="btn btn-sm btn-primary btn-square-filtro" title="Aplicar Filtros">
+                <i class="bi bi-check-lg"></i>
+            </button>
+            <a href="portfolio.php" class="btn btn-sm btn-outline-secondary btn-square-filtro" title="Limpar Filtros">
+                <i class="bi bi-x-lg"></i>
+            </a>
+
+            <div class="d-flex gap-2 align-items-end ms-auto">
+                <input type="hidden" name="ordem" id="input-ordem" value="<?php echo htmlspecialchars($ordem ?? 'desc'); ?>">
+
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-light btn-square-filtro" type="button" data-bs-toggle="dropdown" title="Ordenar">
+                        <i class="bi bi-sort-down"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a href="#" class="dropdown-item <?php if (!isset($ordem) || $ordem == 'desc') echo 'active'; ?>" onclick="document.getElementById('input-ordem').value='desc'; this.closest('form').submit(); return false;">Mais Recentes</a></li>
+                        <li><a href="#" class="dropdown-item <?php if (isset($ordem) && $ordem == 'asc') echo 'active'; ?>" onclick="document.getElementById('input-ordem').value='asc'; this.closest('form').submit(); return false;">Mais Antigas</a></li>
+                    </ul>
+                </div>
+            </div>
+        </form>
 
         <div class="row">
             <?php if (isset($trabalhos) && count($trabalhos) > 0): ?>
@@ -117,22 +178,26 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         $pagina_atual = $pagina_atual ?? 1;
 
         if (isset($total_paginas) && $total_paginas >= 1):
+            // Gera a URL dinâmica pegando todos os filtros atuais para não perder a pesquisa ao mudar de página
+            $query_params = $_GET;
+            unset($query_params['pagina']); // Tira a página atual para substituir pela nova
+            $base_url = "?" . http_build_query($query_params) . (!empty($query_params) ? "&" : "") . "pagina=";
         ?>
             <nav class="mt-5">
                 <ul class="pagination justify-content-center">
 
                     <li class="page-item <?= ($pagina_atual <= 1) ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?pagina=<?= $pagina_atual - 1 ?>&estilo=<?= urlencode($estilo_filtro ?? 'todos') ?>">Anterior</a>
+                        <a class="page-link" href="<?= $base_url . ($pagina_atual - 1) ?>">Anterior</a>
                     </li>
 
                     <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
                         <li class="page-item <?= ($pagina_atual == $i) ? 'active' : '' ?>">
-                            <a class="page-link" href="?pagina=<?= $i ?>&estilo=<?= urlencode($estilo_filtro ?? 'todos') ?>"><?= $i ?></a>
+                            <a class="page-link" href="<?= $base_url . $i ?>"><?= $i ?></a>
                         </li>
                     <?php endfor; ?>
 
                     <li class="page-item <?= ($pagina_atual >= $total_paginas) ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?pagina=<?= $pagina_atual + 1 ?>&estilo=<?= urlencode($estilo_filtro ?? 'todos') ?>">Próximo</a>
+                        <a class="page-link" href="<?= $base_url . ($pagina_atual + 1) ?>">Próximo</a>
                     </li>
 
                 </ul>

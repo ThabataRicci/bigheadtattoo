@@ -91,7 +91,7 @@ $cli_fim = $_GET['cli-data-fim'] ?? '';
 $cli_status = $_GET['cli-status'] ?? '';
 $cli_ordem = $_GET['cli-ordem'] ?? 'data_desc';
 
-$sql_cli = "SELECT u.id_usuario, u.nome, u.email, u.telefone, u.data_cadastro, u.status,
+$sql_cli = "SELECT u.id_usuario, u.nome, u.email, u.telefone, u.data_cadastro, u.status, u.data_nascimento,
                    (SELECT COUNT(*) FROM sessao s JOIN projeto p ON s.id_projeto = p.id_projeto WHERE p.id_usuario = u.id_usuario AND s.status = 'Concluído') as qtd_sessoes
             FROM usuario u 
             WHERE u.perfil = 'cliente'";
@@ -122,6 +122,8 @@ if ($cli_ordem == 'data_asc') {
     $sql_cli .= " ORDER BY qtd_sessoes ASC";
 } elseif ($cli_ordem == 'alfa') {
     $sql_cli .= " ORDER BY u.nome ASC";
+} elseif ($cli_ordem == 'status') {
+    $sql_cli .= " ORDER BY u.status ASC, u.nome ASC";
 } else {
     $sql_cli .= " ORDER BY u.data_cadastro DESC";
 }
@@ -251,8 +253,16 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         }
 
         .tabela-fixa {
-            height: 700px;
+            max-height: 60vh;
             overflow-y: auto;
+        }
+
+        .tabela-fixa thead th {
+            position: sticky;
+            top: 0;
+            background-color: #2C2C2C !important;
+            z-index: 10;
+            box-shadow: inset 0 -1px 0 #444;
         }
 
         .tabela-fixa::-webkit-scrollbar {
@@ -384,14 +394,16 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     </a>
 
                     <div class="d-flex gap-2 align-items-end ms-auto">
+                        <input type="hidden" name="hist-ordem" id="input-hist-ordem" value="<?php echo $hist_ordem; ?>">
+
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-light btn-square-filtro" type="button" data-bs-toggle="dropdown" title="Ordenar">
                                 <i class="bi bi-sort-down"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-dark">
-                                <li><button type="submit" name="hist-ordem" value="data_desc" class="dropdown-item <?php if ($hist_ordem == 'data_desc') echo 'active'; ?>">Mais recentes</button></li>
-                                <li><button type="submit" name="hist-ordem" value="data_asc" class="dropdown-item <?php if ($hist_ordem == 'data_asc') echo 'active'; ?>">Mais antigas</button></li>
-                                <li><button type="submit" name="hist-ordem" value="status" class="dropdown-item <?php if ($hist_ordem == 'status') echo 'active'; ?>">Por Status</button></li>
+                                <li><a href="#" class="dropdown-item <?php if ($hist_ordem == 'data_desc') echo 'active'; ?>" onclick="document.getElementById('input-hist-ordem').value='data_desc'; this.closest('form').submit(); return false;">Mais recentes</a></li>
+                                <li><a href="#" class="dropdown-item <?php if ($hist_ordem == 'data_asc') echo 'active'; ?>" onclick="document.getElementById('input-hist-ordem').value='data_asc'; this.closest('form').submit(); return false;">Mais antigas</a></li>
+                                <li><a href="#" class="dropdown-item <?php if ($hist_ordem == 'status') echo 'active'; ?>" onclick="document.getElementById('input-hist-ordem').value='status'; this.closest('form').submit(); return false;">Por Status</a></li>
                             </ul>
                         </div>
                         <button type="button" onclick="exportarParaExcel('tab-historico', 'relatorio_sessoes')" class="btn btn-sm btn-outline-success btn-square-filtro" title="Exportar Tabela Inteira (com filtros)">
@@ -402,7 +414,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                 <div class="table-responsive tabela-fixa">
                     <table class="table table-dark table-hover align-middle">
-                        <thead class="sticky-top bg-dark">
+                        <thead class="bg-dark">
                             <tr>
                                 <th scope="col">Data</th>
                                 <th scope="col">Cliente</th>
@@ -426,11 +438,29 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                     <tr>
                                         <td class="text-nowrap"><?php echo $data_sessao->format('d/m/Y | H:i'); ?></td>
                                         <td>
+                                            <?php
+                                            // --- Lógica para pegar nascimento e idade (precisamos fazer um mini-select pois o dado não tá no JOIN principal) ---
+                                            $stmt_nasc = $pdo->prepare("SELECT data_nascimento FROM usuario WHERE id_usuario = ?");
+                                            $stmt_nasc->execute([$hist['id_usuario']]);
+                                            $nasc_bd = $stmt_nasc->fetchColumn();
+
+                                            $nasc_formatado = 'Não informada';
+                                            $idade_cliente = '-';
+
+                                            if ($nasc_bd) {
+                                                $data_nasc_obj = new DateTime($nasc_bd);
+                                                $hoje_obj = new DateTime();
+                                                $idade_cliente = $hoje_obj->diff($data_nasc_obj)->y . ' anos';
+                                                $nasc_formatado = $data_nasc_obj->format('d/m/Y');
+                                            }
+                                            ?>
                                             <a href="#" class="text-light text-decoration-none btn-detalhes-cliente"
                                                 data-id="<?php echo $hist['id_usuario']; ?>"
                                                 data-nome="<?php echo htmlspecialchars($hist['cliente_nome']); ?>"
                                                 data-email="<?php echo htmlspecialchars($hist['email']); ?>"
                                                 data-telefone="<?php echo htmlspecialchars($hist['telefone']); ?>"
+                                                data-nascimento="<?php echo $nasc_formatado; ?>"
+                                                data-idade="<?php echo $idade_cliente; ?>"
                                                 data-cadastro="<?php echo date('d/m/Y', strtotime($hist['data_cadastro'])); ?>"
                                                 data-sessoes="<?php echo $hist['qtd_sessoes_total']; ?>"
                                                 data-gasto="<?php echo number_format($hist['total_gasto_cliente'] ?? 0, 2, ',', '.'); ?>"
@@ -597,16 +627,18 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     </a>
 
                     <div class="d-flex gap-2 align-items-end ms-auto">
+                        <input type="hidden" name="cli-ordem" id="input-cli-ordem" value="<?php echo $cli_ordem; ?>">
+
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-light btn-square-filtro" type="button" data-bs-toggle="dropdown" title="Ordenar">
                                 <i class="bi bi-sort-down"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-dark">
-                                <li><button type="submit" name="cli-ordem" value="data_desc" class="dropdown-item <?php if ($cli_ordem == 'data_desc') echo 'active'; ?>">Mais Recentes</button></li>
-                                <li><button type="submit" name="cli-ordem" value="data_asc" class="dropdown-item <?php if ($cli_ordem == 'data_asc') echo 'active'; ?>">Mais Antigos</button></li>
-                                <li><button type="submit" name="cli-ordem" value="sessoes_desc" class="dropdown-item <?php if ($cli_ordem == 'sessoes_desc') echo 'active'; ?>">Mais Sessões</button></li>
-                                <li><button type="submit" name="cli-ordem" value="sessoes_asc" class="dropdown-item <?php if ($cli_ordem == 'sessoes_asc') echo 'active'; ?>">Menos Sessões</button></li>
-                                <li><button type="submit" name="cli-ordem" value="alfa" class="dropdown-item <?php if ($cli_ordem == 'alfa') echo 'active'; ?>">Alfabético</button></li>
+                                <li><a href="#" class="dropdown-item <?php if ($cli_ordem == 'data_desc') echo 'active'; ?>" onclick="document.getElementById('input-cli-ordem').value='data_desc'; this.closest('form').submit(); return false;">Mais Recentes</a></li>
+                                <li><a href="#" class="dropdown-item <?php if ($cli_ordem == 'data_asc') echo 'active'; ?>" onclick="document.getElementById('input-cli-ordem').value='data_asc'; this.closest('form').submit(); return false;">Mais Antigos</a></li>
+                                <li><a href="#" class="dropdown-item <?php if ($cli_ordem == 'sessoes_desc') echo 'active'; ?>" onclick="document.getElementById('input-cli-ordem').value='sessoes_desc'; this.closest('form').submit(); return false;">Mais Sessões</a></li>
+                                <li><a href="#" class="dropdown-item <?php if ($cli_ordem == 'sessoes_asc') echo 'active'; ?>" onclick="document.getElementById('input-cli-ordem').value='sessoes_asc'; this.closest('form').submit(); return false;">Menos Sessões</a></li>
+                                <li><a href="#" class="dropdown-item <?php if ($cli_ordem == 'status') echo 'active'; ?>" onclick="document.getElementById('input-cli-ordem').value='status'; this.closest('form').submit(); return false;">Por Status</a></li>
                             </ul>
                         </div>
                         <button type="button" onclick="exportarParaExcel('tab-clientes', 'lista_clientes')" class="btn btn-sm btn-outline-success btn-square-filtro" title="Exportar Tabela Inteira (com filtros)">
@@ -617,11 +649,12 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                 <div class="table-responsive tabela-fixa">
                     <table class="table table-dark table-hover align-middle">
-                        <thead class="sticky-top bg-dark">
+                        <thead class="bg-dark">
                             <tr>
                                 <th scope="col">Nome</th>
                                 <th scope="col">E-mail</th>
                                 <th scope="col">Telefone</th>
+                                <th scope="col">Nascimento</th>
                                 <th scope="col" class="text-center">Sessões Realizadas</th>
                                 <th scope="col">Data Cadastro</th>
                                 <th scope="col" class="text-end"></th>
@@ -662,6 +695,9 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                                 <a href="<?php echo $wpp_link; ?>" target="_blank" class="text-success ms-2 text-decoration-none" title="Conversar no WhatsApp"><i class="bi bi-whatsapp"></i></a>
                                             <?php endif; ?>
                                         </td>
+                                        <td class="text-nowrap <?php echo $opacidade; ?>">
+                                            <?php echo !empty($cli['data_nascimento']) ? date('d/m/Y', strtotime($cli['data_nascimento'])) : '-'; ?>
+                                        </td>
                                         <td class="text-center fw-bold <?php echo $opacidade; ?>"><?php echo $cli['qtd_sessoes']; ?></td>
                                         <td class="<?php echo $opacidade; ?>"><?php echo $data_cad->format('d/m/Y'); ?></td>
                                         <td class="text-end">
@@ -690,6 +726,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                             <th>Status da Conta</th>
                             <th>E-mail</th>
                             <th>Telefone</th>
+                            <th>Data de Nascimento</th>
                             <th>Sessoes Concluidas (Historico)</th>
                         </tr>
                     </thead>
@@ -703,6 +740,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 <td><?php echo htmlspecialchars($cli['status'] ?? 'Ativo'); ?></td>
                                 <td><?php echo htmlspecialchars($cli['email']); ?></td>
                                 <td><?php echo htmlspecialchars($cli['telefone']); ?></td>
+                                <td><?php echo !empty($cli['data_nascimento']) ? date('d/m/Y', strtotime($cli['data_nascimento'])) : '-'; ?></td>
                                 <td><?php echo htmlspecialchars($cli['qtd_sessoes']); ?></td>
                             </tr>
                         <?php endforeach; ?>
@@ -799,8 +837,23 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-white-50">
+
                     <div class="row mb-3">
                         <div class="col-6">
+                            <span class="card-label" style="font-size: 0.7rem;">Idade / Nascimento</span>
+                            <span class="text-light fw-bold" id="mdlCliIdade"></span>
+                            <span class="small text-white-50 ms-1">(<span id="mdlCliNascimento"></span>)</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="card-label" style="font-size: 0.7rem;">Telefone / WhatsApp</span>
+                            <a href="" id="mdlCliWppLink" target="_blank" class="text-light text-decoration-none d-block">
+                                <i class="bi bi-whatsapp me-1 text-success"></i><span id="mdlCliTelefone"></span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12">
                             <span class="card-label" style="font-size: 0.7rem;">E-mail</span>
                             <div class="d-flex align-items-center">
                                 <span id="mdlCliEmail" class="text-light small me-2"></span>
@@ -808,12 +861,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                     <i class="bi bi-copy" style="font-size: 0.8rem; color: #aaa;"></i>
                                 </button>
                             </div>
-                        </div>
-                        <div class="col-6">
-                            <span class="card-label" style="font-size: 0.7rem;">Telefone / WhatsApp</span>
-                            <a href="" id="mdlCliWppLink" target="_blank" class="text-light text-decoration-none d-block">
-                                <i class="bi bi-whatsapp me-1"></i><span id="mdlCliTelefone"></span>
-                            </a>
                         </div>
                     </div>
 
@@ -829,22 +876,47 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     </div>
 
                     <hr class="border-secondary">
-
-                    <h6 class="text-light small fw-bold mb-2 border-bottom border-secondary pb-2">PROJETOS DESTE CLIENTE:</h6>
-                    <div id="mdlCliProjetos" class="mb-3 pe-2" style="max-height: 150px; overflow-y: auto;">
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="small">Cadastrado em: <span id="mdlCliCadastro"></span></span>
-                        <span id="mdlCliStatus" class="badge"></span>
-                    </div>
-                </div>
-                <div class="modal-footer border-top border-secondary pt-3">
-                    <div id="mdlCliAreaBotao"></div>
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary border-0 py-0 px-1" onclick="copiarEmail()" title="Copiar E-mail">
+                        <i class="bi bi-copy" style="font-size: 0.8rem; color: #aaa;"></i>
+                    </button>
                 </div>
             </div>
+            <div class="col-6">
+                <span class="card-label" style="font-size: 0.7rem;">Telefone / WhatsApp</span>
+                <a href="" id="mdlCliWppLink" target="_blank" class="text-light text-decoration-none d-block">
+                    <i class="bi bi-whatsapp me-1"></i><span id="mdlCliTelefone"></span>
+                </a>
+            </div>
         </div>
+
+        <div class="row mb-4">
+            <div class="col-6">
+                <span class="card-label" style="font-size: 0.7rem;">Sessões Concluídas</span>
+                <span id="mdlCliSessoes" class="text-light fw-bold"></span>
+            </div>
+            <div class="col-6">
+                <span class="card-label" style="font-size: 0.7rem;">Total Investido</span>
+                <span class="text-light fw-bold">R$ <span id="mdlCliTotalGasto"></span></span>
+            </div>
+        </div>
+
+        <hr class="border-secondary">
+
+        <h6 class="text-light small fw-bold mb-2 border-bottom border-secondary pb-2">PROJETOS DESTE CLIENTE:</h6>
+        <div id="mdlCliProjetos" class="mb-3 pe-2" style="max-height: 150px; overflow-y: auto;">
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="small">Cadastrado em: <span id="mdlCliCadastro"></span></span>
+            <span id="mdlCliStatus" class="badge"></span>
+        </div>
+    </div>
+    <div class="modal-footer border-top border-secondary pt-3">
+        <div id="mdlCliAreaBotao"></div>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Fechar</button>
+    </div>
+    </div>
+    </div>
     </div>
 
     <div class="modal fade" id="modalBloquearCliente" tabindex="-1">
@@ -926,6 +998,9 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             document.getElementById('mdlCliNome').innerText = btn.getAttribute('data-nome');
             document.getElementById('mdlCliEmail').innerText = btn.getAttribute('data-email');
             document.getElementById('mdlCliTelefone').innerText = btn.getAttribute('data-telefone');
+
+            document.getElementById('mdlCliNascimento').innerText = btn.getAttribute('data-nascimento');
+            document.getElementById('mdlCliIdade').innerText = btn.getAttribute('data-idade');
             document.getElementById('mdlCliTotalGasto').innerText = btn.getAttribute('data-gasto');
             document.getElementById('mdlCliSessoes').innerText = btn.getAttribute('data-sessoes');
             document.getElementById('mdlCliCadastro').innerText = btn.getAttribute('data-cadastro');
