@@ -142,15 +142,25 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         border-color: #dc3545;
         color: #dc3545;
     }
+
+    /* --- ESTILOS DO FILTRO DO PORTFÓLIO --- */
+    .filtro-item {
+        text-align: left;
+    }
+
+    .btn-square-filtro {
+        width: 36px !important;
+        height: 36px !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0 !important;
+    }
 </style>
 
 <main>
     <div class="container my-5 py-5">
-        <div class="text-center mb-5">
-            <button class="btn btn-outline-light px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalPortfolio">
-                <i class="bi bi-plus me-2"></i>ADICIONAR NOVO TRABALHO
-            </button>
-
+        <div class="text-center mb-4">
             <?php if (isset($_GET['sucesso'])): ?>
                 <div class="alert alert-success text-center alert-dismissible fade show mt-3 mx-auto" style="max-width: 600px;" role="alert">
                     Ação realizada com sucesso!
@@ -164,6 +174,73 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <?php endif; ?>
+        </div>
+
+        <form class="filtro-container mb-5 d-flex flex-wrap gap-2 align-items-end" method="GET">
+            <div class="filtro-item flex-grow-1">
+                <label class="form-label small mb-1">Título:</label>
+                <input type="text" class="form-control form-control-sm" name="titulo" value="<?php echo htmlspecialchars($titulo_filtro ?? ''); ?>">
+            </div>
+
+            <div class="filtro-item flex-grow-1">
+                <label class="form-label small mb-1">Estilo:</label>
+                <select name="estilo" class="form-select form-select-sm bg-dark text-light border-secondary" style="background-color: #2c2c2c !important;">
+                    <option value="todos">Todos</option>
+                    <?php if (isset($lista_estilos)): ?>
+                        <?php foreach ($lista_estilos as $est): ?>
+                            <option value="<?= htmlspecialchars($est['nome']) ?>" <?= (isset($estilo_filtro) && $estilo_filtro == $est['nome']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($est['nome']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
+
+            <div class="filtro-item flex-grow-1">
+                <label class="form-label small mb-1">Local do Corpo:</label>
+                <input type="text" class="form-control form-control-sm" name="local_corpo" value="<?php echo htmlspecialchars($local_filtro ?? ''); ?>">
+            </div>
+
+            <div class="filtro-item" style="width: 70px;">
+                <label class="form-label small mb-1">Sessões:</label>
+                <input type="number" class="form-control form-control-sm" name="qtd_sessoes" min="1" value="<?php echo htmlspecialchars($sessoes_filtro ?? ''); ?>">
+            </div>
+
+            <div class="filtro-item">
+                <label class="form-label small mb-1">Data Publicação:</label>
+                <input type="date" class="form-control form-control-sm" name="data_inicio" value="<?php echo htmlspecialchars($data_inicio ?? ''); ?>">
+            </div>
+
+            <div class="filtro-item">
+                <label class="form-label small mb-1"> </label>
+                <input type="date" class="form-control form-control-sm" name="data_fim" value="<?php echo htmlspecialchars($data_fim ?? ''); ?>">
+            </div>
+
+            <button type="submit" class="btn btn-sm btn-primary btn-square-filtro" title="Aplicar Filtros">
+                <i class="bi bi-check-lg"></i>
+            </button>
+            <a href="portfolio-artista.php" class="btn btn-sm btn-outline-secondary btn-square-filtro" title="Limpar Filtros">
+                <i class="bi bi-x-lg"></i>
+            </a>
+
+            <div class="d-flex gap-2 align-items-end ms-auto">
+                <input type="hidden" name="ordem" id="input-ordem" value="<?php echo htmlspecialchars($ordem ?? 'desc'); ?>">
+
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-light btn-square-filtro" type="button" data-bs-toggle="dropdown" title="Ordenar">
+                        <i class="bi bi-sort-down"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a href="#" class="dropdown-item <?php if (!isset($ordem) || $ordem == 'desc') echo 'active'; ?>" onclick="document.getElementById('input-ordem').value='desc'; this.closest('form').submit(); return false;">Mais Recentes</a></li>
+                        <li><a href="#" class="dropdown-item <?php if (isset($ordem) && $ordem == 'asc') echo 'active'; ?>" onclick="document.getElementById('input-ordem').value='asc'; this.closest('form').submit(); return false;">Mais Antigas</a></li>
+                    </ul>
+                </div>
+            </div>
+        </form>
+        <div class="text-center mb-4">
+            <button class="btn btn-outline-light px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalPortfolio">
+                <i class="bi bi-plus me-2"></i>ADICIONAR NOVO TRABALHO
+            </button>
         </div>
 
         <div class="row">

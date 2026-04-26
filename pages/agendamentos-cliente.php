@@ -46,9 +46,10 @@ try {
 
 // 2. BUSCAR PRÓXIMAS SESSÕES AGENDADAS
 try {
-    $sql_sessoes = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.referencia_ideia, o.qtd_sessoes, o.valor_sessao 
+    $sql_sessoes = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.referencia_ideia, o.qtd_sessoes, o.valor_sessao,
+                           (SELECT COUNT(*) FROM sessao s2 WHERE s2.id_projeto = p.id_projeto AND s2.status = 'Concluído') AS sessoes_realizadas
                     FROM sessao s 
-                    JOIN projeto p ON s.id_projeto = p.id_projeto 
+                    JOIN projeto p ON s.id_projeto = p.id_projeto
                     LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
                     WHERE p.id_usuario = ? AND s.status = 'Agendado' AND s.data_hora >= NOW() 
                     ORDER BY s.data_hora ASC";
@@ -88,6 +89,7 @@ try {
             'ref' => $row['referencia_ideia'] ? $row['referencia_ideia'] : 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
+            'sessoes_realizadas' => (int)$row['sessoes_realizadas'] + 1,
             'valor' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : 'Não definido',
             'historico_sessoes' => $historico_montado
         ];
@@ -118,7 +120,8 @@ try {
     }
 
     // 3.B AÇÃO REQUERIDA: Agendar ou Reagendar Sessão (Projeto já existente)
-    $sql_reagendar = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.qtd_sessoes, o.valor_sessao 
+    $sql_reagendar = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.qtd_sessoes, o.valor_sessao,
+                             (SELECT COUNT(*) FROM sessao s2 WHERE s2.id_projeto = p.id_projeto AND s2.status = 'Concluído') AS sessoes_realizadas
                       FROM projeto p 
                       LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento 
                       WHERE p.id_usuario = ? AND p.status = 'Agendamento Pendente' ORDER BY p.id_projeto ASC";
@@ -154,6 +157,7 @@ try {
             'ideia' => htmlspecialchars($row['descricao_ideia'] ?? 'Escolha a data.'),
             'ref' => 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
+            'sessoes_realizadas' => $row['sessoes_realizadas'],
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
             'valor' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : 'Não definido',
             'motivo_reagendamento' => $row['motivo_reagendamento'],
@@ -400,7 +404,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                     <p class="text-white-50 mb-2"><strong>Detalhes da Sessão:</strong></p>
                                     <div class="small mb-3">
                                         <p class="mb-1"><strong>Duração da Sessão:</strong> <?php echo $proj['duracao']; ?></p>
-                                        <p class="mb-1"><strong>Total de Sessões:</strong> <?php echo $proj['sessoes_estimadas']; ?></p>
+                                        <p class="mb-1"><strong>Sessões Realizadas:</strong> <?php echo ($proj['sessoes_realizadas'] ?? 0); ?> | Estimado: <?php echo $proj['sessoes_estimadas']; ?></p>
                                         <p class="mb-1"><strong>Valor da Sessão:</strong> R$ <?php echo $proj['valor']; ?></p>
                                     </div>
 
@@ -498,10 +502,10 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 
                                         <hr class="my-4" style="border-color: #444;">
 
-                                        <p class="text-white-50 mb-2"><strong>Detalhes da Sessão:</strong></p>
+                                        <p class="text-white-50 mb-2 mt-3"><strong>Detalhes da Sessão:</strong></p>
                                         <div class="small mb-3">
                                             <p class="mb-1"><strong>Duração da Sessão:</strong> <?php echo $sessao['duracao']; ?></p>
-                                            <p class="mb-1"><strong>Total de Sessões:</strong> <?php echo $sessao['sessoes_estimadas']; ?></p>
+                                            <p class="mb-1"><strong>Sessões Realizadas:</strong> <?php echo $sessao['sessoes_realizadas']; ?> | Estimado: <?php echo $sessao['sessoes_estimadas']; ?></p>
                                             <p class="mb-1"><strong>Valor da Sessão:</strong> R$ <?php echo $sessao['valor']; ?></p>
                                         </div>
                                         <hr class="my-4" style="border-color: #444;">

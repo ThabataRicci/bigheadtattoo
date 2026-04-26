@@ -12,6 +12,14 @@ $titulo_pagina = "Painel de Controle";
 $id_artista = $_SESSION['usuario_id'];
 
 // lógica do banco de dados:
+
+// 0. Busca estilos para o modal de portfólio
+try {
+    $lista_estilos = $pdo->query("SELECT * FROM estilo ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $lista_estilos = [];
+}
+
 // 1. busca os orçamentos pendentes (incluindo os que estão em negociação)
 try {
     $stmt_pendentes = $pdo->query("SELECT COUNT(*) FROM orcamento WHERE status = 'Pendente' OR status IS NULL OR status = 'Negociacao'");
@@ -45,8 +53,9 @@ try {
     $sql_sessoes_lista = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto, u.nome AS nome_cliente, 
                                  o.descricao_ideia, o.local_corpo, o.referencia_ideia, o.qtd_sessoes,
                                  COALESCE(s.valor_sessao, o.valor_sessao) AS valor_sessao, 
-                                 COALESCE(s.estimativa_tempo, o.estimativa_tempo) AS estimativa_tempo
-                          FROM sessao s 
+                                 COALESCE(s.estimativa_tempo, o.estimativa_tempo) AS estimativa_tempo,
+                                 (SELECT COUNT(*) FROM sessao s2 WHERE s2.id_projeto = p.id_projeto AND s2.status = 'Concluído') AS sessoes_realizadas
+                          FROM sessao s
                           JOIN projeto p ON s.id_projeto = p.id_projeto 
                           JOIN usuario u ON p.id_usuario = u.id_usuario 
                           LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
@@ -272,11 +281,17 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         </p>
 
                                         <p class="mb-1 mt-3"><strong>Duração Estimada:</strong> <?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? 'A definir'); ?></p>
-                                        <p class="mb-1"><strong>Sessões Estimadas:</strong> <?php echo htmlspecialchars($sessao['qtd_sessoes'] ?? '-'); ?></p>
+                                        <p class="mb-1"><strong>Sessões Realizadas:</strong> <?php echo ((int)$sessao['sessoes_realizadas'] + 1); ?> | Estimado: <?php echo htmlspecialchars($sessao['qtd_sessoes'] ?? '-'); ?></p>
                                         <p class="mb-3"><strong>Valor da Sessão:</strong> R$ <?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : 'Não definido'; ?></p>
 
                                         <div class="d-flex justify-content-end mt-3 gap-2 border-top border-secondary pt-3 flex-wrap">
-                                            <button class="btn btn-sm btn-success btn-concluir-sessao-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalConfirmarConcluir">
+                                            <button class="btn btn-sm btn-success btn-concluir-sessao-js"
+                                                data-id="<?php echo $sessao['id_sessao']; ?>"
+                                                data-titulo="<?php echo htmlspecialchars($sessao['titulo']); ?>"
+                                                data-local="<?php echo htmlspecialchars($sessao['local_corpo'] ?? ''); ?>"
+                                                data-tempo="<?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? ''); ?>"
+                                                data-sessoes="<?php echo ((int)$sessao['sessoes_realizadas'] + 1); ?>"
+                                                data-bs-toggle="modal" data-bs-target="#modalConfirmarConcluir">
                                                 <i class="bi bi-check-lg me-1"></i>Concluído
                                             </button>
                                             <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js"
@@ -445,16 +460,83 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             </div>
             <div class="modal-body text-white-50">
                 <p>Tem certeza que deseja <strong>finalizar</strong> este projeto?</p>
-                <p class="small">A sessão será dada como concluída e o projeto irá direto para o seu histórico.</p>
-                <form action="../actions/a.concluir-sessao.php" method="POST">
+                <form action="../actions/a.concluir-sessao.php" method="POST" id="formConcluirSessao">
                     <input type="hidden" name="sessao_id" id="inputConfirmarConcluirId" value="">
                     <div class="modal-footer border-top border-secondary p-0 pt-3">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                        <button type="submit" class="btn btn-success">Concluir</button>
+                        <button type="button" class="btn btn-success" id="btnIniciarConclusao">Concluir</button>
                     </div>
                 </form>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPerguntaPortfolio" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light bg-dark border-secondary text-center py-4 px-3">
+            <i class="bi bi-stars text-info mb-3" style="font-size: 3rem;"></i>
+            <h4 class="text-white mb-3">Sessão Concluída!</h4>
+            <p class="text-white-50 mb-4">Este projeto foi <strong>finalizado</strong>. Deseja adicionar o resultado final dele ao seu Portfólio?</p>
+            <div class="d-flex justify-content-center gap-3">
+                <button type="button" class="btn btn-outline-secondary px-3" id="btnNaoPortfolio">Não, apenas concluir</button>
+                <button type="button" class="btn btn-info text-dark px-4 fw-bold" id="btnSimPortfolio">Sim, adicionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPortfolio" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="../actions/a.novo-portfolio.php" method="POST" enctype="multipart/form-data" class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-bottom border-secondary py-2">
+                <h5 class="modal-title fs-5">Adicionar ao Portfólio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="window.location.reload()"></button>
+            </div>
+            <div class="modal-body py-3">
+                <div class="row g-2 text-start">
+                    <div class="col-12 mb-1">
+                        <label class="form-label small text-white-50">Foto da Tatuagem:</label>
+                        <input type="file" name="imagem" class="form-control bg-dark text-light border-secondary" accept="image/*" required>
+                    </div>
+                    <div class="col-12 mb-1">
+                        <label class="form-label small text-white-50">Título:</label>
+                        <input type="text" name="titulo" class="form-control bg-dark text-light border-secondary" id="port_titulo" required>
+                    </div>
+                    <div class="col-12 mb-1">
+                        <label class="form-label small text-white-50">Estilo:</label>
+                        <select name="id_estilo" class="form-select bg-dark text-light border-secondary" required>
+                            <option value=""></option>
+                            <?php if (isset($lista_estilos)) {
+                                foreach ($lista_estilos as $est): ?>
+                                    <option value="<?= $est['id_estilo'] ?>"><?= $est['nome'] ?></option>
+                            <?php endforeach;
+                            } ?>
+                        </select>
+                    </div>
+                    <div class="col-6 mb-1">
+                        <label class="form-label small text-white-50">Tempo (h):</label>
+                        <input type="number" name="tempo_execucao" class="form-control bg-dark text-light border-secondary" id="port_tempo" min="1">
+                    </div>
+                    <div class="col-6 mb-1">
+                        <label class="form-label small text-white-50">Sessões:</label>
+                        <input type="number" name="qtd_sessoes" class="form-control bg-dark text-light border-secondary" id="port_sessoes" min="1">
+                    </div>
+                    <div class="col-12 mb-1">
+                        <label class="form-label small text-white-50">Local do Corpo:</label>
+                        <input type="text" name="local_corpo" class="form-control bg-dark text-light border-secondary" id="port_local">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-white-50">Descrição (Opcional):</label>
+                        <textarea name="descricao" class="form-control bg-dark text-light border-secondary" rows="2" style="resize: none;"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="window.location.reload()">Pular por enquanto</button>
+                <button type="submit" class="btn btn-outline-light btn-sm px-4">Salvar no Portfólio</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -586,13 +668,53 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
         });
 
         // modais de concluir / liberar sessao
-        const btnsConcluirSessao = document.querySelectorAll('.btn-concluir-sessao-js');
         const inputConfirmarConcluirId = document.getElementById('inputConfirmarConcluirId');
-        btnsConcluirSessao.forEach(btn => {
+        document.querySelectorAll('.btn-concluir-sessao-js').forEach(btn => {
             btn.addEventListener('click', function() {
                 inputConfirmarConcluirId.value = this.getAttribute('data-id');
+                // Preenche o portfólio antecipadamente
+                if (document.getElementById('port_titulo')) {
+                    document.getElementById('port_titulo').value = this.getAttribute('data-titulo') || '';
+                    document.getElementById('port_local').value = this.getAttribute('data-local') || '';
+                    document.getElementById('port_sessoes').value = this.getAttribute('data-sessoes') || '';
+                    let tempoStr = this.getAttribute('data-tempo') || '';
+                    let tempoNum = tempoStr.match(/\d+/);
+                    document.getElementById('port_tempo').value = tempoNum ? tempoNum[0] : '';
+                }
             });
         });
+
+        // --- LÓGICA DO FLUXO DE CONCLUSÃO E PORTFÓLIO ---
+        const btnIniciarConclusao = document.getElementById('btnIniciarConclusao');
+        if (btnIniciarConclusao) {
+            btnIniciarConclusao.addEventListener('click', function() {
+                bootstrap.Modal.getInstance(document.getElementById('modalConfirmarConcluir')).hide();
+                new bootstrap.Modal(document.getElementById('modalPerguntaPortfolio')).show();
+            });
+        }
+        const btnNaoPortfolio = document.getElementById('btnNaoPortfolio');
+        if (btnNaoPortfolio) {
+            btnNaoPortfolio.addEventListener('click', function() {
+                document.getElementById('formConcluirSessao').submit(); // Envia normal
+            });
+        }
+        const btnSimPortfolio = document.getElementById('btnSimPortfolio');
+        if (btnSimPortfolio) {
+            btnSimPortfolio.addEventListener('click', function() {
+                this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Aguarde...';
+                let form = document.getElementById('formConcluirSessao');
+
+                // Salva a conclusão em segundo plano via AJAX
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form)
+                }).then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('modalPerguntaPortfolio')).hide();
+                    new bootstrap.Modal(document.getElementById('modalPortfolio')).show();
+                    this.innerHTML = 'Sim, adicionar!';
+                });
+            });
+        }
 
         const btnsLiberarSessao = document.querySelectorAll('.btn-liberar-sessao-js');
         const inputConfirmarLiberarId = document.getElementById('inputConfirmarLiberarId');

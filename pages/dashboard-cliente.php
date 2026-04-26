@@ -16,7 +16,8 @@ try {
     $sql = "SELECT s.id_sessao, s.data_hora, p.titulo, p.id_projeto, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, 
                    COALESCE(s.estimativa_tempo, o.estimativa_tempo) AS estimativa_tempo, 
                    o.referencia_ideia, o.qtd_sessoes, 
-                   COALESCE(s.valor_sessao, o.valor_sessao) AS valor_sessao 
+                   COALESCE(s.valor_sessao, o.valor_sessao) AS valor_sessao,
+                   (SELECT COUNT(*) FROM sessao s2 WHERE s2.id_projeto = p.id_projeto AND s2.status = 'Concluído') AS sessoes_realizadas
             FROM sessao s
             JOIN projeto p ON s.id_projeto = p.id_projeto
             LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
@@ -184,7 +185,7 @@ echo '</div>';
                                             <p class="mb-1"><strong>Local:</strong> <?php echo htmlspecialchars($sessao['local_corpo'] ?? 'Não informado'); ?></p>
                                             <p class="mb-1"><strong>Ideia:</strong> "<?php echo htmlspecialchars($sessao['descricao_ideia'] ?? 'Não informada'); ?>"</p>
                                             <p class="mb-1"><strong>Duração:</strong> <?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? 'A definir'); ?></p>
-                                            <p class="mb-1"><strong>Sessões Estimadas:</strong> <?php echo htmlspecialchars($sessao['qtd_sessoes'] ?? '-'); ?></p>
+                                            <p class="mb-1"><strong>Sessões Realizadas:</strong> <?php echo ((int)$sessao['sessoes_realizadas'] + 1); ?> | Estimado: <?php echo htmlspecialchars($sessao['qtd_sessoes'] ?? '-'); ?></p>
                                             <p class="mb-1"><strong>Valor da Sessão:</strong> R$ <?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : 'Não definido'; ?></p>
                                             <p class="mb-0"><strong>Referência:</strong>
                                                 <?php if (!empty($sessao['referencia_ideia'])): ?>

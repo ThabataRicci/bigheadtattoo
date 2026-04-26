@@ -21,6 +21,12 @@ if ($ano == $ANO_VISUALIZACAO && $mes < $MES_ATIVO) {
 }
 
 // --- LÓGICA DE BANCO DE DADOS ---
+$lista_estilos = [];
+try {
+    $lista_estilos = $pdo->query("SELECT * FROM estilo ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+}
+
 $solicitacoes_pendentes = [];
 $proximas_sessoes = [];
 $dias_com_agendamento = [];
@@ -650,153 +656,157 @@ endif;
                                                         <p class="mb-1"><strong>Local:</strong> <?php echo htmlspecialchars($sessao['local_corpo'] ?? 'Não informado'); ?></p>
                                                         <p class="mb-1"><strong>Ideia:</strong> "<?php echo htmlspecialchars($sessao['descricao_ideia'] ?? 'Não informada'); ?>"</p>
                                                         <p class="mb-1"><strong>Duração:</strong> <?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? 'A definir'); ?></p>
-                                                        <p class="mb-1"><strong>Sessões Estimadas:</strong> <?php echo htmlspecialchars($sessao['qtd_sessoes'] ?? '-'); ?></p>
-                                                        <p class="mb-1"><strong>Valor:</strong> R$ <?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : 'Não definido'; ?></p>
-                                                        <p class="mb-1"><strong>Referência:</strong>
-                                                            <?php if (!empty($sessao['referencia_ideia'])): ?>
-                                                                <a href="../imagens/orcamentos/<?php echo htmlspecialchars($sessao['referencia_ideia']); ?>" target="_blank" class="text-info text-decoration-none">
-                                                                    <i class="bi bi-image me-1"></i> Ver Anexo
-                                                                </a>
-                                                            <?php else: ?>
-                                                                <span class="text-white-50">Vazio</span>
-                                                            <?php endif; ?>
-                                                        </p>
-                                                    </div>
+                                                        <p class="mb-1"><strong>Sessões Realizadas:</strong> <?php echo ((int)$sessao['sessoes_realizadas'] + 1); ?> | Estimado: <?php echo htmlspecialchars($sessao['qtd_sessoes'] ?? '-'); ?></p>
+                                                        <p class="mb-3"><strong>Valor da Sessão:</strong> R$ <?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : 'Não definido'; ?></p>
 
-                                                    <div class="d-flex justify-content-end mt-3 gap-2 border-top border-secondary pt-3 flex-wrap">
-                                                        <button class="btn btn-sm btn-success btn-concluir-sessao-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalConfirmarConcluir">
-                                                            <i class="bi bi-check-lg me-1"></i>Concluído
-                                                        </button>
-                                                        <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js"
-                                                            data-idproj="<?php echo $sessao['id_projeto']; ?>"
-                                                            data-valor="<?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : ''; ?>"
-                                                            data-tempo="<?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? ''); ?>"
-                                                            data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
-                                                            <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
-                                                        </button>
-                                                        <button class="btn btn-sm btn-outline-warning btn-reagendar-sessao-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalReagendarArtista">Reagendar</button>
-                                                        <button class="btn btn-sm btn-outline-danger btn-cancelar-sessao-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarSessao">Cancelar</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="tab-pane fade" id="tab-historico" role="tabpanel" aria-labelledby="historico-tab">
-                            <div class="p-3">
-                                <?php if (empty($historico_artista)): ?>
-                                    <div class="card-resumo text-center text-white-50 mb-0">O histórico está vazio.</div>
-                                <?php else: ?>
-                                    <div class="d-flex justify-content-end mb-3 gap-2">
-                                        <select id="ordenarHistoricoArt" class="form-select form-select-sm bg-dark text-light border-secondary w-auto shadow-none">
-                                            <option value="recentes">Mais Recentes</option>
-                                            <option value="antigos">Mais Antigos</option>
-                                        </select>
-                                        <select id="filtroStatusHistoricoArt" class="form-select form-select-sm bg-dark text-light border-secondary w-auto shadow-none">
-                                            <option value="todos">Ver Tudo</option>
-                                            <option value="Finalizado">Finalizados</option>
-                                            <option value="Cancelado">Cancelados</option>
-                                            <option value="Recusado">Recusados</option>
-                                        </select>
-                                    </div>
-                                    <div class="accordion" id="acordeaoHistoricoArt">
-                                        <?php foreach ($historico_artista as $i => $item): ?>
-                                            <div class="accordion-item mb-2 historico-item-art-js" data-status="<?php echo strpos($item['status'], 'Cancelado') !== false ? 'Cancelado' : $item['status']; ?>" data-sort="<?php echo strtotime($item['data_sort']); ?>">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed text-light" type="button" data-bs-toggle="collapse" data-bs-target="#hist-art-<?php echo $i; ?>">
-                                                        <div class="w-100 d-flex justify-content-between align-items-center">
-                                                            <span><strong><?php echo $item['titulo']; ?></strong></span>
-                                                            <span class="badge <?php echo $item['status_class']; ?> me-3"><?php echo $item['status']; ?></span>
+                                                        <div class="d-flex justify-content-end mt-3 gap-2 border-top border-secondary pt-3 flex-wrap">
+                                                            <button class="btn btn-sm btn-success btn-concluir-sessao-js"
+                                                                data-id="<?php echo $sessao['id_sessao']; ?>"
+                                                                data-titulo="<?php echo htmlspecialchars($sessao['titulo']); ?>"
+                                                                data-local="<?php echo htmlspecialchars($sessao['local_corpo'] ?? ''); ?>"
+                                                                data-tempo="<?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? ''); ?>"
+                                                                data-sessoes="<?php echo ((int)$sessao['sessoes_realizadas'] + 1); ?>"
+                                                                data-bs-toggle="modal" data-bs-target="#modalConfirmarConcluir">
+                                                                <i class="bi bi-check-lg me-1"></i>Concluído
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js"
+                                                                data-idproj="<?php echo $sessao['id_projeto']; ?>"
+                                                                data-valor="<?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : ''; ?>"
+                                                                data-tempo="<?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? ''); ?>"
+                                                                data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
+                                                                <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-warning btn-reagendar-sessao-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalReagendarArtista">Reagendar</button>
+                                                            <button class="btn btn-sm btn-outline-danger btn-cancelar-sessao-js" data-id="<?php echo $sessao['id_sessao']; ?>" data-bs-toggle="modal" data-bs-target="#modalCancelarSessao">Cancelar</button>
                                                         </div>
-                                                    </button>
-                                                </h2>
-                                                <div id="hist-art-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoHistoricoArt">
-                                                    <div class="accordion-body text-white-50">
-
-                                                        <div class="small mb-3">
-                                                            <p class="mb-1"><strong>Local:</strong> <?php echo $item['local'] . ' - ' . $item['tamanho_desc']; ?></p>
-                                                            <p class="mb-1"><strong>Ideia:</strong> "<?php echo $item['ideia']; ?>"</p>
-                                                            <p class="mb-1"><strong>Duração:</strong> <?php echo $item['duracao']; ?></p>
-                                                            <p class="mb-1"><strong>Sessões Realizadas:</strong> <?php echo $item['sessoes_realizadas'] ?? 0; ?> | Estimado: <?php echo $item['sessoes_estimadas']; ?></p>
-                                                            <p class="mb-1"><strong>Valor da Sessão:</strong> R$ <?php echo $item['valor']; ?></p>
-                                                            <p class="mb-1"><strong>Referência:</strong>
-                                                                <?php if (!empty($item['ref'])): ?>
-                                                                    <a href="../imagens/orcamentos/<?php echo $item['ref']; ?>" target="_blank" class="text-info text-decoration-none">
-                                                                        <i class="bi bi-image me-1"></i> Ver Anexo
-                                                                    </a>
-                                                                <?php else: ?>
-                                                                    <span class="text-white-50">Vazio</span>
-                                                                <?php endif; ?>
-                                                            </p>
-                                                        </div>
-
-                                                        <hr class="my-3 border-secondary">
-
-                                                        <?php if (isset($item['tipo']) && $item['tipo'] == 'recusado'): ?>
-                                                            <p class="text-warning mb-0 small"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong>Motivo da Recusa/Encerramento:</strong> <?php echo $item['detalhe_status']; ?></p>
-                                                        <?php else: ?>
-                                                            <p class="mb-2"><strong>Linha do Tempo:</strong></p>
-
-                                                            <div class="p-2 mb-3" style="background-color: #2c2c2c; border-radius: 8px;">
-                                                                <?php if (empty($item['historico_sessoes'])): ?>
-                                                                    <p class='small mb-0 p-2'>Nenhuma sessão.</p>
-                                                                <?php else: ?>
-                                                                    <?php foreach ($item['historico_sessoes'] as $hist): ?>
-                                                                        <div class="small p-2 border-bottom border-dark">
-                                                                            <span class="<?php echo strpos($hist['icone'], 'text-danger') !== false ? 'text-warning' : 'text-white-50'; ?>">
-                                                                                <i class="bi <?php echo $hist['icone']; ?> me-2"></i> <?php echo $hist['desc']; ?>
-                                                                            </span>
-                                                                        </div>
-                                                                    <?php endforeach; ?>
-                                                                <?php endif; ?>
-                                                            </div>
-
-                                                            <?php if ($item['status'] === 'Finalizado'): ?>
-                                                                <div class="d-flex justify-content-end mt-3 gap-2 border-top border-secondary pt-3">
-                                                                    <button type="button" class="btn btn-sm btn-outline-info btn-liberar-sessao-js"
-                                                                        data-idproj="<?php echo $item['id_projeto']; ?>"
-                                                                        data-valor="<?php echo htmlspecialchars($item['valor'] ?? ''); ?>"
-                                                                        data-tempo="<?php echo htmlspecialchars($item['duracao'] ?? ''); ?>"
-                                                                        data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
-                                                                        <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
-                                                                    </button>
-                                                                </div>
-                                                            <?php endif; ?>
-
-                                                        <?php endif; ?>
                                                     </div>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="tab-pane fade" id="tab-historico" role="tabpanel" aria-labelledby="historico-tab">
+                                    <div class="p-3">
+                                        <?php if (empty($historico_artista)): ?>
+                                            <div class="card-resumo text-center text-white-50 mb-0">O histórico está vazio.</div>
+                                        <?php else: ?>
+                                            <div class="d-flex justify-content-end mb-3 gap-2">
+                                                <select id="ordenarHistoricoArt" class="form-select form-select-sm bg-dark text-light border-secondary w-auto shadow-none">
+                                                    <option value="recentes">Mais Recentes</option>
+                                                    <option value="antigos">Mais Antigos</option>
+                                                </select>
+                                                <select id="filtroStatusHistoricoArt" class="form-select form-select-sm bg-dark text-light border-secondary w-auto shadow-none">
+                                                    <option value="todos">Ver Tudo</option>
+                                                    <option value="Finalizado">Finalizados</option>
+                                                    <option value="Cancelado">Cancelados</option>
+                                                    <option value="Recusado">Recusados</option>
+                                                </select>
+                                            </div>
+                                            <div class="accordion" id="acordeaoHistoricoArt">
+                                                <?php foreach ($historico_artista as $i => $item): ?>
+                                                    <div class="accordion-item mb-2 historico-item-art-js" data-status="<?php echo strpos($item['status'], 'Cancelado') !== false ? 'Cancelado' : $item['status']; ?>" data-sort="<?php echo strtotime($item['data_sort']); ?>">
+                                                        <h2 class="accordion-header">
+                                                            <button class="accordion-button collapsed text-light" type="button" data-bs-toggle="collapse" data-bs-target="#hist-art-<?php echo $i; ?>">
+                                                                <div class="w-100 d-flex justify-content-between align-items-center">
+                                                                    <span><strong><?php echo $item['titulo']; ?></strong></span>
+                                                                    <span class="badge <?php echo $item['status_class']; ?> me-3"><?php echo $item['status']; ?></span>
+                                                                </div>
+                                                            </button>
+                                                        </h2>
+                                                        <div id="hist-art-<?php echo $i; ?>" class="accordion-collapse collapse" data-bs-parent="#acordeaoHistoricoArt">
+                                                            <div class="accordion-body text-white-50">
+
+                                                                <div class="small mb-3">
+                                                                    <p class="mb-1"><strong>Local:</strong> <?php echo $item['local'] . ' - ' . $item['tamanho_desc']; ?></p>
+                                                                    <p class="mb-1"><strong>Ideia:</strong> "<?php echo $item['ideia']; ?>"</p>
+                                                                    <p class="mb-1"><strong>Duração:</strong> <?php echo $item['duracao']; ?></p>
+                                                                    <p class="mb-1"><strong>Sessões Realizadas:</strong> <?php echo $item['sessoes_realizadas'] ?? 0; ?> | Estimado: <?php echo $item['sessoes_estimadas']; ?></p>
+                                                                    <p class="mb-1"><strong>Valor da Sessão:</strong> R$ <?php echo $item['valor']; ?></p>
+                                                                    <p class="mb-1"><strong>Referência:</strong>
+                                                                        <?php if (!empty($item['ref'])): ?>
+                                                                            <a href="../imagens/orcamentos/<?php echo $item['ref']; ?>" target="_blank" class="text-info text-decoration-none">
+                                                                                <i class="bi bi-image me-1"></i> Ver Anexo
+                                                                            </a>
+                                                                        <?php else: ?>
+                                                                            <span class="text-white-50">Vazio</span>
+                                                                        <?php endif; ?>
+                                                                    </p>
+                                                                </div>
+
+                                                                <hr class="my-3 border-secondary">
+
+                                                                <?php if (isset($item['tipo']) && $item['tipo'] == 'recusado'): ?>
+                                                                    <p class="text-warning mb-0 small"><i class="bi bi-x-circle-fill text-danger me-2"></i> <strong>Motivo da Recusa/Encerramento:</strong> <?php echo $item['detalhe_status']; ?></p>
+                                                                <?php else: ?>
+                                                                    <p class="mb-2"><strong>Linha do Tempo:</strong></p>
+
+                                                                    <div class="p-2 mb-3" style="background-color: #2c2c2c; border-radius: 8px;">
+                                                                        <?php if (empty($item['historico_sessoes'])): ?>
+                                                                            <p class='small mb-0 p-2'>Nenhuma sessão.</p>
+                                                                        <?php else: ?>
+                                                                            <?php foreach ($item['historico_sessoes'] as $hist): ?>
+                                                                                <div class="small p-2 border-bottom border-dark">
+                                                                                    <span class="<?php echo strpos($hist['icone'], 'text-danger') !== false ? 'text-warning' : 'text-white-50'; ?>">
+                                                                                        <i class="bi <?php echo $hist['icone']; ?> me-2"></i> <?php echo $hist['desc']; ?>
+                                                                                    </span>
+                                                                                </div>
+                                                                            <?php endforeach; ?>
+                                                                        <?php endif; ?>
+                                                                    </div>
+
+                                                                    <?php if ($item['status'] === 'Finalizado'): ?>
+                                                                        <div class="d-flex justify-content-end mt-3 gap-2 border-top border-secondary pt-3">
+                                                                            <button type="button" class="btn btn-sm btn-info text-dark btn-add-portfolio-hist-js"
+                                                                                data-titulo="<?php echo $item['titulo']; ?>"
+                                                                                data-local="<?php echo $item['local']; ?>"
+                                                                                data-tempo="<?php echo $item['duracao']; ?>"
+                                                                                data-sessoes="<?php echo $item['sessoes_realizadas']; ?>"
+                                                                                data-bs-toggle="modal" data-bs-target="#modalPortfolio">
+                                                                                <i class="bi bi-stars me-1"></i>Adicionar ao Portfólio
+                                                                            </button>
+                                                                            <button type="button" class="btn btn-sm btn-outline-info btn-liberar-sessao-js"
+                                                                                data-idproj="<?php echo $item['id_projeto']; ?>"
+                                                                                data-valor="<?php echo htmlspecialchars($item['valor'] ?? ''); ?>"
+                                                                                data-tempo="<?php echo htmlspecialchars($item['duracao'] ?? ''); ?>"
+                                                                                data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
+                                                                                <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
+                                                                            </button>
+                                                                        </div>
+                                                                    <?php endif; ?>
+
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
-                                <?php endif; ?>
+                                </div>
+
+                            <?php endif; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="row justify-content-center">
+                            <div class="col-md-8 col-lg-7">
+                                <div class="formulario-container text-center">
+                                    <h3 class="text-warning mb-3">Acesso Inválido</h3>
+                                    <p class="text-white-50 mb-4">Para acessar o calendário e agendar sua sessão, você precisa primeiro selecionar um orçamento aprovado na sua página de agendamentos.</p>
+                                    <div class="d-grid gap-2">
+                                        <a href="agendamentos-cliente.php" class="btn btn-primary">VER MEUS AGENDAMENTOS</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
                     <?php endif; ?>
-                </div>
-            <?php else: ?>
-                <div class="row justify-content-center">
-                    <div class="col-md-8 col-lg-7">
-                        <div class="formulario-container text-center">
-                            <h3 class="text-warning mb-3">Acesso Inválido</h3>
-                            <p class="text-white-50 mb-4">Para acessar o calendário e agendar sua sessão, você precisa primeiro selecionar um orçamento aprovado na sua página de agendamentos.</p>
-                            <div class="d-grid gap-2">
-                                <a href="agendamentos-cliente.php" class="btn btn-primary">VER MEUS AGENDAMENTOS</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
 
-        <?php else: ?>
-            <h3 class="text-center text-white">Você não tem permissão.</h3>
-        <?php endif; ?>
+                <?php else: ?>
+                    <h3 class="text-center text-white">Você não tem permissão.</h3>
+                <?php endif; ?>
 
-    </div>
+                </div>
 </main>
 
 <?php if ($is_artista): ?>
@@ -995,16 +1005,83 @@ endif;
                 </div>
                 <div class="modal-body text-white-50">
                     <p>Tem certeza que deseja <strong>finalizar</strong> este projeto?</p>
-                    <p class="small">A sessão será dada como concluída e o projeto irá direto para o seu histórico.</p>
-                    <form action="../actions/a.concluir-sessao.php" method="POST">
+                    <form action="../actions/a.concluir-sessao.php" method="POST" id="formConcluirSessao">
                         <input type="hidden" name="sessao_id" id="inputConfirmarConcluirId" value="">
                         <div class="modal-footer border-top border-secondary p-0 pt-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                            <button type="submit" class="btn btn-success">Concluir</button>
+                            <button type="button" class="btn btn-success" id="btnIniciarConclusao">Concluir</button>
                         </div>
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalPerguntaPortfolio" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-light bg-dark border-secondary text-center py-4 px-3">
+                <i class="bi bi-stars text-info mb-3" style="font-size: 3rem;"></i>
+                <h4 class="text-white mb-3">Sessão Concluída!</h4>
+                <p class="text-white-50 mb-4">Este projeto foi <strong>finalizado</strong>. Deseja adicionar o resultado final dele ao seu Portfólio?</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-outline-secondary px-3" id="btnNaoPortfolio">Não, apenas concluir</button>
+                    <button type="button" class="btn btn-info text-dark px-4 fw-bold" id="btnSimPortfolio">Sim, adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalPortfolio" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <form action="../actions/a.novo-portfolio.php" method="POST" enctype="multipart/form-data" class="modal-content bg-dark text-light border-secondary">
+                <div class="modal-header border-bottom border-secondary py-2">
+                    <h5 class="modal-title fs-5">Adicionar ao Portfólio</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="window.location.reload()"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <div class="row g-2 text-start">
+                        <div class="col-12 mb-1">
+                            <label class="form-label small text-white-50">Foto da Tatuagem:</label>
+                            <input type="file" name="imagem" class="form-control bg-dark text-light border-secondary" accept="image/*" required>
+                        </div>
+                        <div class="col-12 mb-1">
+                            <label class="form-label small text-white-50">Título:</label>
+                            <input type="text" name="titulo" class="form-control bg-dark text-light border-secondary" id="port_titulo" required>
+                        </div>
+                        <div class="col-12 mb-1">
+                            <label class="form-label small text-white-50">Estilo:</label>
+                            <select name="id_estilo" class="form-select bg-dark text-light border-secondary" required>
+                                <option value=""></option>
+                                <?php if (isset($lista_estilos)) {
+                                    foreach ($lista_estilos as $est): ?>
+                                        <option value="<?= $est['id_estilo'] ?>"><?= $est['nome'] ?></option>
+                                <?php endforeach;
+                                } ?>
+                            </select>
+                        </div>
+                        <div class="col-6 mb-1">
+                            <label class="form-label small text-white-50">Tempo (h):</label>
+                            <input type="number" name="tempo_execucao" class="form-control bg-dark text-light border-secondary" id="port_tempo" min="1">
+                        </div>
+                        <div class="col-6 mb-1">
+                            <label class="form-label small text-white-50">Sessões:</label>
+                            <input type="number" name="qtd_sessoes" class="form-control bg-dark text-light border-secondary" id="port_sessoes" min="1">
+                        </div>
+                        <div class="col-12 mb-1">
+                            <label class="form-label small text-white-50">Local do Corpo:</label>
+                            <input type="text" name="local_corpo" class="form-control bg-dark text-light border-secondary" id="port_local">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small text-white-50">Descrição (Opcional):</label>
+                            <textarea name="descricao" class="form-control bg-dark text-light border-secondary" rows="2" style="resize: none;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="window.location.reload()">Pular por enquanto</button>
+                    <button type="submit" class="btn btn-outline-light btn-sm px-4">Salvar no Portfólio</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1183,10 +1260,10 @@ endif;
                 let botoesAcao = '';
                 if (sessao.status === 'Agendado') {
                     botoesAcao = `
-                    <div class="d-flex justify-content-end mt-3 gap-2 border-top border-secondary pt-3 flex-wrap">
-                        <button class="btn btn-sm btn-success btn-concluir-sessao-js" data-id="${sessao.id}" data-bs-toggle="modal" data-bs-target="#modalConfirmarConcluir">
-                            <i class="bi bi-check-lg me-1"></i>Concluído
-                        </button>
+            <div class="d-flex justify-content-end mt-3 gap-2 border-top border-secondary pt-3 flex-wrap">
+               <button class="btn btn-sm btn-success btn-concluir-sessao-js" data-id="${sessao.id}" data-titulo="${sessao.titulo}" data-local="${local}" data-tempo="${duracao}" data-sessoes="${parseInt(sessao.sessoes_realizadas) + 1}" data-bs-toggle="modal" data-bs-target="#modalConfirmarConcluir">
+                    <i class="bi bi-check-lg me-1"></i>Concluído
+                </button>
                        <button class="btn btn-sm btn-outline-info btn-liberar-sessao-js" data-idproj="${sessao.id_projeto}" data-valor="${valor}" data-tempo="${duracao}" data-bs-toggle="modal" data-bs-target="#modalConfirmarLiberar">
                             <i class="bi bi-unlock me-1"></i>Liberar Nova Sessão
                         </button>
@@ -1219,12 +1296,12 @@ endif;
                         <p class="mb-1"><strong>Local:</strong> ${local}</p>
                         <p class="mb-1"><strong>Ideia:</strong> "${ideia}"</p>
                         <p class="mb-0"><strong>Referência:</strong> ${refLink}</p>
-                        <p class="mb-1"><strong>Duração:</strong> ${duracao}</p>
-                        <p class="mb-1"><strong>Sessões Realizadas:</strong> ${sessao.sessoes_realizadas} | Estimado: ${sessoesEstimadas}</p>
-                        <p class="mb-1"><strong>Valor da Sessão:</strong> R$ ${valor}</p>
-                    </div>
-                    
-                    ${botoesAcao}
+                       <p class="mb-1"><strong>Duração:</strong> ${duracao}</p>
+        <p class="mb-1"><strong>Sessões Realizadas:</strong> ${parseInt(sessao.sessoes_realizadas) + 1} | Estimado: ${sessoesEstimadas}</p>
+        <p class="mb-1"><strong>Valor da Sessão:</strong> R$ ${valor}</p>
+    </div>
+    
+    ${botoesAcao}
                 </div>`;
             });
         } else {
@@ -1258,11 +1335,21 @@ endif;
                 document.getElementById('inputReagendarIdArtista').value = this.getAttribute('data-id');
             });
         });
+        // modais de concluir / liberar sessao do calendario
         document.querySelectorAll('.btn-concluir-sessao-js').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.getElementById('inputConfirmarConcluirId').value = this.getAttribute('data-id');
+                if (document.getElementById('port_titulo')) {
+                    document.getElementById('port_titulo').value = this.getAttribute('data-titulo') || '';
+                    document.getElementById('port_local').value = this.getAttribute('data-local') || '';
+                    document.getElementById('port_sessoes').value = this.getAttribute('data-sessoes') || '';
+                    let tempoStr = this.getAttribute('data-tempo') || '';
+                    let tempoNum = tempoStr.match(/\d+/);
+                    document.getElementById('port_tempo').value = tempoNum ? tempoNum[0] : '';
+                }
             });
         });
+
         document.querySelectorAll('.btn-liberar-sessao-js').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.getElementById('inputConfirmarLiberarId').value = this.getAttribute('data-idproj');
@@ -1387,6 +1474,52 @@ endif;
                 });
             });
 
+            // --- LÓGICA DE CONCLUIR SESSÃO (abas estáticas) ---
+            document.querySelectorAll('.btn-concluir-sessao-js').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('inputConfirmarConcluirId').value = this.getAttribute('data-id');
+                    if (document.getElementById('port_titulo')) {
+                        document.getElementById('port_titulo').value = this.getAttribute('data-titulo') || '';
+                        document.getElementById('port_local').value = this.getAttribute('data-local') || '';
+                        document.getElementById('port_sessoes').value = this.getAttribute('data-sessoes') || '';
+                        let tempoStr = this.getAttribute('data-tempo') || '';
+                        let tempoNum = tempoStr.match(/\d+/);
+                        document.getElementById('port_tempo').value = tempoNum ? tempoNum[0] : '';
+                    }
+                });
+            });
+
+            // --- LÓGICA DO FLUXO DE CONCLUSÃO E PORTFÓLIO (Global) ---
+            const btnIniciarConclusao = document.getElementById('btnIniciarConclusao');
+            if (btnIniciarConclusao) {
+                btnIniciarConclusao.addEventListener('click', function() {
+                    bootstrap.Modal.getInstance(document.getElementById('modalConfirmarConcluir')).hide();
+                    new bootstrap.Modal(document.getElementById('modalPerguntaPortfolio')).show();
+                });
+            }
+            const btnNaoPortfolio = document.getElementById('btnNaoPortfolio');
+            if (btnNaoPortfolio) {
+                btnNaoPortfolio.addEventListener('click', function() {
+                    document.getElementById('formConcluirSessao').submit(); // Envia normal
+                });
+            }
+            const btnSimPortfolio = document.getElementById('btnSimPortfolio');
+            if (btnSimPortfolio) {
+                btnSimPortfolio.addEventListener('click', function() {
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Aguarde...';
+                    let form = document.getElementById('formConcluirSessao');
+
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: new FormData(form)
+                    }).then(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('modalPerguntaPortfolio')).hide();
+                        new bootstrap.Modal(document.getElementById('modalPortfolio')).show();
+                        this.innerHTML = 'Sim, adicionar!';
+                    });
+                });
+            }
+
             // Lógica para preencher o modal de Liberar Nova Sessão (abas estáticas)
             document.querySelectorAll('.btn-liberar-sessao-js').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -1401,6 +1534,21 @@ endif;
             document.querySelectorAll('.btn-reagendar-sessao-js').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.getElementById('inputReagendarIdArtista').value = this.getAttribute('data-id');
+                });
+            });
+
+            // Lógica para enviar projeto Finalizado direto pro Portfólio via Histórico
+            document.querySelectorAll('.btn-add-portfolio-hist-js').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (document.getElementById('port_titulo')) {
+                        // O split(' | ')[0] é pra arrancar o nome do cliente que vem grudado no histórico
+                        document.getElementById('port_titulo').value = this.getAttribute('data-titulo').split(' | ')[0] || '';
+                        document.getElementById('port_local').value = this.getAttribute('data-local') || '';
+                        document.getElementById('port_sessoes').value = this.getAttribute('data-sessoes') || '';
+                        let tempoStr = this.getAttribute('data-tempo') || '';
+                        let tempoNum = tempoStr.match(/\d+/);
+                        document.getElementById('port_tempo').value = tempoNum ? tempoNum[0] : '';
+                    }
                 });
             });
 

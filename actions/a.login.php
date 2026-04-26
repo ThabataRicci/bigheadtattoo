@@ -7,8 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $senha = $_POST['senha'];
     $redirect = $_POST['redirect'] ?? '';
 
-    // CORREÇÃO AQUI: Adicionado o "status" na busca do banco
-    $sql = "SELECT id_usuario, nome, senha, perfil, status FROM usuario WHERE email = ?";
+    $sql = "SELECT id_usuario, nome, senha, perfil, status, data_nascimento FROM usuario WHERE email = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$email]);
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -17,8 +16,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // verificar se o cliente está bloqueado
         if (isset($usuario['status']) && $usuario['status'] === 'Bloqueado') {
-            header("Location: ../pages/login.php?erro=bloqueado");
-            exit();
+
+            // verifica a idade atual do cliente
+            if (!empty($usuario['data_nascimento'])) {
+                $nasc_cliente = new DateTime($usuario['data_nascimento']);
+                $hoje = new DateTime('today');
+                $idade_atual = $nasc_cliente->diff($hoje)->y;
+
+                if ($idade_atual >= 18) {
+                    // fez 18 anos
+                    $stmt_desbloqueio = $pdo->prepare("UPDATE usuario SET status = 'Ativo' WHERE id_usuario = ?");
+                    $stmt_desbloqueio->execute([$usuario['id_usuario']]);
+                    $usuario['status'] = 'Ativo';
+                } else {
+                    // menor de idade
+                    header("Location: ../pages/login.php?erro=bloqueado");
+                    exit();
+                }
+            } else {
+                header("Location: ../pages/login.php?erro=bloqueado");
+                exit();
+            }
         }
 
         // sucesso login

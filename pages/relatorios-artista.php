@@ -439,7 +439,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                         <td class="text-nowrap"><?php echo $data_sessao->format('d/m/Y | H:i'); ?></td>
                                         <td>
                                             <?php
-                                            // --- Lógica para pegar nascimento e idade (precisamos fazer um mini-select pois o dado não tá no JOIN principal) ---
+
                                             $stmt_nasc = $pdo->prepare("SELECT data_nascimento FROM usuario WHERE id_usuario = ?");
                                             $stmt_nasc->execute([$hist['id_usuario']]);
                                             $nasc_bd = $stmt_nasc->fetchColumn();
@@ -482,6 +482,8 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                                 data-cli-nome="<?php echo htmlspecialchars($hist['cliente_nome']); ?>"
                                                 data-cli-email="<?php echo htmlspecialchars($hist['email']); ?>"
                                                 data-cli-telefone="<?php echo htmlspecialchars($hist['telefone']); ?>"
+                                                data-cli-nascimento="<?php echo $nasc_formatado; ?>"
+                                                data-cli-idade="<?php echo $idade_cliente; ?>"
                                                 data-cli-cadastro="<?php echo date('d/m/Y', strtotime($hist['data_cadastro'])); ?>"
                                                 data-cli-sessoes="<?php echo $hist['qtd_sessoes_total']; ?>"
                                                 data-cli-gasto="<?php echo number_format($hist['total_gasto_cliente'] ?? 0, 2, ',', '.'); ?>"
@@ -832,27 +834,27 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     <div class="modal fade" id="modalDetalhesCliente" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-light bg-dark border-secondary">
+
                 <div class="modal-header border-bottom border-secondary">
                     <h5 class="modal-title" id="mdlCliNome">Nome</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body text-white-50">
 
-                    <div class="row mb-3">
+                <div class="modal-body text-white-50">
+                    <div class="row g-4 mb-4">
                         <div class="col-6">
                             <span class="card-label" style="font-size: 0.7rem;">Idade / Nascimento</span>
                             <span class="text-light fw-bold" id="mdlCliIdade"></span>
                             <span class="small text-white-50 ms-1">(<span id="mdlCliNascimento"></span>)</span>
                         </div>
+
                         <div class="col-6">
                             <span class="card-label" style="font-size: 0.7rem;">Telefone / WhatsApp</span>
                             <a href="" id="mdlCliWppLink" target="_blank" class="text-light text-decoration-none d-block">
-                                <i class="bi bi-whatsapp me-1 text-success"></i><span id="mdlCliTelefone"></span>
+                                <i class="bi bi-whatsapp me-2 text-success"></i><span id="mdlCliTelefone"></span>
                             </a>
                         </div>
-                    </div>
 
-                    <div class="row mb-3">
                         <div class="col-12">
                             <span class="card-label" style="font-size: 0.7rem;">E-mail</span>
                             <div class="d-flex align-items-center">
@@ -862,61 +864,37 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                                 </button>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="row mb-4">
                         <div class="col-6">
                             <span class="card-label" style="font-size: 0.7rem;">Sessões Concluídas</span>
-                            <span id="mdlCliSessoes" class="text-light fw-bold"></span>
+                            <span id="mdlCliSessoes" class="text-light fw-bold fs-5"></span>
                         </div>
+
                         <div class="col-6">
                             <span class="card-label" style="font-size: 0.7rem;">Total Investido</span>
-                            <span class="text-light fw-bold">R$ <span id="mdlCliTotalGasto"></span></span>
+                            <span class="text-light fw-bold fs-5">R$ <span id="mdlCliTotalGasto"></span></span>
                         </div>
                     </div>
 
                     <hr class="border-secondary">
-                    <button type="button" class="btn btn-sm btn-outline-secondary border-0 py-0 px-1" onclick="copiarEmail()" title="Copiar E-mail">
-                        <i class="bi bi-copy" style="font-size: 0.8rem; color: #aaa;"></i>
-                    </button>
+
+                    <h6 class="text-light small fw-bold mb-3">PROJETOS DESTE CLIENTE:</h6>
+                    <div id="mdlCliProjetos" class="mb-4 pe-2" style="max-height: 150px; overflow-y: auto;">
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-3 border-top border-secondary">
+                        <span class="small text-white-50">Cadastrado em: <span id="mdlCliCadastro"></span></span>
+                        <span id="mdlCliStatus" class="badge px-3 py-2"></span>
+                    </div>
                 </div>
-            </div>
-            <div class="col-6">
-                <span class="card-label" style="font-size: 0.7rem;">Telefone / WhatsApp</span>
-                <a href="" id="mdlCliWppLink" target="_blank" class="text-light text-decoration-none d-block">
-                    <i class="bi bi-whatsapp me-1"></i><span id="mdlCliTelefone"></span>
-                </a>
-            </div>
-        </div>
 
-        <div class="row mb-4">
-            <div class="col-6">
-                <span class="card-label" style="font-size: 0.7rem;">Sessões Concluídas</span>
-                <span id="mdlCliSessoes" class="text-light fw-bold"></span>
-            </div>
-            <div class="col-6">
-                <span class="card-label" style="font-size: 0.7rem;">Total Investido</span>
-                <span class="text-light fw-bold">R$ <span id="mdlCliTotalGasto"></span></span>
+                <div class="modal-footer border-top border-secondary pt-3 d-flex justify-content-between">
+                    <div id="mdlCliAreaBotao"></div>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+
             </div>
         </div>
-
-        <hr class="border-secondary">
-
-        <h6 class="text-light small fw-bold mb-2 border-bottom border-secondary pb-2">PROJETOS DESTE CLIENTE:</h6>
-        <div id="mdlCliProjetos" class="mb-3 pe-2" style="max-height: 150px; overflow-y: auto;">
-        </div>
-
-        <div class="d-flex justify-content-between align-items-center">
-            <span class="small">Cadastrado em: <span id="mdlCliCadastro"></span></span>
-            <span id="mdlCliStatus" class="badge"></span>
-        </div>
-    </div>
-    <div class="modal-footer border-top border-secondary pt-3">
-        <div id="mdlCliAreaBotao"></div>
-        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Fechar</button>
-    </div>
-    </div>
-    </div>
     </div>
 
     <div class="modal fade" id="modalBloquearCliente" tabindex="-1">
@@ -1035,7 +1013,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
                 });
         };
 
-        // --- 4. CARREGAMENTO AJAX: MODAL PROJETO ---
         window.abrirModalProjeto = function(btn) {
             const idProj = btn.getAttribute('data-id-proj');
             document.getElementById('mdlProjTitulo').innerText = btn.getAttribute('data-titulo');
@@ -1047,7 +1024,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
             const linkCli = document.getElementById('mdlProjLinkCliente');
             document.getElementById('mdlProjNomeClienteTexto').innerText = btn.getAttribute('data-cli-nome');
 
-            const attrs = ['id', 'nome', 'email', 'telefone', 'cadastro', 'sessoes', 'gasto', 'status'];
+            const attrs = ['id', 'nome', 'email', 'telefone', 'nascimento', 'idade', 'cadastro', 'sessoes', 'gasto', 'status'];
             attrs.forEach(a => {
                 linkCli.setAttribute('data-' + a, btn.getAttribute('data-cli-' + a));
             });
