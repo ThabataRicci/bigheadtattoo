@@ -44,8 +44,8 @@ if ($is_artista) {
         $solicitacoes_pendentes = $pdo->query($sql_pendentes)->fetchAll();
 
         // busca propostas enviadas (aguardando cliente agendar)
-        $sql_enviadas = "SELECT o.id_orcamento, o.titulo_sugerido AS titulo, o.local_corpo, o.descricao_ideia, o.valor_sessao, o.estimativa_tempo, o.qtd_sessoes, u.nome AS nome_cliente 
-                         FROM orcamento o 
+        $sql_enviadas = "SELECT o.id_orcamento, o.titulo_sugerido AS titulo, o.local_corpo, o.descricao_ideia, o.valor_sessao, o.estimativa_tempo, o.qtd_sessoes, o.referencia_ideia, u.nome AS nome_cliente 
+                         FROM orcamento o
                          JOIN usuario u ON o.id_usuario = u.id_usuario 
                          WHERE o.status = 'Aguardando Aceite'
                          ORDER BY o.id_orcamento DESC";
@@ -559,6 +559,13 @@ endif;
                                                 <div class="accordion-body text-white-50">
                                                     <p class="mb-1"><strong>Local:</strong> <?php echo htmlspecialchars($prop['local_corpo']); ?></p>
                                                     <p class="mb-1"><strong>Ideia:</strong> "<?php echo htmlspecialchars($prop['descricao_ideia']); ?>"</p>
+                                                    <p class="mb-1"><strong>Referência Enviada:</strong>
+                                                        <?php if (!empty($prop['referencia_ideia'])): ?>
+                                                            <a href="../imagens/orcamentos/<?php echo htmlspecialchars($prop['referencia_ideia']); ?>" target="_blank" class="text-info text-decoration-none"><i class="bi bi-image me-1"></i>Ver Anexo</a>
+                                                        <?php else: ?>
+                                                            Vazio
+                                                        <?php endif; ?>
+                                                    </p>
                                                     <p class="mb-1"><strong>Duração:</strong> <?php echo htmlspecialchars($prop['estimativa_tempo']); ?> | <strong>Sessões:</strong> <?php echo htmlspecialchars($prop['qtd_sessoes']); ?></p>
                                                     <p class="mb-3"><strong>Valor:</strong> R$ <?php echo !empty($prop['valor_sessao']) ? number_format($prop['valor_sessao'], 2, ',', '.') : '0,00'; ?></p>
 
@@ -655,6 +662,15 @@ endif;
                                                     <div class="small mb-3">
                                                         <p class="mb-1"><strong>Local:</strong> <?php echo htmlspecialchars($sessao['local_corpo'] ?? 'Não informado'); ?></p>
                                                         <p class="mb-1"><strong>Ideia:</strong> "<?php echo htmlspecialchars($sessao['descricao_ideia'] ?? 'Não informada'); ?>"</p>
+                                                        <p class="mb-1"><strong>Referência:</strong>
+                                                            <?php if (!empty($sessao['referencia_ideia'])): ?>
+                                                                <a href="../imagens/orcamentos/<?php echo htmlspecialchars($sessao['referencia_ideia']); ?>" target="_blank" class="text-info text-decoration-none">
+                                                                    <i class="bi bi-image me-1"></i> Ver Anexo
+                                                                </a>
+                                                            <?php else: ?>
+                                                                <span class="text-white-50">Vazio</span>
+                                                            <?php endif; ?>
+                                                        </p>
                                                         <p class="mb-1"><strong>Duração:</strong> <?php echo htmlspecialchars($sessao['estimativa_tempo'] ?? 'A definir'); ?></p>
                                                         <p class="mb-1"><strong>Sessões Realizadas:</strong> <?php echo ((int)$sessao['sessoes_realizadas'] + 1); ?> | Estimado: <?php echo htmlspecialchars($sessao['qtd_sessoes'] ?? '-'); ?></p>
                                                         <p class="mb-3"><strong>Valor da Sessão:</strong> R$ <?php echo !empty($sessao['valor_sessao']) ? number_format($sessao['valor_sessao'], 2, ',', '.') : 'Não definido'; ?></p>

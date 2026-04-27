@@ -120,7 +120,7 @@ try {
     }
 
     // 3.B AÇÃO REQUERIDA: Agendar ou Reagendar Sessão (Projeto já existente)
-    $sql_reagendar = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.qtd_sessoes, o.valor_sessao,
+    $sql_reagendar = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.estimativa_tempo, o.qtd_sessoes, o.valor_sessao, o.referencia_ideia,
                              (SELECT COUNT(*) FROM sessao s2 WHERE s2.id_projeto = p.id_projeto AND s2.status = 'Concluído') AS sessoes_realizadas
                       FROM projeto p 
                       LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento 
@@ -155,7 +155,7 @@ try {
             'local' => htmlspecialchars($row['local_corpo'] ?? 'Não informado'),
             'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado'] ?? 'Não informado'),
             'ideia' => htmlspecialchars($row['descricao_ideia'] ?? 'Escolha a data.'),
-            'ref' => 'Sem referência',
+            'ref' => !empty($row['referencia_ideia']) ? $row['referencia_ideia'] : 'Sem referência',
             'duracao' => htmlspecialchars($row['estimativa_tempo'] ?? 'A definir'),
             'sessoes_realizadas' => $row['sessoes_realizadas'],
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
@@ -196,8 +196,8 @@ try {
     }
 
     // Projetos Finalizados ou Cancelados definitivamente
-    $sql_hist_proj = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.qtd_sessoes, o.valor_sessao 
-                      FROM projeto p 
+    $sql_hist_proj = "SELECT p.*, o.local_corpo, o.tamanho_aproximado, o.descricao_ideia, o.qtd_sessoes, o.valor_sessao, o.referencia_ideia 
+                      FROM projeto p
                       LEFT JOIN orcamento o ON p.id_orcamento = o.id_orcamento
                       WHERE p.id_usuario = ? AND p.status IN ('Finalizado', 'Cancelado')
                       ORDER BY p.id_projeto DESC";
@@ -233,7 +233,7 @@ try {
             'local' => htmlspecialchars($row['local_corpo'] ?? 'Não informado'),
             'tamanho_desc' => htmlspecialchars($row['tamanho_aproximado'] ?? 'Não informado'),
             'ideia' => htmlspecialchars($row['descricao_ideia'] ?? ''),
-            'ref' => 'Sem referência',
+            'ref' => !empty($row['referencia_ideia']) ? $row['referencia_ideia'] : 'Sem referência',
             'sessoes_estimadas' => htmlspecialchars($row['qtd_sessoes'] ?? '-'),
             'sessoes_realizadas' => $contador - 1,
             'valor' => !empty($row['valor_sessao']) ? number_format($row['valor_sessao'], 2, ',', '.') : 'Não definido',
